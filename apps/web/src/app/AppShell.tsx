@@ -1,4 +1,4 @@
-import { Activity, Clapperboard, Download, Film, LogOut, Menu, X } from 'lucide-react';
+import { Activity, Clapperboard, Download, Film, ListChecks, LogOut, Menu, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
@@ -10,6 +10,7 @@ const NAV = [
   { to: '/library', label: 'คลังวิดีโอ', icon: Film },
   { to: '/clips', label: 'คลิป', icon: Clapperboard },
   { to: '/exports', label: 'ไฟล์ส่งออก', icon: Download },
+  { to: '/jobs', label: 'งานประมวลผล', icon: ListChecks },
 ] as const;
 
 function NavItem({
