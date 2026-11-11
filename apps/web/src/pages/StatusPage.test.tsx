@@ -39,7 +39,8 @@ describe('StatusPage', () => {
     expect(await screen.findByText('ทุกอย่างปกติ')).toBeTruthy();
     expect(screen.getByTestId('check-postgres').dataset.status).toBe('up');
     expect(screen.getByTestId('check-redis').dataset.status).toBe('up');
-    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('/api/health');
+    const request = vi.mocked(fetch).mock.calls[0]?.[0] as Request | undefined;
+    expect(request?.url).toMatch(/\/api\/health$/);
   });
 
   it('treats a 503 health report as data and names the failing dependency', async () => {

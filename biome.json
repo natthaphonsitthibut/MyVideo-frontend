@@ -11,6 +11,7 @@
       "**",
       "!**/dist",
       "!**/*.md",
+      "!**/openapi.json",
       "!apps/web/src/api/generated",
       "!**/test-results",
       "!**/playwright-report"

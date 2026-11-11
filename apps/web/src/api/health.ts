@@ -1,17 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import { ApiError, getJson } from './http';
+import { ApiError, api, type Schemas } from './client';
 
-export type CheckStatus = { status: 'up' | 'down'; latencyMs: number; error?: string };
-export type HealthReport = { status: 'ok' | 'degraded'; checks: Record<string, CheckStatus> };
+export type HealthReport = Schemas['HealthReport'];
+export type CheckStatus = Schemas['CheckStatus'];
 
 /** `/health` answers 503 with a full report when a dependency is down — that is data, not an error. */
 async function fetchHealth(): Promise<HealthReport> {
-  try {
-    return await getJson<HealthReport>('/health');
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 503 && err.body) return err.body as HealthReport;
-    throw err;
-  }
+  const { data, error, response } = await api.GET('/health');
+  if (data) return data;
+  if (response.status === 503 && error) return error;
+  throw new ApiError(response.status, error);
 }
 
 export function useHealth() {
