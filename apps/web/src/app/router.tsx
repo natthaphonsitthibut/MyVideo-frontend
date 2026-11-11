@@ -1,12 +1,20 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router';
-import { AppShell } from './AppShell';
+import { LoginPage } from '@/auth/LoginPage';
+import { RequireAuth } from '@/auth/RequireAuth';
+import { AppShell, PageFallback } from './AppShell';
 import { RouteError } from './RouteError';
 
 export const routes: RouteObject[] = [
+  { path: '/login', element: <LoginPage />, errorElement: <RouteError /> },
   {
     path: '/',
-    element: <AppShell />,
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     errorElement: <RouteError />,
+    hydrateFallbackElement: <PageFallback />,
     children: [
       { index: true, element: <Navigate to="/library" replace /> },
       {

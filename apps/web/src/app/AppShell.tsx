@@ -1,6 +1,8 @@
-import { Activity, Clapperboard, Download, Film } from 'lucide-react';
+import { Activity, Clapperboard, Download, Film, LogOut } from 'lucide-react';
 import { Suspense } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useNavigate } from 'react-router';
+import { useLogout, useMe } from '@/api/auth';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +40,31 @@ export function PageFallback() {
   );
 }
 
+function Account() {
+  const me = useMe().data;
+  const logout = useLogout();
+  const navigate = useNavigate();
+  if (!me) return null;
+  return (
+    <div className="mt-3 border-t px-3 pt-3">
+      <div className="truncate text-sm font-medium" data-testid="merchant-name">
+        {me.merchant.name}
+      </div>
+      <div className="truncate text-xs text-muted-foreground">{me.user.email}</div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mt-2 -ml-2 text-muted-foreground"
+        disabled={logout.isPending}
+        onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/login', { replace: true }) })}
+      >
+        <LogOut />
+        ออกจากระบบ
+      </Button>
+    </div>
+  );
+}
+
 export function AppShell() {
   return (
     <div className="flex min-h-dvh">
@@ -49,6 +76,7 @@ export function AppShell() {
           ))}
         </nav>
         <NavItem to="/status" label="สถานะระบบ" icon={Activity} />
+        <Account />
       </aside>
       <main className="min-w-0 flex-1 px-8 py-6">
         <Suspense fallback={<PageFallback />}>
