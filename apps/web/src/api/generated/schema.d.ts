@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/jobs/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry a dead or cancelled job (gives it a fresh attempt budget) */
+        post: operations["retryJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -99,6 +116,36 @@ export interface components {
             };
             /** @enum {string} */
             status: "ok" | "degraded";
+        };
+        JobError: {
+            at: string;
+            attempt: number;
+            fatal: boolean;
+            message: string;
+            name: string;
+        };
+        JobSummary: {
+            attempts: number;
+            cancelRequested: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            error: components["schemas"]["JobError"] | null;
+            finishedAt: string | null;
+            /** Format: uuid */
+            id: string;
+            maxAttempts: number;
+            progress: number;
+            /** @enum {string} */
+            queue: "media" | "ai" | "render";
+            /** Format: date-time */
+            runAfter: string;
+            startedAt: string | null;
+            /** @enum {string} */
+            status: "pending" | "queued" | "running" | "succeeded" | "failed" | "dead" | "cancelled";
+            stepIndex: number;
+            type: string;
+            /** Format: uuid */
+            workflowRunId: string;
         };
         LoginRequest: {
             /** Format: email */
@@ -253,6 +300,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthReport"];
+                };
+            };
+        };
+    };
+    retryJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Job is pending again */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobSummary"];
+                };
+            };
+            /** @description No such job for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Job is not dead or cancelled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
         };
