@@ -62,7 +62,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Dependency health (Postgres, Redis) */
+        /** Dependency health (Postgres, Redis, AI service) */
         get: operations["getHealth"];
         put?: never;
         post?: never;
@@ -93,6 +93,7 @@ export interface components {
         };
         HealthReport: {
             checks: {
+                ai: components["schemas"]["CheckStatus"];
                 postgres: components["schemas"]["CheckStatus"];
                 redis: components["schemas"]["CheckStatus"];
             };

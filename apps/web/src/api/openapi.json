@@ -73,6 +73,9 @@
           "checks": {
             "additionalProperties": false,
             "properties": {
+              "ai": {
+                "$ref": "#/components/schemas/CheckStatus"
+              },
               "postgres": {
                 "$ref": "#/components/schemas/CheckStatus"
               },
@@ -82,7 +85,8 @@
             },
             "required": [
               "postgres",
-              "redis"
+              "redis",
+              "ai"
             ],
             "type": "object"
           },
@@ -339,7 +343,7 @@
             "description": "At least one dependency down"
           }
         },
-        "summary": "Dependency health (Postgres, Redis)",
+        "summary": "Dependency health (Postgres, Redis, AI service)",
         "tags": [
           "system"
         ]
