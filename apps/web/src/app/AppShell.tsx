@@ -1,5 +1,5 @@
-import { Activity, Clapperboard, Download, Film, LogOut } from 'lucide-react';
-import { Suspense } from 'react';
+import { Activity, Clapperboard, Download, Film, LogOut, Menu, X } from 'lucide-react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,21 @@ const NAV = [
   { to: '/exports', label: 'ไฟล์ส่งออก', icon: Download },
 ] as const;
 
-function NavItem({ to, label, icon: Icon }: { to: string; label: string; icon: typeof Film }) {
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  onNavigate,
+}: {
+  to: string;
+  label: string;
+  icon: typeof Film;
+  onNavigate?: () => void;
+}) {
   return (
     <NavLink
       to={to}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
           'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
@@ -66,19 +77,49 @@ function Account() {
 }
 
 export function AppShell() {
+  // Below md the sidebar becomes a drawer opened from a top bar.
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
   return (
-    <div className="flex min-h-dvh">
-      <aside className="flex w-56 shrink-0 flex-col border-r bg-card px-3 py-4">
+    <div className="flex min-h-dvh flex-col md:flex-row">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-card px-4 md:hidden">
+        <span className="text-lg font-semibold tracking-tight">MyVideo</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={open ? 'ปิดเมนู' : 'เปิดเมนู'}
+          aria-expanded={open}
+          aria-controls="app-sidebar"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X /> : <Menu />}
+        </Button>
+      </header>
+      {open ? (
+        <button
+          type="button"
+          aria-label="ปิดเมนู"
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={close}
+        />
+      ) : null}
+      <aside
+        id="app-sidebar"
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card px-3 py-4 transition-transform md:sticky md:top-0 md:h-dvh md:w-56 md:shrink-0 md:translate-x-0',
+          open ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
         <div className="mb-6 px-3 text-lg font-semibold tracking-tight">MyVideo</div>
         <nav aria-label="เมนูหลัก" className="flex flex-1 flex-col gap-1">
           {NAV.map((item) => (
-            <NavItem key={item.to} {...item} />
+            <NavItem key={item.to} {...item} onNavigate={close} />
           ))}
         </nav>
-        <NavItem to="/status" label="สถานะระบบ" icon={Activity} />
+        <NavItem to="/status" label="สถานะระบบ" icon={Activity} onNavigate={close} />
         <Account />
       </aside>
-      <main className="min-w-0 flex-1 px-8 py-6">
+      <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-6">
         <Suspense fallback={<PageFallback />}>
           <Outlet />
         </Suspense>
