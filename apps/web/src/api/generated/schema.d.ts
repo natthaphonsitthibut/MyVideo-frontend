@@ -552,6 +552,15 @@ export interface operations {
                     "application/json": components["schemas"]["RunSummary"];
                 };
             };
+            /** @description Too many unfinished runs for this merchant (back-pressure) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
         };
     };
     getRun: {

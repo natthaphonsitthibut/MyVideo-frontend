@@ -877,6 +877,16 @@
               }
             },
             "description": "Run created"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Too many unfinished runs for this merchant (back-pressure)"
           }
         },
         "security": [
