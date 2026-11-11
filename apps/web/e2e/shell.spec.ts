@@ -37,3 +37,17 @@ test('unknown routes show a friendly not-found page', async ({ page }) => {
   await page.goto('/nope');
   await expect(page.getByRole('alert')).toContainText('ไม่พบหน้านี้');
 });
+
+test('phone width: menu is a drawer and the status page has no horizontal scroll', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 740 });
+  await signIn(page, '/status');
+  await expect(page.getByTestId('overall-status')).toHaveText('ทุกอย่างปกติ');
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.screenshot({ path: 'test-results/status-375.png', fullPage: true });
+  await page.getByRole('button', { name: 'เปิดเมนู' }).click();
+  await page.getByRole('navigation', { name: 'เมนูหลัก' }).getByRole('link', { name: 'คลิป' }).click();
+  await expect(page).toHaveURL(/\/clips$/);
+  await expect(page.getByRole('button', { name: 'เปิดเมนู' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/clips-375.png', fullPage: true });
+});

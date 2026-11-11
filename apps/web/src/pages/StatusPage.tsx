@@ -15,15 +15,15 @@ function CheckRow({ name, check }: { name: string; check: CheckStatus }) {
   const up = check.status === 'up';
   return (
     <li
-      className="flex items-center justify-between gap-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3"
       data-testid={`check-${name}`}
       data-status={check.status}
     >
-      <div>
+      <div className="min-w-0 flex-1">
         <div className="font-medium">{LABELS[name] ?? name}</div>
-        {check.error ? <div className="text-sm text-destructive">{check.error}</div> : null}
+        {check.error ? <div className="text-sm break-words text-destructive">{check.error}</div> : null}
       </div>
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+      <div className="flex shrink-0 items-center gap-3 text-sm text-muted-foreground">
         <span>{check.latencyMs} ms</span>
         <Badge
           variant={up ? 'secondary' : 'destructive'}
@@ -39,8 +39,8 @@ function CheckRow({ name, check }: { name: string; check: CheckStatus }) {
 export function StatusPage() {
   const health = useHealth();
   return (
-    <section className="max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
+    <section className="w-full max-w-2xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">สถานะระบบ</h1>
         <Button variant="outline" size="sm" onClick={() => health.refetch()} disabled={health.isFetching}>
           <RefreshCw className={health.isFetching ? 'animate-spin' : undefined} />
