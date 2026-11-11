@@ -1,0 +1,29 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main, implement]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: lint · typecheck · unit tests · build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+# E2E (Playwright) needs the backend stack; it runs locally via scripts/dev.sh and at epic gates.

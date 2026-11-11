@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
+# openapi-typescript drives the TypeScript compiler API, which TypeScript 7 (native) no longer ships (D-013).
+overrides:
+  openapi-typescript>typescript: 5.9.3

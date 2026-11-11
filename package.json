@@ -1,0 +1,22 @@
+{
+  "name": "myvideo-frontend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "dev": "pnpm --filter @myvideo/web dev",
+    "build": "pnpm -r --workspace-concurrency=1 run build",
+    "typecheck": "pnpm -r --workspace-concurrency=1 run typecheck",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "pnpm -r --workspace-concurrency=1 run test",
+    "e2e": "pnpm --filter @myvideo/web e2e"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.6",
+    "typescript": "7.0.2"
+  }
+}
