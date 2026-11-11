@@ -157,6 +157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/{id}/sprites/{sheet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One thumbnail sprite sheet (JPEG, 10×10 tiles, 1 tile per second); the index is /sources/{id}/assets/sprites */
+        get: operations["getSpriteSheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workflow-runs": {
         parameters: {
             query?: never;
@@ -679,6 +696,36 @@ export interface operations {
             };
             /** @description Range not satisfiable */
             416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getSpriteSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                sheet: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JPEG image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such sheet for this merchant */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

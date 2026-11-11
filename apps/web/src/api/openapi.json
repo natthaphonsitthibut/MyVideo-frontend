@@ -1043,6 +1043,57 @@
         ]
       }
     },
+    "/sources/{id}/sprites/{sheet}": {
+      "get": {
+        "operationId": "getSpriteSheet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sheet",
+            "required": true,
+            "schema": {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JPEG image"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such sheet for this merchant"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "One thumbnail sprite sheet (JPEG, 10×10 tiles, 1 tile per second); the index is /sources/{id}/assets/sprites",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
     "/workflow-runs": {
       "get": {
         "operationId": "listRuns",
