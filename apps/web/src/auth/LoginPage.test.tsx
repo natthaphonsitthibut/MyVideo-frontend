@@ -57,8 +57,8 @@ describe('LoginPage', () => {
 describe('safeNext', () => {
   it('allows only in-app paths', () => {
     expect(safeNext('/clips?x=1')).toBe('/clips?x=1');
-    expect(safeNext('//evil.example')).toBe('/library');
-    expect(safeNext('https://evil.example')).toBe('/library');
-    expect(safeNext(null)).toBe('/library');
+    expect(safeNext('//evil.example')).toBe('/projects');
+    expect(safeNext('https://evil.example')).toBe('/projects');
+    expect(safeNext(null)).toBe('/projects');
   });
 });

@@ -9,7 +9,7 @@ import { EmptyState } from './EmptyState';
 export function LibraryPage() {
   const sources = useSources();
   return (
-    <section className="page-layout w-full max-w-6xl">
+    <section className="page-layout">
       <h1 className="text-2xl font-semibold">คลังวิดีโอ</h1>
       <UploadPanel />
       {sources.isPending ? (

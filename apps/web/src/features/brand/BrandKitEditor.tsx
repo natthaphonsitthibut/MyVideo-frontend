@@ -23,13 +23,20 @@ const COLORS: { key: 'primaryColor' | 'accentColor' | 'textColor'; name: string;
   { key: 'textColor', name: 'สีตัวอักษร', hint: 'ตัวหนังสือบนกล่องสีหลัก' },
 ];
 
-/** The shop's brand kit (E08-F08): colours, font, default call-to-action and logo used by every clip. */
-export function BrandPage() {
+/**
+ * The shop's brand kit (E08-F08): colours, font, default call-to-action and logo used by every clip. Shown where
+ * it is used (editor brand tab, later the style step) — there is no separate brand page since D-037.
+ */
+export function BrandKitEditor() {
   const kit = useBrandKit();
-  if (kit.isError) throw kit.error;
+  if (kit.isError)
+    return (
+      <p className="text-sm text-destructive" role="alert">
+        โหลดแบรนด์ไม่สำเร็จ ลองรีเฟรชหน้า
+      </p>
+    );
   return (
-    <section className="page-layout max-w-2xl">
-      <h1 className="text-2xl font-semibold">แบรนด์ของร้าน</h1>
+    <div className="space-y-4" data-testid="brand-kit-editor">
       <p className="text-sm text-muted-foreground">
         คลิปที่กด “ใช้สีแบรนด์” ไว้ จะเปลี่ยนตามค่าที่นี่เองทุกคลิป ไม่ต้องแก้ทีละคลิป
       </p>
@@ -44,7 +51,7 @@ export function BrandPage() {
           <BrandForm key={kit.data.updatedAt ?? 'new'} kit={kit.data} />
         </>
       )}
-    </section>
+    </div>
   );
 }
 

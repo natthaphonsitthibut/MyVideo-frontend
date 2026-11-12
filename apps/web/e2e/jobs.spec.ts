@@ -16,8 +16,9 @@ async function startTestRun(page: Page, button: string) {
 
 test.describe.configure({ timeout: 60_000 });
 
+// The jobs page is a developer diagnostic since D-037 (/dev/jobs, dev builds only).
 test('start a test run, watch live progress, cancel it', async ({ page }) => {
-  await signIn(page, '/jobs');
+  await signIn(page, '/dev/jobs');
   const run = await startTestRun(page, 'ทดสอบระบบคิว');
   const bar = run.getByRole('progressbar');
   await expect(run.getByTestId('job-row')).toHaveAttribute('data-status', 'running', { timeout: 15_000 });
@@ -35,7 +36,7 @@ test('start a test run, watch live progress, cancel it', async ({ page }) => {
 });
 
 test('a failing run shows the error, and retry makes it succeed', async ({ page }) => {
-  await signIn(page, '/jobs');
+  await signIn(page, '/dev/jobs');
   const run = await startTestRun(page, 'ทดสอบกรณีล้มเหลว');
   await expect(run.getByTestId('job-row')).toHaveAttribute('data-status', 'dead', { timeout: 15_000 });
   await expect(run.getByTestId('job-error')).toContainText('simulated failure');

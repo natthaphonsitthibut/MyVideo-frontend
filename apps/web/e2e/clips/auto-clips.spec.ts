@@ -115,8 +115,8 @@ test('generate clips from a real live clip, review, preview, open, discard', asy
   await page.reload();
   await expect(cards).toHaveCount(total - 1, { timeout: 30_000 });
 
-  // the clips menu lists generated projects (all of them, discarded ones included — the project is kept)
-  await page.goto('/clips');
+  // the projects page lists generated projects (all of them, discarded ones included — the project is kept)
+  await page.goto('/projects');
   await expect(page.getByTestId('project-row').first()).toBeVisible();
   expect(await page.getByLabel('สร้างอัตโนมัติ').count()).toBeGreaterThanOrEqual(total);
   await shot(page, '6-clips-menu');

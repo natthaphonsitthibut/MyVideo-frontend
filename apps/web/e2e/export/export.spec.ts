@@ -138,8 +138,8 @@ test('open clip → Export → progress → download → plays with the right du
   expect(Math.abs(played.duration - 6)).toBeLessThan(0.1);
   expect(played.currentTime).toBeGreaterThan(0.3); // it really played
 
-  // the Exports page lists it with a download
-  await page.goto('/exports');
+  // exports live inside the project (no separate exports page since D-037): still listed after a reload
+  await page.goto(`/clips/${project.id}`);
   await expect(page.locator(`[data-render-id="${renderId}"]`)).toHaveAttribute('data-status', 'ready');
-  await page.screenshot({ path: 'test-results/exports-page.png' });
+  await page.screenshot({ path: 'test-results/project-exports.png' });
 });

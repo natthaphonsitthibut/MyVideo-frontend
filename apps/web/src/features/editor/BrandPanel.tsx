@@ -1,8 +1,9 @@
-import { ImageOff, ImagePlus, Megaphone, Palette } from 'lucide-react';
+import { ImageOff, ImagePlus, Megaphone, Palette, X } from 'lucide-react';
+import { Dialog } from 'radix-ui';
 import { useSyncExternalStore } from 'react';
-import { Link } from 'react-router';
 import { brandLogoUrl, useBrandKit } from '@/api/brand';
 import { Button } from '@/components/ui/button';
+import { BrandKitEditor } from '@/features/brand/BrandKitEditor';
 import { addBrandCta, applyBrandToTexts, hasBrandLogo, toggleBrandLogo } from './brand-elements';
 import type { EditorStore } from './editor-store';
 
@@ -24,9 +25,28 @@ export function BrandPanel({ store }: { store: EditorStore }) {
             <span key={c} className="size-6 rounded-full border" style={{ background: c }} title={c} />
           ))}
         </div>
-        <Button variant="link" size="sm" asChild className="ml-auto">
-          <Link to="/brand">แก้แบรนด์ของร้าน</Link>
-        </Button>
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <Button variant="link" size="sm" className="ml-auto" data-testid="brand-edit-kit">
+              แก้แบรนด์ของร้าน
+            </Button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+            <Dialog.Content className="fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 space-y-3 overflow-y-auto rounded-xl border bg-background p-5 shadow-lg">
+              <div className="flex items-center justify-between">
+                <Dialog.Title className="text-lg font-semibold">แบรนด์ของร้าน</Dialog.Title>
+                <Dialog.Close asChild>
+                  <Button size="icon-sm" variant="ghost" aria-label="ปิด">
+                    <X />
+                  </Button>
+                </Dialog.Close>
+              </div>
+              <Dialog.Description className="sr-only">แก้สี ฟอนต์ ข้อความชวนซื้อ และโลโก้ของร้าน</Dialog.Description>
+              <BrandKitEditor />
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
       <Button
         variant="secondary"
@@ -47,7 +67,9 @@ export function BrandPanel({ store }: { store: EditorStore }) {
         {logoOn ? <ImageOff /> : <ImagePlus />}
         {logoOn ? 'เอาโลโก้ออก' : 'ใส่โลโก้มุมขวาบน'}
       </Button>
-      {!k.hasLogo ? <p className="text-xs text-muted-foreground">ยังไม่มีโลโก้ — อัปโหลดได้ที่หน้าแบรนด์</p> : null}
+      {!k.hasLogo ? (
+        <p className="text-xs text-muted-foreground">ยังไม่มีโลโก้ — กด “แก้แบรนด์ของร้าน” เพื่ออัปโหลด</p>
+      ) : null}
       <Button
         variant="secondary"
         className="w-full justify-start"

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 
 /** Only same-app paths are allowed as `next` (no open redirect). */
 export function safeNext(next: string | null): string {
-  return next?.startsWith('/') && !next.startsWith('//') ? next : '/library';
+  return next?.startsWith('/') && !next.startsWith('//') ? next : '/projects';
 }
 
 export function LoginPage() {

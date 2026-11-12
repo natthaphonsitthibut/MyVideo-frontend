@@ -26,6 +26,22 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
         ],
       },
       {
+        // diagnostics, not product pages (D-037): queue test runs and service health
+        path: '/dev',
+        element: (
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        ),
+        children: [
+          { path: 'jobs', lazy: () => import('@/pages/JobsPage').then((m) => ({ Component: m.JobsPage })) },
+          {
+            path: 'status',
+            lazy: () => import('@/pages/StatusPage').then((m) => ({ Component: m.StatusPage })),
+          },
+        ],
+      },
+      {
         path: '/dev/player/:id',
         element: (
           <RequireAuth>
@@ -55,7 +71,11 @@ export const routes: RouteObject[] = [
     errorElement: <RouteError />,
     hydrateFallbackElement: <PageFallback />,
     children: [
-      { index: true, element: <Navigate to="/library" replace /> },
+      { index: true, element: <Navigate to="/projects" replace /> },
+      {
+        path: 'projects',
+        lazy: () => import('@/pages/ProjectsPage').then((m) => ({ Component: m.ProjectsPage })),
+      },
       {
         path: 'library',
         lazy: () => import('@/pages/LibraryPage').then((m) => ({ Component: m.LibraryPage })),
@@ -64,7 +84,11 @@ export const routes: RouteObject[] = [
         path: 'library/:id',
         lazy: () => import('@/pages/SourcePage').then((m) => ({ Component: m.SourcePage })),
       },
-      { path: 'clips', lazy: () => import('@/pages/ClipsPage').then((m) => ({ Component: m.ClipsPage })) },
+      // pages removed in the two-page app (D-037): old links land on the projects list
+      ...['clips', 'review-video', 'exports', 'brand', 'jobs', 'status'].map((path) => ({
+        path,
+        element: <Navigate to="/projects" replace />,
+      })),
       {
         path: 'clips/:id',
         lazy: () => import('@/pages/ClipPage').then((m) => ({ Component: m.ClipPage })),
@@ -74,20 +98,9 @@ export const routes: RouteObject[] = [
         lazy: () => import('@/pages/QuickEditPage').then((m) => ({ Component: m.QuickEditPage })),
       },
       {
-        path: 'exports',
-        lazy: () => import('@/pages/ExportsPage').then((m) => ({ Component: m.ExportsPage })),
-      },
-      {
         path: 'clips/:id/advanced',
         lazy: () => import('@/pages/AdvancedEditorPage').then((m) => ({ Component: m.AdvancedEditorPage })),
       },
-      {
-        path: 'review-video',
-        lazy: () => import('@/pages/ReviewVideoPage').then((m) => ({ Component: m.ReviewVideoPage })),
-      },
-      { path: 'brand', lazy: () => import('@/pages/BrandPage').then((m) => ({ Component: m.BrandPage })) },
-      { path: 'jobs', lazy: () => import('@/pages/JobsPage').then((m) => ({ Component: m.JobsPage })) },
-      { path: 'status', lazy: () => import('@/pages/StatusPage').then((m) => ({ Component: m.StatusPage })) },
     ],
   },
 ];

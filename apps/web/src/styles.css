@@ -170,8 +170,11 @@
 }
 
 @layer components {
+  /* One content width for every page: fills phones/tablets, grows on desktop, stays readable on ultra-wide. */
   .page-layout {
     width: 100%;
+    max-width: 100rem;
+    margin-inline: auto;
     min-width: 0;
     overflow-wrap: anywhere;
   }

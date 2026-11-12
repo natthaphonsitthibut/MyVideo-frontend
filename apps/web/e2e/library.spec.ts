@@ -103,7 +103,7 @@ test('a broken upload ends in a visible failed state with the reason', async ({ 
 });
 
 test('empty and loading states', async ({ page }) => {
-  await signIn(page, '/clips');
+  await signIn(page, '/projects');
   await page.route('**/api/sources?*', async (route) => {
     await new Promise((r) => setTimeout(r, 1500));
     await route.fulfill({ json: { items: [], nextCursor: null } });

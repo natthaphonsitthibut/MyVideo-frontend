@@ -1,15 +1,4 @@
-import {
-  Activity,
-  Clapperboard,
-  Download,
-  Film,
-  ListChecks,
-  LogOut,
-  Menu,
-  Palette,
-  Wand2,
-  X,
-} from 'lucide-react';
+import { Activity, Clapperboard, Film, LogOut, Menu, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
@@ -17,13 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
+/** The whole product is two pages (D-037): projects, and the footage library they are made from. */
 const NAV = [
+  { to: '/projects', label: 'โปรเจกต์', icon: Clapperboard },
   { to: '/library', label: 'คลังวิดีโอ', icon: Film },
-  { to: '/clips', label: 'คลิป', icon: Clapperboard },
-  { to: '/review-video', label: 'วิดีโอรีวิว', icon: Wand2 },
-  { to: '/exports', label: 'ไฟล์ส่งออก', icon: Download },
-  { to: '/brand', label: 'แบรนด์', icon: Palette },
-  { to: '/jobs', label: 'งานประมวลผล', icon: ListChecks },
 ] as const;
 
 function NavItem({
@@ -136,7 +122,9 @@ export function AppShell() {
             <NavItem key={item.to} {...item} onNavigate={close} />
           ))}
         </nav>
-        <NavItem to="/status" label="สถานะระบบ" icon={Activity} onNavigate={close} />
+        {import.meta.env.DEV ? (
+          <NavItem to="/dev/status" label="สถานะระบบ (dev)" icon={Activity} onNavigate={close} />
+        ) : null}
         <Account />
       </aside>
       <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-page py-6">

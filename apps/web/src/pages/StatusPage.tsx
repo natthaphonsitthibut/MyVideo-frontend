@@ -34,7 +34,7 @@ function CheckRow({ name, check }: { name: string; check: CheckStatus }) {
 export function StatusPage() {
   const health = useHealth();
   return (
-    <section className="page-layout w-full max-w-2xl">
+    <section className="page-layout">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">สถานะระบบ</h1>
         <Button variant="outline" size="sm" onClick={() => health.refetch()} disabled={health.isFetching}>

@@ -88,7 +88,7 @@ export function SourcePage() {
   if (source.isError) throw source.error;
   const s = source.data;
   return (
-    <section className="page-layout w-full max-w-6xl">
+    <section className="page-layout">
       <div className="space-y-2">
         <Button variant="ghost" size="sm" asChild className="-ml-2">
           <Link to="/library">

@@ -67,7 +67,7 @@ function UploadRow({ item, mgr }: { item: UploadItem; mgr: UploadManager }) {
           ) : null}
           {item.status === 'done' && item.sourceId ? (
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/jobs">ดูความคืบหน้า</Link>
+              <Link to={`/library/${item.sourceId}`}>ดูความคืบหน้า</Link>
             </Button>
           ) : null}
           {item.status !== 'finishing' ? (
