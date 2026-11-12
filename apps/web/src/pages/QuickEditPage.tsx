@@ -129,6 +129,15 @@ function Editor({ record }: { record: ProjectRecord }) {
         <h1 className="min-w-0 flex-1 truncate text-lg font-semibold" data-testid="edit-title">
           {record.title}
         </h1>
+        <Button variant="outline" size="sm" asChild>
+          <Link
+            to={`/clips/${record.id}/advanced`}
+            data-testid="open-advanced"
+            onClick={() => void store.flush()}
+          >
+            ขั้นสูง
+          </Link>
+        </Button>
         <div data-testid="save-status" data-state={status}>
           <SaveStatus state={saveState} onRetry={() => void store.retry()} />
         </div>

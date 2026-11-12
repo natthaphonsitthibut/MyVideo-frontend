@@ -281,6 +281,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{id}/versions/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One saved version of a project (to preview it before restoring) */
+        get: operations["getProjectVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{id}/versions/{version}/restore": {
         parameters: {
             query?: never;
@@ -1203,6 +1220,12 @@ export interface components {
             title: string;
             /** Format: date-time */
             updatedAt: string;
+            version: number;
+        };
+        ProjectVersionDoc: {
+            /** Format: date-time */
+            createdAt: string;
+            doc: components["schemas"]["Project"];
             version: number;
         };
         ProjectVersionList: {
@@ -2247,6 +2270,38 @@ export interface operations {
                 };
             };
             /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getProjectVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectVersionDoc"];
+                };
+            };
+            /** @description No such project or version */
             404: {
                 headers: {
                     [name: string]: unknown;

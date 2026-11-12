@@ -2346,6 +2346,30 @@
         ],
         "type": "object"
       },
+      "ProjectVersionDoc": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "version": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "createdAt",
+          "doc"
+        ],
+        "type": "object"
+      },
       "ProjectVersionList": {
         "additionalProperties": false,
         "properties": {
@@ -4947,6 +4971,64 @@
           }
         ],
         "summary": "All versions of a project, newest first",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{id}/versions/{version}": {
+      "get": {
+        "operationId": "getProjectVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectVersionDoc"
+                }
+              }
+            },
+            "description": "The version"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project or version"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "One saved version of a project (to preview it before restoring)",
         "tags": [
           "projects"
         ]
