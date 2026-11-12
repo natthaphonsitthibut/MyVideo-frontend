@@ -342,11 +342,26 @@ export interface components {
             message: string;
             statusCode: number;
         };
+        CaptionWord: {
+            endFrame: number;
+            startFrame: number;
+            text: string;
+        };
         CheckStatus: {
             error?: string;
             latencyMs: number;
             /** @enum {string} */
             status: "up" | "down";
+        };
+        Crop: {
+            bottom: number;
+            left: number;
+            right: number;
+            top: number;
+        };
+        Fps: {
+            den: number;
+            num: number;
         };
         HealthReport: {
             checks: {
@@ -407,6 +422,238 @@ export interface components {
                 /** @enum {string} */
                 role: "owner" | "editor";
             };
+        };
+        Project: {
+            assets: {
+                [key: string]: components["schemas"]["ProjectAsset"];
+            };
+            /** Format: uuid */
+            brandKitId?: string;
+            durationFrames: number;
+            elements: {
+                [key: string]: components["schemas"]["ProjectElement"];
+            };
+            fps: components["schemas"]["Fps"];
+            height: number;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            merchantId: string;
+            meta: {
+                /** @enum {string} */
+                createdBy: "ai" | "user";
+                title?: string;
+                /** Format: uuid */
+                workflowRunId?: string;
+            };
+            /** @constant */
+            schemaVersion: 1;
+            templateRef?: {
+                templateId: string;
+                templateVersion: number;
+            };
+            tracks: components["schemas"]["Track"][];
+            width: number;
+        };
+        ProjectAsset: {
+            durationFrames: number;
+            hasAudio: boolean;
+            height?: number;
+            /** @enum {string} */
+            kind: "video" | "audio" | "image";
+            /** Format: uuid */
+            sourceId: string;
+            width?: number;
+        };
+        ProjectElement: {
+            /** Format: uuid */
+            assetId: string;
+            crop?: components["schemas"]["Crop"];
+            durationFrames: number;
+            /** @enum {string} */
+            fit: "cover" | "contain" | "fill";
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            opacity?: number;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            playbackRate: number;
+            sourceInFrame: number;
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "video";
+            volume: number;
+        } | {
+            /** Format: uuid */
+            assetId: string;
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            playbackRate: number;
+            sourceInFrame: number;
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            /** @constant */
+            type: "audio";
+            volume: number;
+        } | {
+            /** Format: uuid */
+            assetId: string;
+            crop?: components["schemas"]["Crop"];
+            durationFrames: number;
+            /** @enum {string} */
+            fit: "cover" | "contain" | "fill";
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            opacity?: number;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "image";
+        } | {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            content: string;
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            style?: components["schemas"]["TextStyle"];
+            styleRef?: string;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "text";
+        } | {
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            lines: number[][];
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            /** @enum {string} */
+            styleRef: "clean" | "bold-highlight";
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "caption";
+            words: components["schemas"]["CaptionWord"][];
+        } | {
+            durationFrames: number;
+            fill: string;
+            height: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            radius?: number;
+            /** @enum {string} */
+            shape: "rect" | "ellipse";
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "shape";
+            width: number;
+        } | {
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            label: string;
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            styleRef: string;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "cta";
         };
         RunEvent: {
             /** Format: date-time */
@@ -481,6 +728,22 @@ export interface components {
             /** @default 10 */
             steps: number;
         };
+        TextStyle: {
+            /** @enum {string} */
+            align: "left" | "center" | "right";
+            background?: string;
+            color: string;
+            fontFamily: string;
+            fontSize: number;
+            fontWeight: number;
+        };
+        Track: {
+            elementIds: string[];
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "video" | "audio" | "caption" | "overlay";
+        };
         TranscriptSegment: {
             endMs: number;
             seq: number;
@@ -517,6 +780,12 @@ export interface components {
         };
         TranscriptWordEdit: {
             text: string;
+        };
+        Transform: {
+            rotation: number;
+            scale: number;
+            x: number;
+            y: number;
         };
         UploadConfig: {
             chunkBytes: number;
