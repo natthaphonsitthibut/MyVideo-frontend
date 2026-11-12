@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router';
 import { useProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ExportPanel } from '@/features/export/ExportPanel';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
 
 /** Minimal clip page: title + preview of the saved project (editing comes with Quick Edit). */
@@ -42,6 +43,7 @@ export function ClipPage() {
         </p>
       </div>
       <PreviewPlayer project={doc as unknown as StageProject} />
+      <ExportPanel projectId={rec.id} version={rec.version} />
     </section>
   );
 }

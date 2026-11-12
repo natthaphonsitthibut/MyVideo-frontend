@@ -141,6 +141,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{id}/renders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Renders of a project, newest first */
+        get: operations["listProjectRenders"];
+        put?: never;
+        /** Export a project version to MP4. Idempotent per (version, preset, stage version): an existing render is returned (and a failed/cancelled one is started again) */
+        post: operations["requestRender"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{id}/versions": {
         parameters: {
             query?: never;
@@ -169,6 +187,57 @@ export interface paths {
         put?: never;
         /** Restore an older version as a NEW version (history is never rewritten) */
         post: operations["restoreProjectVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/renders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The merchant’s latest renders (50), newest first */
+        get: operations["listRenders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/renders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One render */
+        get: operations["getRender"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/renders/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The MP4 (authorised, byte ranges); `download=1` sends it as an attachment */
+        get: operations["getRenderFile"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -778,6 +847,37 @@ export interface components {
             restoredFrom: number | null;
             version: number;
         };
+        RenderList: {
+            items: components["schemas"]["RenderSummary"][];
+        };
+        RenderSummary: {
+            /** Format: date-time */
+            createdAt: string;
+            durationMs: number | null;
+            error: string | null;
+            finishedAt: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            preset: "standard" | "high";
+            progress: number;
+            /** Format: uuid */
+            projectId: string;
+            projectTitle: string;
+            projectVersion: number;
+            runId: string | null;
+            sizeBytes: number | null;
+            /** @enum {string} */
+            status: "queued" | "rendering" | "ready" | "failed" | "cancelled";
+        };
+        RequestRenderBody: {
+            /**
+             * @default standard
+             * @enum {string}
+             */
+            preset: "standard" | "high";
+            version?: number;
+        };
         RestoreBody: {
             baseVersion: number;
         };
@@ -1261,6 +1361,81 @@ export interface operations {
             };
         };
     };
+    listProjectRenders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Renders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderList"];
+                };
+            };
+            /** @description No such project/render for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    requestRender: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestRenderBody"];
+            };
+        };
+        responses: {
+            /** @description The render (new, in progress, or already done) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderSummary"];
+                };
+            };
+            /** @description No such project/render for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Too many unfinished runs */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     listProjectVersions: {
         parameters: {
             query?: never;
@@ -1327,6 +1502,104 @@ export interface operations {
                 };
             };
             /** @description Version conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listRenders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Renders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderList"];
+                };
+            };
+        };
+    };
+    getRender: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The render */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderSummary"];
+                };
+            };
+            /** @description No such project/render for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getRenderFile: {
+        parameters: {
+            query?: {
+                download?: "0" | "1";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description video/mp4 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Partial content */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such project/render for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Not rendered yet */
             409: {
                 headers: {
                     [name: string]: unknown;

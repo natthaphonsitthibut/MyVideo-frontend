@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { JOB_STATUS, jobTypeLabel, RUN_KIND_LABEL, RUN_STATUS, TONE_CLASS, timeAgo } from './labels';
 
-function StatusPill({ label, tone }: { label: string; tone: keyof typeof TONE_CLASS }) {
+export function StatusPill({ label, tone }: { label: string; tone: keyof typeof TONE_CLASS }) {
   return (
     <span
       className={cn(
@@ -20,7 +20,7 @@ function StatusPill({ label, tone }: { label: string; tone: keyof typeof TONE_CL
   );
 }
 
-function ProgressBar({ value, tone }: { value: number; tone: keyof typeof TONE_CLASS }) {
+export function ProgressBar({ value, tone }: { value: number; tone: keyof typeof TONE_CLASS }) {
   const pct = Math.round(value * 100);
   return (
     <div
