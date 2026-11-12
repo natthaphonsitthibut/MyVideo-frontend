@@ -64,11 +64,11 @@ it('pops the spoken word from its frame, including backward seeks and clearing',
   const { inner } = styledCaption('pop-word');
   applyActiveWord(inner, 0, 0);
   const word = inner.querySelector<HTMLElement>('[data-w="0"]')!;
-  expect(word.style.transform).toBe('scale(1.1)');
+  expect(word.style.transform).toBe('translateY(-0.12em)');
   applyActiveWord(inner, 0, 5);
-  expect(word.style.transform).toBe('scale(1)');
+  expect(word.style.transform).toBe('translateY(0em)');
   applyActiveWord(inner, 0, 0);
-  expect(word.style.transform).toBe('scale(1.1)');
+  expect(word.style.transform).toBe('translateY(-0.12em)');
   applyActiveWord(inner, 1, 0);
   expect(word.style.transform).toBe('');
   applyActiveWord(inner, -1);

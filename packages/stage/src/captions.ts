@@ -71,8 +71,8 @@ export const captionFont = (styleRef: string): string => {
 export const SAFE = { side: 108, right: 162, top: 240, bottom: 360 };
 const captionBoxWidth = (canvasWidth: number) => canvasWidth - SAFE.side - SAFE.right;
 export const captionMaxWidth = (canvasWidth: number, styleRef = 'clean') =>
-  // boxed: its padding; pop-word: the side room each growing word gets (0.09 em × 2 per word, up to 3 words)
-  captionBoxWidth(canvasWidth) - (styleRef === 'boxed' ? 32 : styleRef === 'pop-word' ? 48 : 0);
+  // boxed: its padding; pop-word: room for the larger key word
+  captionBoxWidth(canvasWidth) - (styleRef === 'boxed' ? 32 : styleRef === 'pop-word' ? 16 : 0);
 
 /**
  * Builds the caption DOM: one block per STORED line, `white-space: nowrap` (the browser never re-wraps Thai),
@@ -117,11 +117,12 @@ export function buildCaptionNode(
       const span = document.createElement('span');
       span.dataset.w = String(wi);
       span.textContent = e.words[wi]?.text ?? '';
-      // a word that grows (pop / emphasis) gets side room: Thai words touch, so scaling would cover the neighbour
-      if (e.styleRef === 'pop-word') span.style.cssText += 'display:inline-block;margin:0 0.09em;';
+      // pop-word lifts the spoken word (no sideways growth: Thai words touch, a scale would cover the neighbour)
+      if (e.styleRef === 'pop-word') span.style.display = 'inline-block';
       if (e.words[wi]?.emphasis) {
+        // the one key word may grow, so only it gets a little side room
         span.dataset.emphasis = '';
-        span.style.cssText += 'display:inline-block;margin:0 0.09em;';
+        span.style.cssText += 'display:inline-block;margin:0 0.05em;';
         restWord(span);
       }
       row.appendChild(span);
@@ -161,8 +162,8 @@ export function applyActiveWord(inner: HTMLElement, active: number, elapsed = 0)
     const key = el.dataset.emphasis !== undefined;
     el.style.color = key ? 'var(--emphasis)' : 'var(--active)';
     if (inner.dataset.captionStyle === 'pop-word') {
-      const pop = 1 + 0.1 * (1 - Math.min(5, Math.max(0, elapsed)) / 5);
-      el.style.transform = `scale(${Math.round((key ? EMPHASIS_SCALE : 1) * pop * 1000) / 1000})`;
+      const lift = Math.round(12 * (1 - Math.min(5, Math.max(0, elapsed)) / 5)) / 100;
+      el.style.transform = `translateY(${-lift}em)${key ? ` scale(${EMPHASIS_SCALE})` : ''}`;
     }
     if (inner.dataset.captionStyle === 'minimal') el.style.textDecoration = 'underline';
   }
