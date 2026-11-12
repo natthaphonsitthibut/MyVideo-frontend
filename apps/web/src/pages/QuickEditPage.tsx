@@ -11,7 +11,11 @@ import { BrandPanel } from '@/features/editor/BrandPanel';
 import { CaptionsPanel } from '@/features/editor/CaptionsPanel';
 import { ReframePanel } from '@/features/editor/ReframePanel';
 import { StylePanel } from '@/features/editor/StylePanel';
+import { TemplatePanel } from '@/features/editor/TemplatePanel';
 import { TextsPanel } from '@/features/editor/TextsPanel';
+
+const reload = () => window.location.reload();
+
 import { TrimBar } from '@/features/editor/TrimBar';
 import { useEditorMeta, useEditorStore } from '@/features/editor/use-editor';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
@@ -106,6 +110,7 @@ function Editor({ record }: { record: ProjectRecord }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [store]);
 
+  const templateId = (record.doc as { templateRef?: { templateId: string } }).templateRef?.templateId;
   const saveState = status === 'error' ? 'error' : status === 'saved' ? 'saved' : 'saving';
   return (
     <section
@@ -171,7 +176,18 @@ function Editor({ record }: { record: ProjectRecord }) {
             <TabsTrigger value="crop">ครอบภาพ</TabsTrigger>
             <TabsTrigger value="texts">ข้อความ</TabsTrigger>
             <TabsTrigger value="brand">แบรนด์</TabsTrigger>
+            {templateId ? <TabsTrigger value="template">เทมเพลต</TabsTrigger> : null}
           </TabsList>
+          {templateId ? (
+            <TabsContent value="template">
+              <TemplatePanel
+                projectId={record.id}
+                currentId={templateId}
+                // the new version replaces this one: open it fresh (the store holds the old version)
+                onSwapped={reload}
+              />
+            </TabsContent>
+          ) : null}
           <TabsContent value="brand">
             <BrandPanel store={store} />
           </TabsContent>

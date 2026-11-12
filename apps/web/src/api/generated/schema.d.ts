@@ -247,6 +247,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{id}/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply another template to the same footage as a new version of the project */
+        post: operations["swapTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{id}/versions": {
         parameters: {
             query?: never;
@@ -324,6 +341,40 @@ export interface paths {
         };
         /** The MP4 (authorised, byte ranges); `download=1` sends it as an attachment */
         get: operations["getRenderFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review-videos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a product video from several phone clips with a template */
+        post: operations["createReviewVideo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review-videos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Progress and result of a review video run (project, or what footage is missing) */
+        get: operations["getReviewVideo"];
         put?: never;
         post?: never;
         delete?: never;
@@ -556,6 +607,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Templates the merchant can pick (newest version of each) */
+        get: operations["listTemplates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workflow-runs": {
         parameters: {
             query?: never;
@@ -715,6 +783,14 @@ export interface components {
         CreateProjectBody: {
             doc: components["schemas"]["ProjectDraft"];
             title: string;
+        };
+        CreateReviewVideoBody: {
+            product: components["schemas"]["ReviewProduct"];
+            roles?: {
+                [key: string]: "talking_head" | "product_closeup" | "demo" | "unboxing" | "broll";
+            };
+            sourceIds: string[];
+            templateId: string;
         };
         Crop: {
             bottom: number;
@@ -1092,7 +1168,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string} */
-            reason: "create" | "save" | "restore" | "restyle";
+            reason: "create" | "save" | "restore" | "restyle" | "template";
             restoredFrom: number | null;
             version: number;
         };
@@ -1136,6 +1212,44 @@ export interface components {
         };
         RestyleBody: {
             styleId: string;
+        };
+        ReviewProduct: {
+            name: string;
+            points: string[];
+        };
+        ReviewShot: {
+            chosenByMerchant: boolean;
+            confidence: number;
+            endMs: number;
+            needsChoice: boolean;
+            reason: string;
+            /** @enum {string} */
+            role: "talking_head" | "product_closeup" | "demo" | "unboxing" | "broll";
+            seq: number;
+            /** Format: uuid */
+            sourceId: string;
+            startMs: number;
+        };
+        ReviewVideoState: {
+            error: string | null;
+            product: components["schemas"]["ReviewProduct"];
+            result: {
+                missing: {
+                    hint: string;
+                    roles: ("talking_head" | "product_closeup" | "demo" | "unboxing" | "broll")[];
+                    slot: number;
+                }[];
+                projectId: string | null;
+                shots: components["schemas"]["ReviewShot"][];
+                /** @enum {string} */
+                status: "ready" | "missing";
+            } | null;
+            /** Format: uuid */
+            runId: string;
+            sourceIds: string[];
+            /** @enum {string} */
+            status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
+            templateId: string;
         };
         RunEvent: {
             /** Format: date-time */
@@ -1218,6 +1332,46 @@ export interface components {
             description: string;
             id: string;
             name: string;
+        };
+        SwapTemplateBody: {
+            templateId: string;
+        };
+        TemplateList: {
+            items: components["schemas"]["TemplateVersion"][];
+        };
+        TemplateVersion: {
+            captions: {
+                /** @enum {string} */
+                styleRef: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal";
+                y: number;
+            };
+            cta: {
+                animationIn: string;
+                seconds: number;
+                y: number;
+            };
+            description: string;
+            durationMs: {
+                max: number;
+                min: number;
+            };
+            id: string;
+            name: string;
+            pointAnimationIn: string;
+            slots: {
+                accepts: ("talking_head" | "product_closeup" | "demo" | "unboxing" | "broll")[];
+                maxMs: number;
+                minMs: number;
+                required: boolean;
+                /** @enum {string} */
+                text: "product_name" | "point" | "none";
+            }[];
+            title: {
+                animationIn: string;
+                seconds: number;
+                y: number;
+            };
+            version: number;
         };
         TestRunRequest: {
             /** @default false */
@@ -1982,6 +2136,50 @@ export interface operations {
             };
         };
     };
+    swapTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwapTemplateBody"];
+            };
+        };
+        responses: {
+            /** @description Started */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewVideoState"];
+                };
+            };
+            /** @description Unknown template / project not made from a template */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No such project */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     listProjectVersions: {
         parameters: {
             query?: never;
@@ -2147,6 +2345,88 @@ export interface operations {
             };
             /** @description Not rendered yet */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    createReviewVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReviewVideoBody"];
+            };
+        };
+        responses: {
+            /** @description Started */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewVideoState"];
+                };
+            };
+            /** @description Unknown template or invalid body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description A video does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description A video is still processing */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getReviewVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description State */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewVideoState"];
+                };
+            };
+            /** @description No such run */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2734,6 +3014,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StylePackList"];
+                };
+            };
+        };
+    };
+    listTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Templates */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateList"];
                 };
             };
         };

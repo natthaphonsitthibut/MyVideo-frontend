@@ -440,6 +440,52 @@
         ],
         "type": "object"
       },
+      "CreateReviewVideoBody": {
+        "additionalProperties": false,
+        "properties": {
+          "product": {
+            "$ref": "#/components/schemas/ReviewProduct"
+          },
+          "roles": {
+            "additionalProperties": {
+              "enum": [
+                "talking_head",
+                "product_closeup",
+                "demo",
+                "unboxing",
+                "broll"
+              ],
+              "type": "string"
+            },
+            "propertyNames": {
+              "maxLength": 80,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "sourceIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          "templateId": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceIds",
+          "templateId",
+          "product"
+        ],
+        "type": "object"
+      },
       "Crop": {
         "additionalProperties": false,
         "properties": {
@@ -2108,7 +2154,8 @@
               "create",
               "save",
               "restore",
-              "restyle"
+              "restyle",
+              "template"
             ],
             "type": "string"
           },
@@ -2334,6 +2381,216 @@
         },
         "required": [
           "styleId"
+        ],
+        "type": "object"
+      },
+      "ReviewProduct": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 80,
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "maxLength": 60,
+              "type": "string"
+            },
+            "maxItems": 4,
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "points"
+        ],
+        "type": "object"
+      },
+      "ReviewShot": {
+        "additionalProperties": false,
+        "properties": {
+          "chosenByMerchant": {
+            "type": "boolean"
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "endMs": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "needsChoice": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "talking_head",
+              "product_closeup",
+              "demo",
+              "unboxing",
+              "broll"
+            ],
+            "type": "string"
+          },
+          "seq": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "startMs": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sourceId",
+          "seq",
+          "startMs",
+          "endMs",
+          "role",
+          "confidence",
+          "reason",
+          "chosenByMerchant",
+          "needsChoice"
+        ],
+        "type": "object"
+      },
+      "ReviewVideoState": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "product": {
+            "$ref": "#/components/schemas/ReviewProduct"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "missing": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "hint": {
+                          "type": "string"
+                        },
+                        "roles": {
+                          "items": {
+                            "enum": [
+                              "talking_head",
+                              "product_closeup",
+                              "demo",
+                              "unboxing",
+                              "broll"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "slot": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "slot",
+                        "roles",
+                        "hint"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "projectId": {
+                    "anyOf": [
+                      {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "shots": {
+                    "items": {
+                      "$ref": "#/components/schemas/ReviewShot"
+                    },
+                    "type": "array"
+                  },
+                  "status": {
+                    "enum": [
+                      "ready",
+                      "missing"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "projectId",
+                  "missing",
+                  "shots"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "runId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "sourceIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId",
+          "status",
+          "templateId",
+          "sourceIds",
+          "product",
+          "result",
+          "error"
         ],
         "type": "object"
       },
@@ -2797,6 +3054,216 @@
           "id",
           "name",
           "description"
+        ],
+        "type": "object"
+      },
+      "SwapTemplateBody": {
+        "additionalProperties": false,
+        "properties": {
+          "templateId": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "TemplateList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TemplateVersion"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "TemplateVersion": {
+        "additionalProperties": false,
+        "properties": {
+          "captions": {
+            "additionalProperties": false,
+            "properties": {
+              "styleRef": {
+                "enum": [
+                  "clean",
+                  "bold-highlight",
+                  "pop-word",
+                  "boxed",
+                  "outline-bold",
+                  "minimal"
+                ],
+                "type": "string"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "styleRef",
+              "y"
+            ],
+            "type": "object"
+          },
+          "cta": {
+            "additionalProperties": false,
+            "properties": {
+              "animationIn": {
+                "type": "string"
+              },
+              "seconds": {
+                "maximum": 6,
+                "minimum": 1,
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "seconds",
+              "y",
+              "animationIn"
+            ],
+            "type": "object"
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "durationMs": {
+            "additionalProperties": false,
+            "properties": {
+              "max": {
+                "maximum": 9007199254740991,
+                "minimum": 1000,
+                "type": "integer"
+              },
+              "min": {
+                "maximum": 9007199254740991,
+                "minimum": 1000,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ],
+            "type": "object"
+          },
+          "id": {
+            "pattern": "^[a-z0-9-]{1,40}$",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          },
+          "pointAnimationIn": {
+            "type": "string"
+          },
+          "slots": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "accepts": {
+                  "items": {
+                    "enum": [
+                      "talking_head",
+                      "product_closeup",
+                      "demo",
+                      "unboxing",
+                      "broll"
+                    ],
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "maxMs": {
+                  "maximum": 9007199254740991,
+                  "minimum": 500,
+                  "type": "integer"
+                },
+                "minMs": {
+                  "maximum": 9007199254740991,
+                  "minimum": 500,
+                  "type": "integer"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "text": {
+                  "enum": [
+                    "product_name",
+                    "point",
+                    "none"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "accepts",
+                "required",
+                "minMs",
+                "maxMs",
+                "text"
+              ],
+              "type": "object"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "type": "array"
+          },
+          "title": {
+            "additionalProperties": false,
+            "properties": {
+              "animationIn": {
+                "type": "string"
+              },
+              "seconds": {
+                "maximum": 6,
+                "minimum": 1,
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "y",
+              "seconds",
+              "animationIn"
+            ],
+            "type": "object"
+          },
+          "version": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "name",
+          "description",
+          "durationMs",
+          "slots",
+          "captions",
+          "title",
+          "cta",
+          "pointAnimationIn"
         ],
         "type": "object"
       },
@@ -4143,6 +4610,74 @@
         ]
       }
     },
+    "/projects/{id}/template": {
+      "post": {
+        "operationId": "swapTemplate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwapTemplateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewVideoState"
+                }
+              }
+            },
+            "description": "Started"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Unknown template / project not made from a template"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Apply another template to the same footage as a new version of the project",
+        "tags": [
+          "templates"
+        ]
+      }
+    },
     "/projects/{id}/versions": {
       "get": {
         "operationId": "listProjectVersions",
@@ -4406,6 +4941,120 @@
         "summary": "The MP4 (authorised, byte ranges); `download=1` sends it as an attachment",
         "tags": [
           "renders"
+        ]
+      }
+    },
+    "/review-videos": {
+      "post": {
+        "operationId": "createReviewVideo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewVideoBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewVideoState"
+                }
+              }
+            },
+            "description": "Started"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Unknown template or invalid body"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "A video does not exist"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "A video is still processing"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Make a product video from several phone clips with a template",
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/review-videos/{id}": {
+      "get": {
+        "operationId": "getReviewVideo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewVideoState"
+                }
+              }
+            },
+            "description": "State"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such run"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Progress and result of a review video run (project, or what footage is missing)",
+        "tags": [
+          "templates"
         ]
       }
     },
@@ -5349,6 +5998,32 @@
         "summary": "Edit styles an AI clip can be built or restyled with (Thai names)",
         "tags": [
           "clips"
+        ]
+      }
+    },
+    "/templates": {
+      "get": {
+        "operationId": "listTemplates",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateList"
+                }
+              }
+            },
+            "description": "Templates"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Templates the merchant can pick (newest version of each)",
+        "tags": [
+          "templates"
         ]
       }
     },
