@@ -35,6 +35,8 @@ export type StageAsset = {
   /** A merchant source; library sounds have `libraryId` instead (exactly one is set). */
   sourceId?: string;
   libraryId?: string;
+  /** The merchant's brand kit logo (resolved to the current logo, E08-F08). */
+  brandLogo?: true;
   kind: 'video' | 'audio' | 'image';
   durationFrames: number;
   hasAudio: boolean;

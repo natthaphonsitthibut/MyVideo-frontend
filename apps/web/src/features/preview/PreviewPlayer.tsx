@@ -9,6 +9,7 @@ import {
 import { formatTimecode } from '@myvideo/timeline-core';
 import { Pause, Play } from 'lucide-react';
 import { type KeyboardEvent, type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { brandTheme, useBrandKit } from '@/api/brand';
 import { Button } from '@/components/ui/button';
 import { mediaUrl } from './media-url';
 
@@ -42,6 +43,10 @@ export function PreviewPlayer({
   const playerRef = useRef<Player | null>(null);
   const [playing, setPlaying] = useState(false);
   const total = project.durationFrames;
+  // brand tokens in the project resolve to the merchant's CURRENT kit (E08-F08); mount after it loaded
+  const brand = useBrandKit();
+  const theme = brandTheme(brand.data);
+  const themeKey = JSON.stringify(theme ?? null);
 
   // scale the 1080×1920 stage to the available box (one CSS transform, no re-layout per frame)
   useLayoutEffect(() => {
@@ -63,8 +68,8 @@ export function PreviewPlayer({
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host) return;
-    const stage = mountStage(host, project, proxyUrl);
+    if (!host || brand.isPending) return;
+    const stage = mountStage(host, project, proxyUrl, JSON.parse(themeKey) ?? undefined);
     const player = createPlayer(stage, project);
     playerRef.current = player;
     onPlayer?.(player);
@@ -90,7 +95,7 @@ export function PreviewPlayer({
       stage.destroy();
       playerRef.current = null;
     };
-  }, [project, total, onPlayer, onStage]);
+  }, [project, total, onPlayer, onStage, brand.isPending, themeKey]);
 
   // scrub: measure once per gesture; latest seek wins (player.seek drops stale ones)
   const gesture = useRef({ active: false, left: 0, width: 1 });
