@@ -13,9 +13,15 @@ test.describe.configure({ timeout: 600_000, mode: 'serial' });
 const shot = (page: Page, name: string) =>
   page.screenshot({ path: `test-results/restyle-${name}.png`, fullPage: true });
 
-type Clips = { runId: string; status: string; clips: { rank: number; status: string; projectId: string | null }[] };
+type Clips = {
+  runId: string;
+  status: string;
+  clips: { rank: number; status: string; projectId: string | null }[];
+};
 
-test('AI clip: jump-cut preview plays smoothly, then switch its style without re-running AI', async ({ page }) => {
+test('AI clip: jump-cut preview plays smoothly, then switch its style without re-running AI', async ({
+  page,
+}) => {
   await signIn(page, '/library');
   const list = (await (await page.request.get('/api/sources?limit=100')).json()) as {
     items: { id: string; title: string; status: string }[];
@@ -100,7 +106,9 @@ test('AI clip: jump-cut preview plays smoothly, then switch its style without re
   });
   await shot(page, '1-jumpcut-playing');
   await page.getByTestId('preview-toggle').click();
-  console.log(`jump-cut playback ${JSON.stringify(play)} · library sound responses ${soundStatuses.join(',')}`);
+  console.log(
+    `jump-cut playback ${JSON.stringify(play)} · library sound responses ${soundStatuses.join(',')}`,
+  );
   expect(play.frame).toBeGreaterThan(130); // ~5 s at 30 fps really advanced across several cuts
   expect(play.p95).toBeLessThanOrEqual(20);
   expect(play.long).toEqual([]);
