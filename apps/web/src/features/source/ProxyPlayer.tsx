@@ -1,5 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { type KeyboardEvent, type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type PointerEvent,
+  type RefObject,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { assetUrl, formatDuration, type SourceSummary, spriteSheetUrl } from '@/api/sources';
 import { spriteStyle } from '../library/sprite';
 
@@ -53,9 +61,17 @@ function drawWave(canvas: HTMLCanvasElement, peaks: Peaks, width: number) {
  * Proxy player for a source (editor-performance rules): the playhead, scrub preview and seeks are written
  * straight to the DOM from refs and one rAF loop; React does not re-render per frame or per pointer move.
  */
-export function ProxyPlayer({ source }: { source: SourceSummary }) {
+export function ProxyPlayer({
+  source,
+  videoRef: sharedRef,
+}: {
+  source: SourceSummary;
+  /** Lets siblings (the transcript) read the clock and seek, without React state per frame. */
+  videoRef?: RefObject<HTMLVideoElement | null>;
+}) {
   const duration = (source.durationMs ?? 0) / 1000;
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const ownRef = useRef<HTMLVideoElement>(null);
+  const videoRef = sharedRef ?? ownRef;
   const trackRef = useRef<HTMLDivElement>(null);
   const playheadRef = useRef<HTMLDivElement>(null);
   const hoverRef = useRef<HTMLDivElement>(null);
@@ -94,7 +110,7 @@ export function ProxyPlayer({ source }: { source: SourceSummary }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [width, duration]);
+  }, [width, duration, videoRef]);
 
   // scrub: "latest seek wins" — never queue a seek per pointer event
   const scrub = useRef({
@@ -193,7 +209,7 @@ export function ProxyPlayer({ source }: { source: SourceSummary }) {
   return (
     <div className="space-y-3">
       <div className="flex justify-center overflow-hidden rounded-xl bg-black">
-        {/* biome-ignore lint/a11y/useMediaCaption: merchant footage has no caption track yet (captions come with transcripts in E04) */}
+        {/* biome-ignore lint/a11y/useMediaCaption: the synced transcript beside the player is the text alternative; burned-in captions come with templates */}
         <video
           ref={videoRef}
           src={assetUrl(source.id, 'proxy')}

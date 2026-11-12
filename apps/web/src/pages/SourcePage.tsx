@@ -1,4 +1,5 @@
 import { ArrowLeft, CircleAlert, RotateCcw } from 'lucide-react';
+import { useRef } from 'react';
 import { Link, useParams } from 'react-router';
 import { useJobAction } from '@/api/runs';
 import { formatDuration, useLiveRun, useSource } from '@/api/sources';
@@ -7,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { JOB_STATUS, TONE_CLASS } from '@/features/jobs/labels';
 import { INGEST_STEPS } from '@/features/source/ingest-steps';
 import { ProxyPlayer } from '@/features/source/ProxyPlayer';
+import { TranscriptPanel } from '@/features/transcript/TranscriptPanel';
 import { formatBytes } from '@/features/upload/upload-manager';
 import { cn } from '@/lib/utils';
 
@@ -73,6 +75,7 @@ function IngestSteps({ runId }: { runId: string | null }) {
 export function SourcePage() {
   const { id = '' } = useParams();
   const source = useSource(id);
+  const videoRef = useRef<HTMLVideoElement>(null);
   if (source.isPending) {
     return (
       <div className="space-y-4" role="status" aria-busy="true" aria-label="กำลังโหลด">
@@ -84,7 +87,7 @@ export function SourcePage() {
   if (source.isError) throw source.error;
   const s = source.data;
   return (
-    <section className="w-full max-w-4xl space-y-6">
+    <section className="w-full max-w-6xl space-y-6">
       <div className="space-y-2">
         <Button variant="ghost" size="sm" asChild className="-ml-2">
           <Link to="/library">
@@ -114,7 +117,14 @@ export function SourcePage() {
           <IngestSteps runId={s.ingestRunId} />
         </div>
       ) : null}
-      {s.hasProxy ? <ProxyPlayer source={s} /> : null}
+      {s.hasProxy ? (
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+          <ProxyPlayer source={s} videoRef={videoRef} />
+          {s.status === 'ready' ? (
+            <TranscriptPanel sourceId={s.id} hasAudio={s.hasAudio} videoRef={videoRef} />
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -208,6 +208,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/{id}/transcript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Transcript state of a source (status, chunk progress, counts) */
+        get: operations["getTranscript"];
+        put?: never;
+        /** Transcribe the source (idempotent: joins an unfinished run; a finished transcript of the same audio is reused) */
+        post: operations["startTranscript"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sources/{id}/transcript/segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Segments of the ready transcript, in order, paginated by seq */
+        get: operations["listTranscriptSegments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workflow-runs": {
         parameters: {
             query?: never;
@@ -427,6 +462,39 @@ export interface components {
             ms: number;
             /** @default 10 */
             steps: number;
+        };
+        TranscriptSegment: {
+            endMs: number;
+            seq: number;
+            startMs: number;
+            text: string;
+            words: components["schemas"]["TranscriptWord"][];
+        };
+        TranscriptSegmentPage: {
+            items: components["schemas"]["TranscriptSegment"][];
+            nextFrom: number | null;
+            total: number;
+            /** Format: uuid */
+            transcriptId: string;
+        };
+        TranscriptState: {
+            chunkCount: number;
+            chunksDone: number;
+            durationMs: number | null;
+            error: string | null;
+            language: string | null;
+            model: string | null;
+            runId: string | null;
+            segmentCount: number;
+            /** @enum {string} */
+            status: "none" | "running" | "ready" | "failed";
+            transcriptId: string | null;
+        };
+        TranscriptWord: {
+            endMs: number;
+            kind: string;
+            startMs: number;
+            text: string;
         };
         UploadConfig: {
             chunkBytes: number;
@@ -830,6 +898,120 @@ export interface operations {
                 content?: never;
             };
             /** @description No such sheet for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getTranscript: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Transcript state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptState"];
+                };
+            };
+            /** @description No such source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    startTranscript: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Transcription started or joined */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptState"];
+                };
+            };
+            /** @description No such source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Source not ready yet, or it has no audio */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Too many unfinished runs for this merchant (back-pressure) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listTranscriptSegments: {
+        parameters: {
+            query?: {
+                from?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of segments */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptSegmentPage"];
+                };
+            };
+            /** @description No such source, or no ready transcript */
             404: {
                 headers: {
                     [name: string]: unknown;
