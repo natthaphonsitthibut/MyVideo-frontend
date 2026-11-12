@@ -112,6 +112,7 @@ export function RunItem({ run }: { run: RunSummary }) {
     <article
       className="rounded-xl border bg-card px-4 py-3 sm:px-5"
       data-testid="run-item"
+      data-kind={run.kind}
       data-run-id={run.id}
       data-status={run.status}
     >

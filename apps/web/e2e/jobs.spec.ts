@@ -1,12 +1,24 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { signIn } from './auth';
+
+/** Clicks a test-run button and returns the locator of the run it created (by id from the API response). */
+async function startTestRun(page: Page, button: string) {
+  await page.getByRole('heading', { name: 'งานประมวลผล' }).waitFor();
+  const created = page.waitForResponse(
+    (r) => r.url().endsWith('/api/workflow-runs/test') && r.request().method() === 'POST',
+  );
+  await page.getByRole('button', { name: button }).click();
+  const { id } = (await (await created).json()) as { id: string };
+  const run = page.locator(`[data-testid=run-item][data-run-id="${id}"]`);
+  await expect(run).toBeVisible({ timeout: 10_000 });
+  return run;
+}
 
 test.describe.configure({ timeout: 60_000 });
 
 test('start a test run, watch live progress, cancel it', async ({ page }) => {
   await signIn(page, '/jobs');
-  await page.getByRole('button', { name: 'ทดสอบระบบคิว' }).click();
-  const run = page.getByTestId('run-item').first();
+  const run = await startTestRun(page, 'ทดสอบระบบคิว');
   const bar = run.getByRole('progressbar');
   await expect(run.getByTestId('job-row')).toHaveAttribute('data-status', 'running', { timeout: 15_000 });
   await expect
@@ -24,8 +36,7 @@ test('start a test run, watch live progress, cancel it', async ({ page }) => {
 
 test('a failing run shows the error, and retry makes it succeed', async ({ page }) => {
   await signIn(page, '/jobs');
-  await page.getByRole('button', { name: 'ทดสอบกรณีล้มเหลว' }).click();
-  const run = page.getByTestId('run-item').first();
+  const run = await startTestRun(page, 'ทดสอบกรณีล้มเหลว');
   await expect(run.getByTestId('job-row')).toHaveAttribute('data-status', 'dead', { timeout: 15_000 });
   await expect(run.getByTestId('job-error')).toContainText('simulated failure');
   await page.screenshot({ path: 'test-results/jobs-dead.png', fullPage: true });
