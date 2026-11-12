@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { spriteCoverStyle } from '@/features/library/sprite';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
-import { rulesReason } from './labels';
+import { clipHeading, clipsPanelView, rulesReason } from './labels';
 import { StyleChooser } from './StyleChooser';
 
 function ClipThumb({ source, clip }: { source: SourceSummary; clip: ClipSuggestion }) {
@@ -90,7 +90,7 @@ function ClipCard({
             </span>
           </div>
           <p className="font-medium break-words" data-testid="clip-title">
-            {clip.title}
+            {clipHeading(clip)}
           </p>
           {clip.hook ? <p className="text-sm break-words">“{clip.hook}”</p> : null}
           {clip.quote ? (
@@ -152,6 +152,7 @@ export function AutoClipsPanel({ source }: { source: SourceSummary }) {
   const [product, setProduct] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const state = clips.data;
+  const view = clipsPanelView(ready, clips.status, state !== undefined);
   const active = clipsActive(state) || generate.isPending || build.isPending;
   const phase = state?.phase ?? 'none';
   const styleName = state?.advice?.items.find((a) => a.styleId === state.styleId)?.name;
@@ -187,8 +188,16 @@ export function AutoClipsPanel({ source }: { source: SourceSummary }) {
         ) : null}
       </div>
 
-      {!ready ? (
+      {view === 'transcript' ? (
         <p className="text-sm text-muted-foreground">ถอดเสียงวิดีโอนี้ก่อน แล้วระบบจะหาช่วงขายของที่น่าตัดเป็นคลิปให้</p>
+      ) : view === 'loading' ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          กำลังโหลด…
+        </p>
+      ) : view === 'error' ? (
+        <p role="alert" className="text-sm text-destructive">
+          โหลดคลิปไม่สำเร็จ ลองโหลดหน้านี้อีกครั้ง
+        </p>
       ) : (
         <>
           {!state || state.status === 'none' || state.status === 'failed' || state.status === 'cancelled' ? (
