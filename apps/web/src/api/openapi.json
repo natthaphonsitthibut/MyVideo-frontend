@@ -327,6 +327,11 @@
           "productName": {
             "maxLength": 80,
             "type": "string"
+          },
+          "styleId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
           }
         },
         "type": "object"
@@ -667,6 +672,11 @@
                 ],
                 "type": "string"
               },
+              "styleId": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
               "title": {
                 "maxLength": 200,
                 "type": "string"
@@ -826,6 +836,11 @@
                   "ai",
                   "user"
                 ],
+                "type": "string"
+              },
+              "styleId": {
+                "maxLength": 64,
+                "minLength": 1,
                 "type": "string"
               },
               "title": {
@@ -1493,7 +1508,11 @@
               "styleRef": {
                 "enum": [
                   "clean",
-                  "bold-highlight"
+                  "bold-highlight",
+                  "pop-word",
+                  "boxed",
+                  "outline-bold",
+                  "minimal"
                 ],
                 "type": "string"
               },

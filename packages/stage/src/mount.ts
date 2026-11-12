@@ -4,6 +4,7 @@ import { frameState, type VisibleElement } from './frame-state';
 import { animationKeyframes } from './presets';
 import { textStyleFor } from './styles';
 import type { AssetResolver, StageElement, StageProject } from './types';
+import { type VideoGroup, videoGroups } from './video-groups';
 
 type Node = {
   box: HTMLElement;
@@ -19,8 +20,8 @@ export type Stage = {
   /** Draws `frame`; resolves once every visible video shows it (frame-exact, order-independent). */
   seek(frame: number): Promise<void>;
   /**
-   * Draws `frame` without touching media time (playback driver): returns the visible media elements and the time
-   * each should be at; hidden media are paused.
+   * Draws `frame` for playback, seeking reused video nodes at cut boundaries. Returns the visible media and
+   * required source times; hidden media are paused.
    */
   draw(frame: number): { el: HTMLMediaElement; time: number }[];
   /** Live edit: replace (or remove with null) one element without rebuilding the stage. */
@@ -57,6 +58,7 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
   root.style.cssText = `position:relative;width:${p.width}px;height:${p.height}px;overflow:hidden;background:#000;contain:strict;`;
   container.appendChild(root);
   const nodes = new Map<string, Node>();
+  const videos = new Map<string, { group: VideoGroup; el: HTMLVideoElement; active?: string }>();
   const listeners = new Set<(f: number) => void>();
   let current = 0;
   const ms = (frames: number) => frameToMs(frames, p.fps);
@@ -72,20 +74,16 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
     const full = `left:0;top:0;width:${p.width}px;height:${p.height}px;`;
     switch (e.type) {
       case 'video':
+        box.style.cssText += full;
+        break;
       case 'image': {
         box.style.cssText += full;
         const asset = p.assets[e.assetId];
-        const el = document.createElement(e.type === 'video' ? 'video' : 'img');
+        const el = document.createElement('img');
         if (asset) el.src = resolve(e.assetId, asset);
         el.style.cssText = `display:block;width:100%;height:100%;object-fit:${e.fit};`;
         if (e.crop)
           el.style.clipPath = `inset(${e.crop.top * 100}% ${e.crop.right * 100}% ${e.crop.bottom * 100}% ${e.crop.left * 100}%)`;
-        if (el instanceof HTMLVideoElement) {
-          el.muted = true;
-          el.playsInline = true;
-          el.preload = 'auto';
-          node.media = el;
-        }
         inner.appendChild(el);
         break;
       }
@@ -164,12 +162,72 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
 
   for (const id of Object.keys(p.elements)) nodes.set(id, build(p.elements[id] as StageElement));
 
+  function syncVideos() {
+    const groups = videoGroups(p);
+    const keep = new Set(groups.map((g) => g.id));
+    for (const [id, video] of videos) {
+      if (keep.has(id) && groups.find((g) => g.id === id)?.assetId === video.group.assetId) continue;
+      video.el.pause();
+      video.el.removeAttribute('src');
+      video.el.remove();
+      videos.delete(id);
+    }
+    for (const group of groups) {
+      const existing = videos.get(group.id);
+      if (existing) {
+        existing.group = group;
+        if (!root.contains(existing.el)) nodes.get(group.id)?.inner.appendChild(existing.el);
+        continue;
+      }
+      const el = document.createElement('video');
+      const asset = p.assets[group.assetId];
+      if (asset) el.src = resolve(group.assetId, asset);
+      el.muted = true;
+      el.playsInline = true;
+      el.preload = 'auto';
+      el.style.cssText = 'display:block;width:100%;height:100%;';
+      nodes.get(group.id)?.inner.appendChild(el);
+      videos.set(group.id, { group, el });
+    }
+  }
+  syncVideos();
+
   /** Applies the pure frame state to the DOM; returns the visible media that must be at a time. */
-  function apply(frame: number): { el: HTMLMediaElement; time: number }[] {
+  function apply(frame: number, playback = false): { el: HTMLMediaElement; time: number }[] {
     current = frame;
     const state = frameState(p, frame);
     const on = new Map<string, VisibleElement>(state.visible.map((v) => [v.id, v]));
     const waits: { el: HTMLMediaElement; time: number }[] = [];
+    const visibleVideos = new Map<string, HTMLVideoElement>();
+    for (const video of videos.values()) {
+      const id = video.group.elementIds.find((id) => on.has(id));
+      const v = id === undefined ? undefined : on.get(id);
+      if (v?.element.type !== 'video') {
+        if (!video.el.paused) video.el.pause();
+        video.active = undefined;
+        continue;
+      }
+      const e = v.element;
+      const changed = video.active !== id;
+      const inner = nodes.get(v.id)?.inner;
+      if (inner && video.el.parentElement !== inner) inner.appendChild(video.el);
+      video.el.style.objectFit = e.fit;
+      video.el.style.clipPath = e.crop
+        ? `inset(${e.crop.top * 100}% ${e.crop.right * 100}% ${e.crop.bottom * 100}% ${e.crop.left * 100}%)`
+        : '';
+      video.el.playbackRate = e.playbackRate;
+      video.el.volume = Math.min(1, e.volume);
+      // re-seek at a cut only when the source jumps: a zoom cut continues the same time and must not stutter
+      if (
+        playback &&
+        changed &&
+        v.mediaTime !== undefined &&
+        Math.abs(video.el.currentTime - v.mediaTime) > (2 * p.fps.den) / p.fps.num
+      )
+        video.el.currentTime = v.mediaTime;
+      video.active = id;
+      visibleVideos.set(v.id, video.el);
+    }
     for (const [id, n] of nodes) {
       const v = on.get(id);
       if (!v) {
@@ -184,7 +242,12 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
       n.box.style.transform = transformCss(e, v.values);
       n.box.style.opacity = String(v.values.opacity ?? e.opacity ?? 1);
       for (const a of n.anims) a.currentTime = ms(v.local);
-      if (v.activeWord !== undefined) applyActiveWord(n.inner, v.activeWord);
+      if (v.activeWord !== undefined) {
+        const start = e.type === 'caption' ? (e.words[v.activeWord]?.startFrame ?? v.local) : v.local;
+        applyActiveWord(n.inner, v.activeWord, v.local - start);
+      }
+      const video = visibleVideos.get(id);
+      if (video && v.mediaTime !== undefined) waits.push({ el: video, time: v.mediaTime });
       if (n.media && v.mediaTime !== undefined) waits.push({ el: n.media, time: v.mediaTime });
     }
     for (const l of listeners) l(frame);
@@ -194,12 +257,12 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
   /**
    * Seeks one media element and resolves when the target frame is not only decoded (`seeked`) but PRESENTED:
    * a video that was hidden keeps compositing its old picture until a new frame is presented, which
-   * `requestVideoFrameCallback` reports (fallback: a short timeout after `seeked` where it is unsupported).
+   * `requestVideoFrameCallback` reports. Where unavailable, decoding plus the caller's paint is the fallback.
    */
   const seekMedia = (el: HTMLMediaElement, time: number): Promise<void> =>
     new Promise((res) => {
       const frameS = (p.fps.den / p.fps.num) * HALF_FRAME;
-      if (Math.abs(el.currentTime - time) < frameS && el.readyState >= 2) return res();
+      if (!el.seeking && Math.abs(el.currentTime - time) < frameS && el.readyState >= 2) return res();
       let seeked = false;
       let presented = !(el instanceof HTMLVideoElement) || !('requestVideoFrameCallback' in el);
       let fallback: ReturnType<typeof setTimeout> | undefined;
@@ -209,15 +272,23 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
         res();
       };
       if (!presented) {
-        (el as HTMLVideoElement).requestVideoFrameCallback(() => {
+        // A shared node (jump cuts) may still present a frame from the previous element: wait for one near the
+        // target. Presented times are frame starts, so allow a whole frame (2 × half) of difference.
+        const onPresented: VideoFrameRequestCallback = (_now, metadata) => {
+          if (Math.abs(metadata.mediaTime - time) >= 2 * frameS) {
+            (el as HTMLVideoElement).requestVideoFrameCallback(onPresented);
+            return;
+          }
           presented = true;
           finish();
-        });
+        };
+        (el as HTMLVideoElement).requestVideoFrameCallback(onPresented);
       }
       el.addEventListener(
         'seeked',
         () => {
           seeked = true;
+          // last resort, never hang a render: no matching frame reported 1.5 s after the seek → trust the decode
           if (!presented)
             fallback = setTimeout(() => {
               presented = true;
@@ -237,7 +308,7 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
       return current;
     },
     draw(frame) {
-      return apply(frame);
+      return apply(frame, true);
     },
     async seek(frame) {
       const waits = apply(frame);
@@ -250,6 +321,7 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
       else delete p.elements[id];
       p = { ...p };
       rebuild(id);
+      syncVideos();
       apply(current);
     },
     onFrame(fn) {
@@ -260,6 +332,11 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
       await document.fonts.ready;
     },
     destroy() {
+      for (const video of videos.values()) {
+        video.el.pause();
+        video.el.removeAttribute('src');
+      }
+      videos.clear();
       for (const id of [...nodes.keys()]) {
         const n = nodes.get(id);
         n?.media?.pause();

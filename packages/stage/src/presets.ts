@@ -4,6 +4,15 @@
  */
 const PRESETS: Record<string, Keyframe[]> = {
   fade: [{ opacity: 0 }, { opacity: 1 }],
+  bounce: [
+    { opacity: 0, transform: 'translateY(-64px)' },
+    { opacity: 1, transform: 'translateY(12px)', offset: 0.65 },
+    { opacity: 1, transform: 'translateY(0)' },
+  ],
+  'zoom-in': [
+    { opacity: 0, transform: 'scale(1.3)' },
+    { opacity: 1, transform: 'scale(1)' },
+  ],
   'slide-up': [
     { opacity: 0, transform: 'translateY(48px)' },
     { opacity: 1, transform: 'translateY(0)' },

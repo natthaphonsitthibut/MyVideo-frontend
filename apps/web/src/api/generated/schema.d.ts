@@ -573,6 +573,7 @@ export interface components {
         GenerateClipsBody: {
             fresh?: boolean;
             productName?: string;
+            styleId?: string;
         };
         HealthReport: {
             checks: {
@@ -653,6 +654,7 @@ export interface components {
             meta: {
                 /** @enum {string} */
                 createdBy: "ai" | "user";
+                styleId?: string;
                 title?: string;
                 /** Format: uuid */
                 workflowRunId?: string;
@@ -691,6 +693,7 @@ export interface components {
             meta: {
                 /** @enum {string} */
                 createdBy: "ai" | "user";
+                styleId?: string;
                 title?: string;
                 /** Format: uuid */
                 workflowRunId?: string;
@@ -836,7 +839,7 @@ export interface components {
             origin: "ai" | "user" | "template";
             startFrame: number;
             /** @enum {string} */
-            styleRef: "clean" | "bold-highlight";
+            styleRef: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal";
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];

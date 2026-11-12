@@ -1,10 +1,107 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest';
 import { canvasMeasure, layoutLines, lineText } from './caption-layout';
-import { applyActiveWord, buildCaptionNode } from './captions';
+import { applyActiveWord, buildCaptionNode, captionFont, captionMaxWidth } from './captions';
 import type { StageElement } from './types';
 
 afterEach(() => vi.restoreAllMocks());
+
+function styledCaption(styleRef: string) {
+  const box = document.createElement('div');
+  const inner = document.createElement('div');
+  const words = [
+    { text: 'ขาย', startFrame: 0, endFrame: 12 },
+    { text: 'ดี', startFrame: 12, endFrame: 20 },
+  ];
+  buildCaptionNode(
+    box,
+    inner,
+    {
+      type: 'caption',
+      id: 'c',
+      trackId: 't',
+      origin: 'ai',
+      startFrame: 0,
+      durationFrames: 20,
+      styleRef,
+      words,
+      lines: [[0, 1]],
+      transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+    },
+    1080,
+    1920,
+  );
+  return { box, inner, words };
+}
+
+it.each([
+  ['pop-word', 900, 76, 1.5],
+  ['boxed', 600, 60, 1.6],
+  ['outline-bold', 900, 72, 1.5],
+  ['minimal', 500, 54, 1.5],
+])('measures and draws %s with the same typography', (id, weight, size, height) => {
+  const { inner, words } = styledCaption(String(id));
+  expect(inner.style.fontWeight).toBe(String(weight));
+  expect(inner.style.fontSize).toBe(`${size}px`);
+  expect(inner.style.lineHeight).toBe(String(height));
+  const context = { font: '', measureText: (text: string) => ({ width: text.length * 100 }) };
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as CanvasRenderingContext2D);
+  const measure = canvasMeasure(captionFont(String(id)));
+  const lines = layoutLines(words, measure, captionMaxWidth(1080, String(id)));
+  const normalized = document.createElement('span');
+  normalized.style.font = context.font;
+  expect(normalized.style.fontFamily).toBe(inner.style.fontFamily);
+  expect(normalized.style.fontSize).toBe(inner.style.fontSize);
+  expect(normalized.style.fontWeight).toBe(inner.style.fontWeight);
+  expect(inner.textContent).toBe(lineText(words, lines[0]!));
+  if (id === 'boxed') {
+    expect(captionMaxWidth(1080, String(id))).toBe(832);
+    expect(inner.firstElementChild?.getAttribute('style')).toContain('padding');
+  }
+});
+
+it('pops the spoken word from its frame, including backward seeks and clearing', () => {
+  const { inner } = styledCaption('pop-word');
+  applyActiveWord(inner, 0, 0);
+  const word = inner.querySelector<HTMLElement>('[data-w="0"]')!;
+  expect(word.style.transform).toBe('scale(1.15)');
+  applyActiveWord(inner, 0, 5);
+  expect(word.style.transform).toBe('scale(1)');
+  applyActiveWord(inner, 0, 0);
+  expect(word.style.transform).toBe('scale(1.15)');
+  applyActiveWord(inner, 1, 0);
+  expect(word.style.transform).toBe('');
+  applyActiveWord(inner, -1);
+  expect(inner.querySelector('[data-active]')).toBeNull();
+});
+
+it('wraps before the boxed padding would cross the safe area', () => {
+  const { words } = styledCaption('boxed');
+  const measure = (text: string) => text.length * 170;
+  expect(layoutLines(words, measure, captionMaxWidth(1080))).toEqual([[0, 1]]);
+  expect(layoutLines(words, measure, captionMaxWidth(1080, 'boxed'))).toEqual([[0], [1]]);
+});
+
+it.each([
+  ['clean', '600', '64px', '#ffffff'],
+  ['bold-highlight', '800', '68px', '#facc15'],
+])('preserves the existing %s typography and active colour', (id, weight, size, active) => {
+  const { inner } = styledCaption(id);
+  expect(inner.style.fontWeight).toBe(weight);
+  expect(inner.style.fontSize).toBe(size);
+  expect(inner.style.lineHeight).toBe('1.5');
+  expect(inner.style.getPropertyValue('--active')).toBe(active);
+  applyActiveWord(inner, 0, 0);
+  expect(inner.querySelector<HTMLElement>('[data-active]')!.style.transform).toBe('');
+  expect(inner.firstElementChild?.getAttribute('style')).toBe('white-space: nowrap;');
+});
+
+it('keeps minimal captions unstroked and underlines only the active word', () => {
+  const { inner } = styledCaption('minimal');
+  expect(inner.style.getPropertyValue('-webkit-text-stroke')).not.toContain('7px');
+  applyActiveWord(inner, 0);
+  expect(inner.querySelector<HTMLElement>('[data-active]')!.style.textDecoration).toBe('underline');
+});
 
 it.each([
   [['ขาย', 'ราคา', 'นี้', 'ครับผม'], 'ขายราคานี้ครับผม', [0, 3, 7, 10]],
