@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reframe, reframeRange } from './reframe';
+import { currentZoom, reframe, reframeRange, shotScales, zoomShots } from './reframe';
 
 const video = (id: string, x: number, scale: number) => ({
   type: 'video',
@@ -28,5 +28,26 @@ describe('reframe', () => {
     // clamped to the range
     reframe(5000, 1166).apply(draft);
     expect((draft.elements as unknown as typeof doc.elements).a.transform.x).toBe(1166);
+  });
+
+  it('zoom multiplies every shot by the same factor over its AI zoom (punch-ins stay relative), 1×–2×', () => {
+    const doc = { elements: { a: video('a', 0, 1), b: video('b', 0, 1.2) } };
+    const base = shotScales(doc.elements as never);
+    expect(base).toEqual({ a: 1, b: 1.2 });
+    const draft = structuredClone(doc) as unknown as Parameters<ReturnType<typeof zoomShots>['apply']>[0];
+    zoomShots(1.5, base).apply(draft);
+    const els = draft.elements as unknown as typeof doc.elements;
+    expect(els.a.transform.scale).toBe(1.5);
+    expect(els.b.transform.scale).toBeCloseTo(1.8);
+    expect(currentZoom(els as never, base)).toBeCloseTo(1.5);
+    zoomShots(9, base).apply(draft);
+    expect((draft.elements as unknown as typeof doc.elements).a.transform.scale).toBe(2);
+    zoomShots(1, base).apply(draft);
+    expect((draft.elements as unknown as typeof doc.elements).b.transform.scale).toBe(1.2);
+  });
+
+  it('zooming in gives room to slide even a portrait source', () => {
+    // real S01a portrait source: drawn 1082.7 px wide → 1 px at 1×, (1082.7·1.5 − 1080)/2 = 272 px at 1.5×
+    expect(reframeRange({ width: 406, height: 720 }, 1080, 1920, 1.5)).toBe(272);
   });
 });

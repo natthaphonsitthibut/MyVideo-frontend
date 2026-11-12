@@ -72,6 +72,24 @@ export function StylePanel({ store, canvasWidth }: { store: EditorStore; canvasW
             void apply({ styleRef, y: CAPTION_POSITIONS[v as keyof typeof CAPTION_POSITIONS] })
           }
         />
+        <label className="block space-y-1 pt-1 text-xs text-muted-foreground">
+          <span>ปรับความสูงละเอียด</span>
+          <input
+            type="range"
+            className="w-full accent-primary"
+            min={CAPTION_POSITIONS.top}
+            max={CAPTION_POSITIONS.bottom}
+            step={10}
+            defaultValue={y}
+            key={y}
+            disabled={busy}
+            aria-label="ความสูงคำบรรยาย"
+            data-testid="caption-y-slider"
+            // one command on release; the stage clamps into the platform safe area
+            onPointerUp={(e) => void apply({ styleRef, y: Number(e.currentTarget.value) })}
+            onKeyUp={(e) => void apply({ styleRef, y: Number(e.currentTarget.value) })}
+          />
+        </label>
         <p className="text-xs text-muted-foreground">คำบรรยายจะไม่ทับปุ่มของแอปด้านขวาและด้านล่างเสมอ</p>
       </div>
     </div>

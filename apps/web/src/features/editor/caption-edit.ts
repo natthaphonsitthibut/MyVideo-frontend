@@ -89,7 +89,7 @@ export function splitCaptionAt(id: string, index: number, newId: string, layout:
     apply(raw) {
       const d = raw as unknown as PageDraft;
       const c = d.elements[id];
-      if (!c || c.type !== 'caption') throw new Error(`caption ${id} not found`);
+      if (c?.type !== 'caption') throw new Error(`caption ${id} not found`);
       const at = c.words[index];
       const last = c.words[index - 1];
       if (index <= 0 || !at || !last) throw new Error('split needs words on both sides');
