@@ -25,7 +25,8 @@ declare global {
 
 /**
  * Dev-only page: mounts the stage for a saved project at full resolution and exposes it as `window.__stage`, so
- * Playwright can seek frames and capture them (visual regression). Preview media = the source proxies.
+ * Playwright can seek frames and capture them (visual regression). Preview media = the source proxies
+ * (`?media=original`: the originals, as the renderer reads them).
  */
 export function StageHarness() {
   const { id = '' } = useParams();
@@ -43,10 +44,12 @@ export function StageHarness() {
     const el = host.current;
     const doc = project.data?.doc;
     if (!el || !doc) return;
+    // `?media=original` draws with the files the renderer uses (preview/render parity test)
+    const kind = new URLSearchParams(location.search).get('media') === 'original' ? 'original' : 'proxy';
     const stage = mountStage(
       el,
       doc as unknown as StageProject,
-      (_assetId, asset) => `${API_BASE_URL}/sources/${asset.sourceId}/assets/proxy`,
+      (_assetId, asset) => `${API_BASE_URL}/sources/${asset.sourceId}/assets/${kind}`,
     );
     window.__stage = Object.assign(stage, { durationFrames: doc.durationFrames });
     window.__stageLib = stageLib;
