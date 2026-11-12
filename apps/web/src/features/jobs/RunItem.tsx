@@ -2,7 +2,15 @@ import { RotateCcw, Square } from 'lucide-react';
 import { type JobSummary, type RunSummary, useJobAction } from '@/api/runs';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { JOB_STATUS, jobTypeLabel, RUN_KIND_LABEL, RUN_STATUS, TONE_CLASS, timeAgo } from './labels';
+import {
+  JOB_STATUS,
+  jobTypeLabel,
+  RUN_KIND_LABEL,
+  RUN_STATUS,
+  stepDuration,
+  TONE_CLASS,
+  timeAgo,
+} from './labels';
 
 export function StatusPill({ label, tone }: { label: string; tone: keyof typeof TONE_CLASS }) {
   return (
@@ -67,6 +75,11 @@ function JobRow({ job }: { job: JobSummary }) {
           <span className="text-xs text-muted-foreground tabular-nums">
             ครั้งที่ {Math.max(job.attempts, 1)}/{job.maxAttempts}
           </span>
+          {job.startedAt ? (
+            <span className="text-xs text-muted-foreground tabular-nums" data-testid="job-duration">
+              {stepDuration(job.startedAt, job.finishedAt)}
+            </span>
+          ) : null}
           {job.cancelRequested && job.status === 'running' ? (
             <span className="text-xs text-muted-foreground">กำลังหยุด…</span>
           ) : null}
@@ -78,9 +91,18 @@ function JobRow({ job }: { job: JobSummary }) {
           </span>
         </div>
         {job.error && (job.status === 'dead' || job.status === 'failed') ? (
-          <p className="text-sm break-words text-destructive" data-testid="job-error">
-            {job.error.message}
-          </p>
+          <div className="space-y-1">
+            <p className="text-sm break-words text-destructive" data-testid="job-error">
+              {job.error.message}
+            </p>
+            {/* the server logs carry this id (jobId): search the logs for it to see the whole failure */}
+            <p className="text-xs text-muted-foreground">
+              รหัสงานสำหรับค้นใน log:{' '}
+              <code className="select-all rounded bg-muted px-1 font-mono" data-testid="job-id">
+                {job.id}
+              </code>
+            </p>
+          </div>
         ) : null}
       </div>
       <div className="flex gap-2 sm:justify-end">

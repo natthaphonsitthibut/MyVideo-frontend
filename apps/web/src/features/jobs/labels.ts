@@ -14,8 +14,22 @@ export const RUN_KIND_LABEL: Record<RunSummary['kind'], string> = {
 const JOB_TYPE_LABEL: Record<string, string> = {
   'system.sleep': 'งานทดสอบ (รอเวลา)',
   'system.noop': 'งานทดสอบ',
+  'shots.detect': 'หาช็อตในวิดีโอ',
+  'review.build': 'จัดคลิปลงเทมเพลต',
+  'clips.plan': 'หาช่วงที่น่าตัด',
+  'clips.build': 'ตัดต่อคลิป',
 };
 export const jobTypeLabel = (type: string) => JOB_TYPE_LABEL[type] ?? type;
+
+/** How long a step ran ("12 วิ", "3 นาที 05 วิ"); still running = up to now. */
+export function stepDuration(startedAt: string, finishedAt: string | null, now: number = Date.now()): string {
+  const ms = Math.max(0, (finishedAt ? Date.parse(finishedAt) : now) - Date.parse(startedAt));
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s} วิ`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} นาที ${String(s % 60).padStart(2, '0')} วิ`;
+  return `${Math.floor(m / 60)} ชม. ${String(m % 60).padStart(2, '0')} นาที`;
+}
 
 type Tone = 'muted' | 'active' | 'success' | 'warning' | 'danger';
 export const JOB_STATUS: Record<JobSummary['status'], { label: string; tone: Tone }> = {
