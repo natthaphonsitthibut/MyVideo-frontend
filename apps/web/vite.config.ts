@@ -13,7 +13,14 @@ export default defineConfig({
     port: 5180,
     strictPort: true,
     // The browser always calls same-origin `/api/*`; in dev Vite forwards it to the NestJS API.
-    proxy: { '/api': { target: apiTarget, rewrite: (path) => path.replace(/^\/api/, '') } },
+    proxy: {
+      // x-forwarded-prefix lets the API build upload URLs (tus Location) that include /api
+      '/api': {
+        target: apiTarget,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        headers: { 'x-forwarded-prefix': '/api' },
+      },
+    },
   },
   preview: {
     host: '127.0.0.1',

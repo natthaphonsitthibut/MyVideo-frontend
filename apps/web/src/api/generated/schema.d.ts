@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/upload-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Limits the upload UI checks before sending (the server enforces them again) */
+        get: operations["getUploadConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources/{id}": {
         parameters: {
             query?: never;
@@ -371,6 +388,12 @@ export interface components {
             ms: number;
             /** @default 10 */
             steps: number;
+        };
+        UploadConfig: {
+            chunkBytes: number;
+            endpoint: string;
+            extensions: string[];
+            maxBytes: number;
         };
     };
     responses: never;
@@ -624,6 +647,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getUploadConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Upload limits */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadConfig"];
                 };
             };
         };

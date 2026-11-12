@@ -590,6 +590,37 @@
           "failFirstAttempt"
         ],
         "type": "object"
+      },
+      "UploadConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "chunkBytes": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "extensions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "maxBytes": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "endpoint",
+          "maxBytes",
+          "extensions",
+          "chunkBytes"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -921,6 +952,32 @@
           }
         ],
         "summary": "The source created from a finished resumable upload (tus at /uploads). Idempotent: finishes the hand-over if it was interrupted.",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/sources/upload-config": {
+      "get": {
+        "operationId": "getUploadConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadConfig"
+                }
+              }
+            },
+            "description": "Upload limits"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Limits the upload UI checks before sending (the server enforces them again)",
         "tags": [
           "sources"
         ]
