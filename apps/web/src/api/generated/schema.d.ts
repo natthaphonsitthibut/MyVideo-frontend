@@ -713,6 +713,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/timings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Measured durations of recent workflow runs (upload, each processing step, model calls), newest first */
+        get: operations["listTimings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workflow-runs": {
         parameters: {
             query?: never;
@@ -1553,6 +1570,59 @@ export interface components {
             fontFamily: string;
             fontSize: number;
             fontWeight: number;
+        };
+        TimingList: {
+            items: components["schemas"]["TimingRun"][];
+        };
+        TimingLlm: {
+            calls: number;
+            costUsd: number | null;
+            inputTokens: number;
+            models: string[];
+            modes: string[];
+            outputTokens: number;
+            totalMs: number;
+        };
+        TimingRun: {
+            /** Format: date-time */
+            createdAt: string;
+            finishedAt: string | null;
+            /** @enum {string} */
+            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "render" | "purge" | "system_test";
+            llm: components["schemas"]["TimingLlm"] | null;
+            mediaSeconds: number | null;
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
+            steps: components["schemas"]["TimingStep"][];
+            subjectId: string | null;
+            subjectTitle: string | null;
+            subjectType: string | null;
+            totalMs: number;
+            upload: components["schemas"]["TimingUpload"] | null;
+        };
+        TimingStep: {
+            attempts: number;
+            /** Format: date-time */
+            createdAt: string;
+            finishedAt: string | null;
+            runMs: number | null;
+            startedAt: string | null;
+            status: string;
+            type: string;
+            waitMs: number | null;
+        };
+        TimingUpload: {
+            bytes: number;
+            /** Format: date-time */
+            receivedAt: string;
+            /** Format: date-time */
+            startedAt: string;
+            storeMs: number;
+            /** Format: date-time */
+            storedAt: string;
+            uploadMs: number;
         };
         Track: {
             elementIds: string[];
@@ -3444,6 +3514,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TemplateList"];
+                };
+            };
+        };
+    };
+    listTimings: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent runs with timings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimingList"];
                 };
             };
         };

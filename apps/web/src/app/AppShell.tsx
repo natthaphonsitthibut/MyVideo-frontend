@@ -1,4 +1,4 @@
-import { Activity, Clapperboard, Film, Folder, LogOut, Menu, X } from 'lucide-react';
+import { Activity, Clapperboard, Film, Folder, LogOut, Menu, Timer, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
@@ -7,11 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { activeNavHref } from '@/features/clip/navigation';
 import { cn } from '@/lib/utils';
 
-/** Project folders, all Library footage, and the separate collection of edited clips. */
+/** Project folders, all Library footage, the separate collection of edited clips, and measured step times. */
 const NAV = [
   { to: '/projects', label: 'โปรเจกต์', icon: Folder },
   { to: '/library', label: 'คลังวิดีโอ', icon: Film },
   { to: '/clips', label: 'คลิปที่ตัดแล้ว', icon: Clapperboard },
+  { to: '/timings', label: 'บันทึกเวลา', icon: Timer },
 ] as const;
 
 function NavItem({

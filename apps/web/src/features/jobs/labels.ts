@@ -15,10 +15,21 @@ export const RUN_KIND_LABEL: Record<RunSummary['kind'], string> = {
 const JOB_TYPE_LABEL: Record<string, string> = {
   'system.sleep': 'งานทดสอบ (รอเวลา)',
   'system.noop': 'งานทดสอบ',
+  'media.probe': 'ตรวจไฟล์วิดีโอ',
+  'media.proxy': 'ทำไฟล์พรีวิว',
+  'media.audio': 'แยกเสียง',
+  'media.sprites': 'ทำภาพตัวอย่าง',
+  'asr.plan': 'แบ่งช่วงถอดเสียง',
+  'asr.chunk': 'ถอดเสียง',
+  'asr.merge': 'รวมคำถอดเสียง',
+  'transcript.fix': 'AI แก้คำถอดเสียง',
   'shots.detect': 'หาช็อตในวิดีโอ',
   'review.build': 'จัดคลิปลงเทมเพลต',
-  'clips.plan': 'หาช่วงที่น่าตัด',
+  'clips.plan': 'AI หาช่วงที่น่าตัด',
   'clips.build': 'ตัดต่อคลิป',
+  'clips.restyle': 'เปลี่ยนสไตล์คลิป',
+  'render.video': 'เรนเดอร์ MP4',
+  'storage.purge': 'ลบไฟล์',
 };
 export const jobTypeLabel = (type: string) => JOB_TYPE_LABEL[type] ?? type;
 

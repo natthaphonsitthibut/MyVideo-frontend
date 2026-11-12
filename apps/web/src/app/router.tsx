@@ -94,6 +94,10 @@ export const routes: RouteObject[] = [
         element: <Navigate to="/projects" replace />,
       })),
       {
+        path: 'timings',
+        lazy: () => import('@/pages/TimingsPage').then((m) => ({ Component: m.TimingsPage })),
+      },
+      {
         path: 'clips',
         lazy: () => import('@/pages/EditedClipsPage').then((m) => ({ Component: m.EditedClipsPage })),
       },
