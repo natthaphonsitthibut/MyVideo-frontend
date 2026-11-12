@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError, api, type Schemas } from './client';
 
 export type TranscriptState = Schemas['TranscriptState'];
-export type TranscriptSegment = Schemas['TranscriptSegment'];
+export type TranscriptSegment = Omit<Schemas['TranscriptSegment'], 'words'> & {
+  // Optional while older cached responses and generated clients are still in use.
+  words: (Schemas['TranscriptWord'] & { aiFixed?: boolean; heard?: string | null })[];
+};
 type SegmentPage = Schemas['TranscriptSegmentPage'];
 
 const stateKey = (sourceId: string) => ['transcript', sourceId] as const;

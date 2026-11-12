@@ -26,6 +26,7 @@ import { CreateClipBar, useWordSelection } from '@/features/clip/CreateClipBar';
 import type { ClipSource } from '@/features/clip/clip-project';
 import { cn } from '@/lib/utils';
 import { buildWordIndex, findSegmentAt, findWordAt, searchSegments } from './word-index';
+import { wordMarking } from './word-marking';
 
 type VideoRef = RefObject<HTMLVideoElement | null>;
 const EMPTY: TranscriptSegment[] = [];
@@ -253,6 +254,7 @@ function TranscriptViewer({
           <h2 className="font-medium">คำถอดเสียง</h2>
           <span className="text-xs text-muted-foreground tabular-nums">{segments.length} ช่วง</span>
         </div>
+        <p className="text-xs text-muted-foreground">คำที่ขีดเส้นประ = AI แก้ให้ (แก้เองได้)</p>
         <div className="flex items-center gap-1">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -364,8 +366,9 @@ function TranscriptViewer({
                             data-seq={seg.seq}
                             data-wi={wi}
                             data-edited={w.original !== null ? '' : undefined}
-                            title={w.original !== null ? `เดิม: ${w.original}` : undefined}
-                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:decoration-dotted data-edited:underline-offset-4"
+                            data-ai-fixed={wordMarking(w).ai ? '' : undefined}
+                            title={wordMarking(w).title}
+                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-muted-foreground/60 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4"
                           >
                             {w.text}
                           </span>
@@ -450,7 +453,7 @@ function WordEditor({
         style={{ width: `${Math.max(4, value.length + 2)}ch` }}
         data-testid="word-editor"
       />
-      {word.original !== null ? (
+      {wordMarking(word).canRevert ? (
         <Button
           type="button"
           size="sm"
@@ -461,7 +464,7 @@ function WordEditor({
             e.stopPropagation();
             onRevert();
           }}
-          title={`คืนเป็น “${word.original}”`}
+          title={`คืนเป็น “${wordMarking(word).heard}”`}
         >
           <Undo2 />
           คืนค่าเดิม

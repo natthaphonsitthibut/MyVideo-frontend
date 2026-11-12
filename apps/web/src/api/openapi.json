@@ -2359,6 +2359,7 @@
               "transcribe",
               "live_to_clips",
               "restyle_clip",
+              "build_clips",
               "review_to_video",
               "render",
               "system_test"
@@ -2986,10 +2987,19 @@
       "TranscriptWord": {
         "additionalProperties": false,
         "properties": {
+          "aiFixed": {
+            "type": "boolean"
+          },
           "endMs": {
             "maximum": 9007199254740991,
             "minimum": -9007199254740991,
             "type": "integer"
+          },
+          "heard": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "kind": {
             "type": "string"
@@ -3014,7 +3024,9 @@
           "startMs",
           "endMs",
           "kind",
-          "original"
+          "original",
+          "aiFixed",
+          "heard"
         ],
         "type": "object"
       },
