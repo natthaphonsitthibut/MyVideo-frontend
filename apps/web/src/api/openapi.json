@@ -1929,7 +1929,8 @@
             "enum": [
               "create",
               "save",
-              "restore"
+              "restore",
+              "restyle"
             ],
             "type": "string"
           },
@@ -2127,6 +2128,34 @@
         },
         "required": [
           "baseVersion"
+        ],
+        "type": "object"
+      },
+      "RestyleAccepted": {
+        "additionalProperties": false,
+        "properties": {
+          "runId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "RestyleBody": {
+        "additionalProperties": false,
+        "properties": {
+          "styleId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "styleId"
         ],
         "type": "object"
       },
@@ -2553,6 +2582,41 @@
           "hasProxy",
           "hasPeaks",
           "sprites"
+        ],
+        "type": "object"
+      },
+      "StylePackList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StylePackSummary"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "StylePackSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description"
         ],
         "type": "object"
       },
@@ -3628,6 +3692,94 @@
         ]
       }
     },
+    "/projects/{id}/restyle": {
+      "post": {
+        "operationId": "restyleProject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestyleBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestyleAccepted"
+                }
+              }
+            },
+            "description": "Restyle run started (follow `/workflow-runs/{runId}`)"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Unknown style"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project for this merchant"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Not an AI clip with stored build inputs (Thai message)"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Too many unfinished runs"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Rebuild an AI-made clip with another style pack from its stored inputs (no AI call); saved as a new project version",
+        "tags": [
+          "clips"
+        ]
+      }
+    },
     "/projects/{id}/versions": {
       "get": {
         "operationId": "listProjectVersions",
@@ -4652,6 +4804,32 @@
         "summary": "Correct one word of the ready transcript (stored as a user layer; the ASR original is kept)",
         "tags": [
           "transcripts"
+        ]
+      }
+    },
+    "/style-packs": {
+      "get": {
+        "operationId": "listStylePacks",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StylePackList"
+                }
+              }
+            },
+            "description": "Style packs"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Edit styles an AI clip can be built or restyled with (Thai names)",
+        "tags": [
+          "clips"
         ]
       }
     },

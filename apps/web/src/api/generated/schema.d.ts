@@ -194,6 +194,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{id}/restyle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rebuild an AI-made clip with another style pack from its stored inputs (no AI call); saved as a new project version */
+        post: operations["restyleProject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{id}/versions": {
         parameters: {
             query?: never;
@@ -447,6 +464,23 @@ export interface paths {
         post?: never;
         /** Remove the correction of one word (back to the ASR text) */
         delete: operations["revertTranscriptWord"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/style-packs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Edit styles an AI clip can be built or restyled with (Thai names) */
+        get: operations["listStylePacks"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -951,7 +985,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string} */
-            reason: "create" | "save" | "restore";
+            reason: "create" | "save" | "restore" | "restyle";
             restoredFrom: number | null;
             version: number;
         };
@@ -988,6 +1022,13 @@ export interface components {
         };
         RestoreBody: {
             baseVersion: number;
+        };
+        RestyleAccepted: {
+            /** Format: uuid */
+            runId: string;
+        };
+        RestyleBody: {
+            styleId: string;
         };
         RunEvent: {
             /** Format: date-time */
@@ -1062,6 +1103,14 @@ export interface components {
             status: "processing" | "ready" | "failed";
             title: string;
             width: number | null;
+        };
+        StylePackList: {
+            items: components["schemas"]["StylePackSummary"][];
+        };
+        StylePackSummary: {
+            description: string;
+            id: string;
+            name: string;
         };
         TestRunRequest: {
             /** @default false */
@@ -1622,6 +1671,68 @@ export interface operations {
             };
             /** @description No such project/render for this merchant */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Too many unfinished runs */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    restyleProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestyleBody"];
+            };
+        };
+        responses: {
+            /** @description Restyle run started (follow `/workflow-runs/{runId}`) */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestyleAccepted"];
+                };
+            };
+            /** @description Unknown style */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Not an AI clip with stored build inputs (Thai message) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2277,6 +2388,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listStylePacks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Style packs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StylePackList"];
                 };
             };
         };

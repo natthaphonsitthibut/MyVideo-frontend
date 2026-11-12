@@ -58,6 +58,62 @@ export function useDiscardClip(sourceId: string) {
   });
 }
 
+export type StylePack = Schemas['StylePackSummary'];
+
+/** Edit styles (static list from the server; Thai names). */
+export function useStylePacks(enabled = true) {
+  return useQuery({
+    queryKey: ['style-packs'],
+    enabled,
+    staleTime: Number.POSITIVE_INFINITY,
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/style-packs');
+      if (!data) throw new ApiError(response.status, error);
+      return data.items;
+    },
+  });
+}
+
+/** Starts a restyle run (rebuild with another style, no AI call); resolves with the run id. */
+export function useRestyle(projectId: string) {
+  return useMutation({
+    mutationFn: async (styleId: string) => {
+      const { data, error, response } = await api.POST('/projects/{id}/restyle', {
+        params: { path: { id: projectId } },
+        body: { styleId },
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data.runId;
+    },
+  });
+}
+
+/** One workflow run, polled every second until it ends. */
+export function useRunStatus(runId: string | null) {
+  return useQuery({
+    queryKey: ['workflow-run', runId],
+    enabled: runId !== null,
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/workflow-runs/{id}', {
+        params: { path: { id: runId ?? '' } },
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    refetchInterval: (q) =>
+      q.state.data && ['succeeded', 'failed', 'cancelled'].includes(q.state.data.status) ? false : 1000,
+  });
+}
+
+/** Message of a refused API call (server messages for merchants are Thai). */
+export function apiErrorMessage(err: unknown): string | null {
+  if (!err) return null;
+  const body = err instanceof ApiError ? err.body : null;
+  const msg =
+    body && typeof body === 'object' && 'message' in body ? (body as { message: unknown }).message : null;
+  return typeof msg === 'string' ? msg : err instanceof Error ? err.message : 'error';
+}
+
 export function useProjects() {
   return useQuery({
     queryKey: ['projects'],
