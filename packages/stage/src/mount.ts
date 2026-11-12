@@ -1,7 +1,7 @@
 import { frameToMs } from '@myvideo/timeline-core';
 import { type BrandTheme, brandVars } from './brand';
 import { applyActiveWord, buildCaptionNode } from './captions';
-import { frameState, type VisibleElement } from './frame-state';
+import { frameState, mediaTimeAt, type VisibleElement } from './frame-state';
 import { animationKeyframes } from './presets';
 import { textStyleFor } from './styles';
 import type { AssetResolver, StageElement, StageProject } from './types';
@@ -25,6 +25,11 @@ export type Stage = {
    * required source times; hidden media are paused.
    */
   draw(frame: number): { el: HTMLMediaElement; time: number }[];
+  /**
+   * Hidden decoders whose next shot starts within `withinFrames` after `frame` (A/B lanes): the player starts them
+   * early, muted and unseen, so they are already moving at the cut. `time` = source time (s) at the cut frame.
+   */
+  upcoming(frame: number, withinFrames: number): { el: HTMLMediaElement; cutFrame: number; time: number }[];
   /** Live edit: replace (or remove with null) one element without rebuilding the stage. */
   patch(id: string, element: StageElement | null): void;
   /** Every `apply` (seek/patch) notifies listeners with the frame. */
@@ -35,6 +40,8 @@ export type Stage = {
 };
 
 const HALF_FRAME = 0.5;
+/** How far a pre-rolled decoder may miss its cut before it is re-seeked (beyond this a seek is the lesser evil). */
+const PREROLL_TOLERANCE_S = 0.25;
 
 /** Element volume for the preview: a muted track (advanced timeline) is silent, as in the render. */
 function trackMuted(p: StageProject, trackId: string): boolean {
@@ -73,6 +80,14 @@ export function mountStage(
     trackMuted(p, e.trackId) ? 0 : Math.min(1, e.volume);
   const nodes = new Map<string, Node>();
   const videos = new Map<string, { group: VideoGroup; el: HTMLVideoElement; active?: string }>();
+  /** Hidden decoders the player started early for their next cut (cleared when shown or on a seek). */
+  const rolling = new Set<HTMLMediaElement>();
+  /**
+   * Decoders positioned while hidden: their time may already match a later seek, but a hidden video keeps
+   * compositing its OLD picture, so such a seek must still wait for a presented frame (a frame-30 screenshot
+   * showed another moment of the video after a park, E12-F01 stage e2e).
+   */
+  const parked = new WeakSet<HTMLMediaElement>();
   const listeners = new Set<(f: number) => void>();
   let current = 0;
   const ms = (frames: number) => frameToMs(frames, p.fps);
@@ -211,6 +226,26 @@ export function mountStage(
   }
   syncVideos();
 
+  /**
+   * A hidden decoder waits at the first frame of its next shot (A/B lanes, `videoGroups`), aimed at the middle
+   * of the frame like `seekMedia`, so the jump cut that reveals it needs no seek. Only moves when it is elsewhere.
+   */
+  function park(el: HTMLVideoElement, group: VideoGroup, frame: number) {
+    let next: Extract<StageElement, { type: 'video' }> | undefined;
+    for (const id of group.elementIds) {
+      const e = p.elements[id];
+      if (e?.type === 'video' && e.startFrame > frame && (!next || e.startFrame < next.startFrame)) next = e;
+    }
+    // a lane the player is already rolling into its cut (muted, unseen) is left alone
+    if (!next || el.seeking || !el.paused) return;
+    const halfFrameS = (p.fps.den / p.fps.num) * HALF_FRAME;
+    const target = mediaTimeAt(next, next.startFrame, p.fps) + halfFrameS / 2;
+    if (Math.abs(el.currentTime - target) > halfFrameS) {
+      el.currentTime = target;
+      parked.add(el);
+    }
+  }
+
   /** Applies the pure frame state to the DOM; returns the visible media that must be at a time. */
   function apply(frame: number, playback = false): { el: HTMLMediaElement; time: number }[] {
     current = frame;
@@ -222,10 +257,18 @@ export function mountStage(
       const id = video.group.elementIds.find((id) => on.has(id));
       const v = id === undefined ? undefined : on.get(id);
       if (v?.element.type !== 'video') {
-        if (!video.el.paused) video.el.pause();
+        // a lane rolling into its cut (see `upcoming`) keeps playing, muted and unseen
+        if (!video.el.paused && !(playback && rolling.has(video.el))) video.el.pause();
+        if (!playback) rolling.delete(video.el);
         video.active = undefined;
+        // only while playing: a seek/render draws exactly what it asked for, nothing ahead
+        if (playback) park(video.el, video.group, frame);
         continue;
       }
+      // a pre-rolled decoder is already moving near its cut: re-seeking it for a small miss froze the picture
+      // ~80 ms (measured E12-F01); the player's clock follows it instead
+      const wasRolling = rolling.delete(video.el);
+      const reseekS = wasRolling ? PREROLL_TOLERANCE_S : (2 * p.fps.den) / p.fps.num;
       const e = v.element;
       const changed = video.active !== id;
       const inner = nodes.get(v.id)?.inner;
@@ -241,7 +284,7 @@ export function mountStage(
         playback &&
         changed &&
         v.mediaTime !== undefined &&
-        Math.abs(video.el.currentTime - v.mediaTime) > (2 * p.fps.den) / p.fps.num
+        Math.abs(video.el.currentTime - v.mediaTime) > reseekS
       )
         video.el.currentTime = v.mediaTime;
       video.active = id;
@@ -281,7 +324,9 @@ export function mountStage(
   const seekMedia = (el: HTMLMediaElement, time: number): Promise<void> =>
     new Promise((res) => {
       const frameS = (p.fps.den / p.fps.num) * HALF_FRAME;
-      if (!el.seeking && Math.abs(el.currentTime - time) < frameS && el.readyState >= 2) return res();
+      const wasParked = parked.delete(el);
+      if (!wasParked && !el.seeking && Math.abs(el.currentTime - time) < frameS && el.readyState >= 2)
+        return res();
       let seeked = false;
       let presented = !(el instanceof HTMLVideoElement) || !('requestVideoFrameCallback' in el);
       let fallback: ReturnType<typeof setTimeout> | undefined;
@@ -328,6 +373,28 @@ export function mountStage(
     },
     draw(frame) {
       return apply(frame, true);
+    },
+    upcoming(frame, withinFrames) {
+      const out: { el: HTMLMediaElement; cutFrame: number; time: number }[] = [];
+      for (const video of videos.values()) {
+        if (video.active !== undefined) continue; // visible now
+        let next: Extract<StageElement, { type: 'video' }> | undefined;
+        for (const id of video.group.elementIds) {
+          const e = p.elements[id];
+          if (e?.type === 'video' && e.startFrame > frame && (!next || e.startFrame < next.startFrame))
+            next = e;
+        }
+        if (next && next.startFrame - frame <= withinFrames) {
+          rolling.add(video.el);
+          parked.add(video.el); // the player positions it while hidden
+          out.push({
+            el: video.el,
+            cutFrame: next.startFrame,
+            time: mediaTimeAt(next, next.startFrame, p.fps),
+          });
+        }
+      }
+      return out;
     },
     async seek(frame) {
       const waits = apply(frame);

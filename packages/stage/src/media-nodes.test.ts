@@ -11,24 +11,58 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('maps arbitrary frames to one shared group and rational source time without DOM state', () => {
+it('jump cuts alternate between two decoders (A/B lanes); rational source time without DOM state', () => {
   const p = project();
   p.fps = { num: 30000, den: 1001 };
   const groups = videoGroups(p);
-  expect(groups).toHaveLength(1);
-  for (const [frame, id, time] of [
-    [30, 'v1', 2.002],
-    [0, 'v0', 0],
-    [31, 'v1', 2.035366666666667],
-    [720, 'v24', 48.048],
+  // every cut in the fixture jumps in the source → lanes A (even shots) and B (odd shots)
+  expect(groups.map((g) => [g.id, g.elementIds.length])).toEqual([
+    ['v0', 13],
+    ['v1', 12],
+  ]);
+  for (const [frame, id, time, lane] of [
+    [30, 'v1', 2.002, 'v1'],
+    [0, 'v0', 0, 'v0'],
+    [31, 'v1', 2.035366666666667, 'v1'],
+    [720, 'v24', 48.048, 'v0'],
   ] as const) {
     const visible = frameState(p, frame).visible[0]!;
     expect(visible.id).toBe(id);
     expect(visible.mediaTime).toBeCloseTo(time, 9);
-    expect(groups.find((g) => g.elementIds.includes(id))?.id).toBe('v0');
+    expect(groups.find((g) => g.elementIds.includes(id))?.id).toBe(lane);
   }
+  // a continuous take (no source jump) stays on one decoder
+  const take = project();
+  for (let i = 0; i < 25; i++)
+    take.elements[`v${i}`] = { ...take.elements[`v${i}`]!, sourceInFrame: i * 30 } as StageElement;
+  expect(videoGroups(take)).toHaveLength(1);
+  // another asset in the middle starts new lanes
   p.elements.v1 = { ...p.elements.v1!, assetId: 'b' } as StageElement;
-  expect(videoGroups(p).map((g) => g.elementIds.length)).toEqual([1, 1, 23]);
+  expect(videoGroups(p).map((g) => g.elementIds.length)).toEqual([1, 1, 12, 11]);
+});
+
+it('the hidden lane waits at the start of its next shot, so a jump cut plays without a seek', () => {
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+  const stage = mountStage(document.createElement('div'), project(), () => '/video.mp4');
+  const videos = [...stage.root.querySelectorAll('video')];
+  expect(videos).toHaveLength(2);
+  const [a] = stage.draw(10);
+  // lane B is parked at v1's first source frame (aimed a quarter frame in, like a seek) while A plays v0
+  const b = videos.find((v) => v !== a?.el)!;
+  expect(b.currentTime).toBeCloseTo(2 + 1 / 120, 6);
+  // at the cut B shows v1 with no further seek
+  let seeks = 0;
+  const desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'currentTime')!;
+  Object.defineProperty(b, 'currentTime', {
+    get: () => desc.get!.call(b),
+    set: (v: number) => {
+      seeks++;
+      desc.set!.call(b, v);
+    },
+  });
+  expect(stage.draw(30)[0]?.el).toBe(b);
+  expect(seeks).toBe(0);
+  stage.destroy();
 });
 
 function project(): StageProject {
@@ -60,18 +94,48 @@ function project(): StageProject {
   };
 }
 
-it('uses one decoder for 25 consecutive cuts, with exact source times and per-cut transforms', () => {
+it('a seek onto a shot whose decoder was parked while hidden still waits for a presented frame', async () => {
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0);
+    return 0;
+  });
+  const stage = mountStage(document.createElement('div'), project(), () => '/video.mp4');
+  const a = stage.draw(10)[0]!.el;
+  const b = [...stage.root.querySelectorAll('video')].find((v) => v !== a)!;
+  // jsdom: pretend the park seek finished and the decoder has data, so only the "presented" wait remains
+  Object.defineProperty(b, 'readyState', { value: 4 });
+  let presented: VideoFrameRequestCallback | undefined;
+  b.requestVideoFrameCallback = (callback) => {
+    presented = callback;
+    return 1;
+  };
+  let done = false;
+  const pending = stage.seek(30).then(() => {
+    done = true;
+  });
+  b.dispatchEvent(new Event('seeked'));
+  await Promise.resolve();
+  expect(done).toBe(false); // its time already matched, but the picture on screen is still an old one
+  presented!(0, { mediaTime: 2 } as VideoFrameCallbackMetadata);
+  await pending;
+  expect(done).toBe(true);
+  stage.destroy();
+});
+
+it('uses two decoders for 25 consecutive jump cuts, with exact source times and per-cut transforms', () => {
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
   const stage = mountStage(document.createElement('div'), project(), () => '/video.mp4');
-  expect(stage.root.querySelectorAll('video')).toHaveLength(1);
-  const media = stage.draw(29)[0]!.el;
-  expect(stage.draw(30)[0]).toEqual({ el: media, time: 2 });
-  expect(media.currentTime).toBe(2);
-  expect(media.closest('[data-el]')?.getAttribute('data-el')).toBe('v1');
-  expect((media.closest('[data-el]') as HTMLElement).style.transform).toContain('scale(1.12)');
-  expect(stage.draw(0)[0]).toEqual({ el: media, time: 0 });
-  expect(media.currentTime).toBe(0);
-  expect(stage.draw(749)[0]).toEqual({ el: media, time: 48 + 29 / 30 });
+  expect(stage.root.querySelectorAll('video')).toHaveLength(2);
+  const laneA = stage.draw(29)[0]!.el;
+  const cut = stage.draw(30)[0]!;
+  expect(cut.el).not.toBe(laneA);
+  expect(cut.time).toBe(2);
+  expect(cut.el.closest('[data-el]')?.getAttribute('data-el')).toBe('v1');
+  expect((cut.el.closest('[data-el]') as HTMLElement).style.transform).toContain('scale(1.12)');
+  expect(stage.draw(0)[0]).toEqual({ el: laneA, time: 0 });
+  expect(laneA.currentTime).toBe(0);
+  expect(stage.draw(749)[0]).toEqual({ el: laneA, time: 48 + 29 / 30 });
   expect(stage.draw(750)).toEqual([]);
   stage.destroy();
 });
@@ -87,7 +151,7 @@ it('does not share across tracks or overlapping elements and regroups after a pa
   stage.patch('v1', { ...p.elements.v1!, startFrame: 20 });
   expect(new Set(stage.draw(25).map((m) => m.el)).size).toBe(3);
   stage.patch('v1', p.elements.v1!);
-  expect(stage.root.querySelectorAll('video')).toHaveLength(2);
+  expect(stage.root.querySelectorAll('video')).toHaveLength(3); // A/B lanes on track t + the other track
   stage.destroy();
 });
 
@@ -105,14 +169,15 @@ it('seek waits for decoding and presentation when crossing a shared cut', async 
     return 1;
   };
   let done = false;
-  const pending = stage.seek(30).then(() => {
+  const pending = stage.seek(60).then(() => {
     done = true;
   });
-  expect(media.currentTime).toBeCloseTo(2 + 1 / 120);
+  // v0 → v2 share lane A (v1 played on lane B): the same decoder crosses a cut
+  expect(media.currentTime).toBeCloseTo(4 + 1 / 120);
   media.dispatchEvent(new Event('seeked'));
   await Promise.resolve();
   expect(done).toBe(false);
-  presented!(0, { mediaTime: 2 } as VideoFrameCallbackMetadata);
+  presented!(0, { mediaTime: 4 } as VideoFrameCallbackMetadata);
   await pending;
   expect(done).toBe(true);
   stage.destroy();
@@ -134,14 +199,14 @@ it('does not resolve a seek from an old presented frame', async () => {
     return 1;
   };
   let done = false;
-  const pending = stage.seek(30).then(() => {
+  const pending = stage.seek(60).then(() => {
     done = true;
   });
   media.dispatchEvent(new Event('seeked'));
   presented!(0, { mediaTime: 0 } as VideoFrameCallbackMetadata);
   await vi.advanceTimersByTimeAsync(100);
   expect(done).toBe(false);
-  presented!(0, { mediaTime: 2 } as VideoFrameCallbackMetadata);
+  presented!(0, { mediaTime: 4 } as VideoFrameCallbackMetadata);
   await pending;
   expect(done).toBe(true);
   stage.destroy();
@@ -165,7 +230,7 @@ it('falls back 1.5 s after seeked when no matching frame is reported (never hang
     return 1;
   };
   let done = false;
-  const pending = stage.seek(30).then(() => {
+  const pending = stage.seek(60).then(() => {
     done = true;
   });
   media.dispatchEvent(new Event('seeked'));

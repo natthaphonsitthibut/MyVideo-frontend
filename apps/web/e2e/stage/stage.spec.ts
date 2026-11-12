@@ -116,6 +116,24 @@ async function createProject(page: Page): Promise<string> {
 /** 20 frames spread over the project, incl. element edges and animation middles. */
 const FRAMES = [0, 29, 30, 36, 41, 100, 250, 320, 329, 330, 399, 400, 415, 430, 500, 600, 650, 699, 700, 709];
 
+test('seeking back to the first frame reproduces the first decoded picture', async ({ page }) => {
+  await signIn(page, '/library');
+  const id = await createProject(page);
+  await page.goto(`/dev/stage/${id}`);
+  await page.waitForFunction(() => !!window.__stage);
+  await page.evaluate(() => window.__stage?.ready());
+  const stage = page.locator('[data-stage]');
+  const shot = async (frame: number) => {
+    await page.evaluate((f) => window.__stage?.seek(f), frame);
+    return stage.screenshot({ animations: 'allow' });
+  };
+  const first = await shot(0);
+  await shot(500);
+  await shot(399);
+  const again = await shot(0);
+  expect(again.equals(first)).toBe(true);
+});
+
 test('stage draws 20 frames of a real project identically to the baseline, whatever the seek order', async ({
   page,
 }) => {

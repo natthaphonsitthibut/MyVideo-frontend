@@ -128,6 +128,15 @@ test('3-layer real project: smooth playback and scrub, video on the clock, zero 
   await page.reload();
   await page.waitForFunction(() => !!window.__player);
   await page.waitForTimeout(1500); // proxies + fonts warm
+  await page.evaluate(() => {
+    const v = document.querySelector('video')!;
+    const events: unknown[] = [];
+    for (const type of ['seeking', 'seeked', 'ratechange', 'waiting', 'playing', 'pause'])
+      v.addEventListener(type, () =>
+        events.push({ type, at: performance.now(), ct: v.currentTime, rate: v.playbackRate }),
+      );
+    Object.assign(window, { __mediaEvents: events });
+  });
 
   // --- playback: 5 s of rAF deltas, long tasks, drift samples, React commits
   await page.evaluate(() => {
@@ -185,6 +194,10 @@ test('3-layer real project: smooth playback and scrub, video on the clock, zero 
   await page.getByTestId('preview-toggle').click();
   await page.waitForFunction(() => window.__player?.playing === false);
   console.log(`playback ${JSON.stringify(play)} · React commits during playback ${commitsDuring}`);
+  console.log(
+    'media events',
+    await page.evaluate(() => (window as unknown as { __mediaEvents: unknown[] }).__mediaEvents),
+  );
   expect(play.frame).toBeGreaterThan(130); // ~5 s at 30 fps really advanced
   expect(play.p95).toBeLessThanOrEqual(20);
   expect(play.long).toEqual([]);
