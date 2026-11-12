@@ -5,4 +5,5 @@ export * from './mount';
 export * from './player';
 export * from './presets';
 export * from './styles';
+export * from './text-lines';
 export * from './types';

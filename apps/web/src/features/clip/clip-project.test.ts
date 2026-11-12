@@ -88,12 +88,12 @@ describe('buildClipDoc', () => {
     const words = caps.flatMap((c) =>
       c.type === 'caption' ? c.words.map((w) => ({ ...w, at: c.startFrame + w.startFrame })) : [],
     );
-    // glue rules: "390 บาท" is one caption word, "นะ" rides on it
-    expect(words.map((w) => w.text)).toEqual(['ตัว', 'นี้', 'ราคา', '390 บาทนะ', 'ผ้า', 'นิ่ม', 'มาก']);
+    // glue rules: "ราคา 390 บาท" is one caption phrase (measure word + value + unit), "นะ" rides on it
+    expect(words.map((w) => w.text)).toEqual(['ตัว', 'นี้', 'ราคา 390 บาทนะ', 'ผ้า', 'นิ่ม', 'มาก']);
     // 'ตัว' at 720.12 s = source frame 21603.6 → 21604 − 21599 = clip frame 5
     expect(words[0]?.at).toBe(5);
     // 'ผ้า' at 723.6 s = 21708 − 21599 = 109
-    expect(words[4]?.at).toBe(109);
+    expect(words[3]?.at).toBe(109);
     for (const c of caps) {
       expect(c.startFrame).toBeGreaterThanOrEqual(0);
       expect(c.startFrame + c.durationFrames).toBeLessThanOrEqual(doc.durationFrames);

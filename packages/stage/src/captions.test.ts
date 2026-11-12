@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest';
 import { canvasMeasure, layoutLines, lineText } from './caption-layout';
-import { applyActiveWord, buildCaptionNode, captionFont, captionMaxWidth } from './captions';
+import { applyActiveWord, buildCaptionNode, CAPTION_STYLES, captionFont, captionMaxWidth } from './captions';
 import type { StageElement } from './types';
 
 afterEach(() => vi.restoreAllMocks());
@@ -64,15 +64,50 @@ it('pops the spoken word from its frame, including backward seeks and clearing',
   const { inner } = styledCaption('pop-word');
   applyActiveWord(inner, 0, 0);
   const word = inner.querySelector<HTMLElement>('[data-w="0"]')!;
-  expect(word.style.transform).toBe('scale(1.15)');
+  expect(word.style.transform).toBe('scale(1.1)');
   applyActiveWord(inner, 0, 5);
   expect(word.style.transform).toBe('scale(1)');
   applyActiveWord(inner, 0, 0);
-  expect(word.style.transform).toBe('scale(1.15)');
+  expect(word.style.transform).toBe('scale(1.1)');
   applyActiveWord(inner, 1, 0);
   expect(word.style.transform).toBe('');
   applyActiveWord(inner, -1);
   expect(inner.querySelector('[data-active]')).toBeNull();
+});
+
+it('draws the emphasis word in the emphasis colour, larger, and keeps it after the active word moves on', () => {
+  const box = document.createElement('div');
+  const inner = document.createElement('div');
+  buildCaptionNode(
+    box,
+    inner,
+    {
+      type: 'caption',
+      id: 'c',
+      trackId: 't',
+      origin: 'ai',
+      startFrame: 0,
+      durationFrames: 20,
+      styleRef: 'pop-word',
+      words: [
+        { text: 'ราคา 80 บาท', startFrame: 0, endFrame: 12, emphasis: true },
+        { text: 'ค่ะ', startFrame: 12, endFrame: 20 },
+      ],
+      lines: [[0, 1]],
+      transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+    },
+    1080,
+    1920,
+  );
+  const key = inner.querySelector<HTMLElement>('[data-w="0"]')!;
+  expect(key.dataset.emphasis).toBe('');
+  expect(key.style.color).toBe('var(--emphasis)');
+  expect(key.style.transform).toBe('scale(1.08)');
+  expect(inner.style.getPropertyValue('--emphasis')).toBe(CAPTION_STYLES['pop-word'].emphasis);
+  applyActiveWord(inner, 0, 0);
+  applyActiveWord(inner, 1, 0);
+  expect(key.style.color).toBe('var(--emphasis)');
+  expect(key.style.transform).toBe('scale(1.08)');
 });
 
 it('keeps captions clear of the right-hand platform buttons (right 15 % of a 9:16 frame)', () => {

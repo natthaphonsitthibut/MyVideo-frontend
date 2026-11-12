@@ -4,6 +4,8 @@
  * renders each stored line with `white-space: nowrap` — the browser never wraps captions (its ICU Thai
  * dictionary breaks mid-word).
  */
+import { MEASURE_WORDS } from './text-lines';
+
 export type TimedWord = { text: string; startFrame: number; endFrame: number };
 export type CaptionPage = {
   startFrame: number;
@@ -59,6 +61,7 @@ const UNITS = new Set([
 ]);
 const NUMBER = /^[฿$]?\d[\d,.:]*%?$/;
 const CURRENCY = new Set(['฿', '$']);
+const SIZE_LETTER = /^(XXS|XS|S|M|L|XL|XXL|XXXL|2XL|3XL|4XL|F|FREE|Free)$/;
 
 /** Applies the E01 glue rules: ฿+number, number+%/unit, final particles onto the previous word. */
 export function glueWords(words: readonly TimedWord[]): TimedWord[] {
@@ -74,9 +77,14 @@ export function glueWords(words: readonly TimedWord[]): TimedWord[] {
       };
       return true;
     };
+    const tail = prev ? (prev.text.split(' ').at(-1) ?? prev.text) : '';
     if (prev && CURRENCY.has(prev.text) && NUMBER.test(w.text) && join('')) continue;
-    if (prev && w.text === '%' && NUMBER.test(prev.text) && join('')) continue;
-    if (prev && UNITS.has(w.text) && NUMBER.test(prev.text) && join(' ')) continue;
+    if (prev && w.text === '%' && NUMBER.test(tail) && join('')) continue;
+    if (prev && UNITS.has(w.text) && NUMBER.test(tail) && join(' ')) continue;
+    // "อก 22", "ราคา 80", "ไซซ์ L": the measure word and its value are one phrase
+    if (prev && MEASURE_WORDS.has(tail) && (NUMBER.test(w.text) || SIZE_LETTER.test(w.text)) && join(' '))
+      continue;
+    if (prev && SIZE_LETTER.test(tail) && SIZE_LETTER.test(w.text) && join(' ')) continue;
     if (prev && PARTICLES.has(w.text) && join('')) continue;
     out.push({ ...w });
   }
@@ -135,7 +143,37 @@ export type BuildOptions = {
   maxLines: number;
   /** A silence at least this long starts a new caption page. */
   pauseFrames: number;
+  /**
+   * Short-form pages: at most this many phrases per page, pages of a run balanced (no lone phrase left at the end).
+   * Absent = fill lines greedily, `maxLines` per page.
+   */
+  maxWords?: number;
 };
+
+/** Splits a run into the fewest pages of ≤ maxWords phrases that fit ≤ maxLines, as evenly as possible. */
+function balancedPages(run: readonly TimedWord[], opts: BuildOptions & { maxWords: number }): number[][] {
+  const fits = (idx: number[]) =>
+    layoutLines(
+      idx.map((k) => run[k] as TimedWord),
+      opts.measure,
+      opts.maxWidth,
+    ).length <= opts.maxLines;
+  for (let n = Math.ceil(run.length / opts.maxWords); n <= run.length; n++) {
+    const target = Math.ceil(run.length / n);
+    const pages: number[][] = [];
+    let page: number[] = [];
+    run.forEach((_w, i) => {
+      const next = [...page, i];
+      if (page.length > 0 && (page.length >= target || !fits(next))) {
+        pages.push(page);
+        page = [i];
+      } else page = next;
+    });
+    if (page.length) pages.push(page);
+    if (pages.length <= n) return pages;
+  }
+  return run.map((_w, i) => [i]);
+}
 
 /**
  * Transcript words (project frames) → caption pages: glue, split at pauses, fill lines, cut into pages of at most
@@ -152,9 +190,17 @@ export function buildCaptions(input: readonly TimedWord[], opts: BuildOptions): 
   }
   const pages: CaptionPage[] = [];
   for (const run of runs) {
-    const lines = layoutLines(run, opts.measure, opts.maxWidth);
-    for (let i = 0; i < lines.length; i += opts.maxLines) {
-      const chunk = lines.slice(i, i + opts.maxLines);
+    const chunks: number[][][] = [];
+    if (opts.maxWords !== undefined) {
+      for (const idx of balancedPages(run, { ...opts, maxWords: opts.maxWords })) {
+        const ws = idx.map((k) => run[k] as TimedWord);
+        chunks.push(layoutLines(ws, opts.measure, opts.maxWidth).map((l) => l.map((k) => idx[k] as number)));
+      }
+    } else {
+      const lines = layoutLines(run, opts.measure, opts.maxWidth);
+      for (let i = 0; i < lines.length; i += opts.maxLines) chunks.push(lines.slice(i, i + opts.maxLines));
+    }
+    for (const chunk of chunks) {
       const idx = chunk.flat();
       const ws = idx.map((k) => run[k] as TimedWord);
       const first = ws[0] as TimedWord;

@@ -7,6 +7,7 @@ import {
   CLIP_TYPE_LABEL,
   type ClipSuggestion,
   clipsActive,
+  useBuildClips,
   useClips,
   useDiscardClip,
   useGenerateClips,
@@ -20,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { spriteCoverStyle } from '@/features/library/sprite';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
 import { rulesReason } from './labels';
+import { StyleChooser } from './StyleChooser';
 
 function ClipThumb({ source, clip }: { source: SourceSummary; clip: ClipSuggestion }) {
   const idx = source.sprites;
@@ -55,9 +57,11 @@ function ClipCard({
   onPreview,
   onDiscard,
   discarding,
+  waitingForStyle,
 }: {
   source: SourceSummary;
   clip: ClipSuggestion;
+  waitingForStyle: boolean;
   previewing: boolean;
   onPreview: (on: boolean) => void;
   onDiscard: () => void;
@@ -97,7 +101,7 @@ function ClipCard({
           </p>
           {clip.status === 'planned' ? (
             <p className="text-sm text-muted-foreground" role="status">
-              กำลังสร้างคลิปนี้…
+              {waitingForStyle ? 'รอเลือกสไตล์ก่อนตัดต่อ' : 'กำลังตัดต่อคลิปนี้…'}
             </p>
           ) : null}
           {clip.status === 'failed' ? (
@@ -143,17 +147,21 @@ export function AutoClipsPanel({ source }: { source: SourceSummary }) {
   const ready = transcript.data?.status === 'ready';
   const clips = useClips(source.id, ready);
   const generate = useGenerateClips(source.id);
+  const build = useBuildClips(source.id);
   const discard = useDiscardClip(source.id);
   const [product, setProduct] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const state = clips.data;
-  const active = clipsActive(state) || generate.isPending;
+  const active = clipsActive(state) || generate.isPending || build.isPending;
+  const phase = state?.phase ?? 'none';
+  const styleName = state?.advice?.items.find((a) => a.styleId === state.styleId)?.name;
   const list = state?.clips ?? [];
   const built = list.filter((c) => c.status === 'ready').length;
+  const failure = generate.error ?? build.error;
   const err =
-    generate.error instanceof ApiError
-      ? ((generate.error.body as { message?: string } | null)?.message ?? 'เริ่มไม่สำเร็จ')
-      : generate.error
+    failure instanceof ApiError
+      ? ((failure.body as { message?: string } | null)?.message ?? 'เริ่มไม่สำเร็จ')
+      : failure
         ? 'เริ่มไม่สำเร็จ'
         : null;
 
@@ -219,14 +227,27 @@ export function AutoClipsPanel({ source }: { source: SourceSummary }) {
           ) : null}
           {active ? (
             <p role="status" className="text-sm text-muted-foreground" data-testid="clips-progress">
-              {list.length === 0
-                ? 'กำลังวิเคราะห์วิดีโอ หาช่วงที่น่าตัด…'
-                : `สร้างคลิปแล้ว ${built} จาก ${list.length} — คลิปที่เสร็จจะขึ้นทีละอัน`}
+              {phase === 'analysing' || list.length === 0
+                ? 'กำลังวิเคราะห์วิดีโอ หาช่วงที่น่าตัด และดูว่าสไตล์ไหนเหมาะ…'
+                : `ตัดต่อแล้ว ${built} จาก ${list.length}${styleName ? ` (สไตล์ ${styleName})` : ''} — คลิปที่เสร็จจะขึ้นทีละอัน`}
             </p>
           ) : null}
           {state?.status === 'succeeded' && list.length === 0 ? (
             <p className="text-sm text-muted-foreground" data-testid="clips-empty">
               ไม่พบช่วงที่เหมาะทำคลิปในวิดีโอนี้ (ต้องมีช่วงพูดขายของอย่างน้อย 15 วินาที)
+            </p>
+          ) : null}
+          {phase === 'choose_style' && state?.advice ? (
+            <StyleChooser
+              advice={state.advice}
+              clipCount={list.length}
+              starting={build.isPending}
+              onStart={(styleId) => build.mutate(styleId)}
+            />
+          ) : null}
+          {styleName && phase !== 'choose_style' ? (
+            <p className="text-xs text-muted-foreground" data-testid="clips-style">
+              สไตล์การตัดต่อ: {styleName}
             </p>
           ) : null}
           {list.length > 0 ? (
@@ -240,6 +261,7 @@ export function AutoClipsPanel({ source }: { source: SourceSummary }) {
                   onPreview={(on) => setPreview(on ? c.id : null)}
                   onDiscard={() => discard.mutate(c.id)}
                   discarding={discard.isPending}
+                  waitingForStyle={phase === 'choose_style'}
                 />
               ))}
             </ul>

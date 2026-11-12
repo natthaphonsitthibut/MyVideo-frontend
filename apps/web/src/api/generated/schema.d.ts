@@ -399,6 +399,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/{id}/clips/build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Edit the analysed clips with the style the merchant picked (starts or joins the edit) */
+        post: operations["buildClips"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources/{id}/sprites/{sheet}": {
         parameters: {
             query?: never;
@@ -567,8 +584,13 @@ export interface components {
             message: string;
             statusCode: number;
         };
+        BuildClipsBody: {
+            styleId: string;
+        };
         CaptionWord: {
             asrText?: string;
+            /** @constant */
+            emphasis?: true;
             endFrame: number;
             /** @constant */
             origin?: "ai";
@@ -601,11 +623,23 @@ export interface components {
             type: string;
         };
         ClipsState: {
+            advice: {
+                items: {
+                    name: string;
+                    reason: string;
+                    styleId: string;
+                }[];
+                /** @enum {string} */
+                origin: "ai" | "rules";
+            } | null;
             clips: components["schemas"]["ClipSuggestion"][];
             mode: string | null;
+            /** @enum {string} */
+            phase: "none" | "analysing" | "choose_style" | "building" | "done" | "failed";
             runId: string | null;
             /** @enum {string} */
             status: "none" | "pending" | "running" | "succeeded" | "failed" | "cancelled";
+            styleId: string | null;
         };
         CreateProjectBody: {
             doc: components["schemas"]["ProjectDraft"];
@@ -2150,6 +2184,68 @@ export interface operations {
                 };
             };
             /** @description Source not ready or not transcribed (Thai message) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Too many unfinished runs */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    buildClips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuildClipsBody"];
+            };
+        };
+        responses: {
+            /** @description Edit started or joined */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipsState"];
+                };
+            };
+            /** @description Unknown style */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No such source */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No finished analysis / nothing left to edit (Thai message) */
             409: {
                 headers: {
                     [name: string]: unknown;

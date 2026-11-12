@@ -54,8 +54,8 @@ describe('glueWords (E01 rules)', () => {
       ['฿39,900', 10, 30],
       ['ลด', 30, 40],
       ['50%', 40, 52],
-      ['ยาว', 52, 60],
-      ['28.5 นิ้วนะครับ', 60, 100],
+      // E07-F14: a measure word stays with its value ("ยาว 28.5 นิ้ว"), never split across caption pages
+      ['ยาว 28.5 นิ้วนะครับ', 52, 100],
     ]);
   });
 

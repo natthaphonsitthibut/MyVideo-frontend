@@ -5,8 +5,6 @@ import { Link, useParams } from 'react-router';
 import { useProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { canRestyle } from '@/features/clip/restyle-state';
-import { StylePicker } from '@/features/clip/StylePicker';
 import { ExportPanel } from '@/features/export/ExportPanel';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
 
@@ -46,9 +44,6 @@ export function ClipPage() {
         </p>
       </div>
       <PreviewPlayer project={doc as unknown as StageProject} />
-      {canRestyle(doc.meta) && doc.meta.styleId ? (
-        <StylePicker projectId={rec.id} currentStyleId={doc.meta.styleId} />
-      ) : null}
       <ExportPanel projectId={rec.id} version={rec.version} />
     </section>
   );

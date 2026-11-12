@@ -5,7 +5,13 @@ import type { Fps } from './frames';
  * needs. The generated `Schemas['Project']` type in apps/web is assignable to it.
  */
 export type Transform = { x: number; y: number; scale: number; rotation: number };
-export type CaptionWord = { text: string; startFrame: number; endFrame: number };
+export type CaptionWord = {
+  text: string;
+  startFrame: number;
+  endFrame: number;
+  /** The page's key word (price, product, strong benefit): drawn in the style's emphasis colour, slightly larger. */
+  emphasis?: true;
+};
 
 type Common = {
   id: string;

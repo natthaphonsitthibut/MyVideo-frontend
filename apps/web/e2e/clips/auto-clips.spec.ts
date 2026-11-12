@@ -5,7 +5,7 @@ import { signIn } from '../auth';
 
 /**
  * E07-F08 — automatic clips through the UI on REAL footage (C02, 55 s Thai live selling): upload → ingest →
- * transcribe → "สร้างคลิปอัตโนมัติ" → cards turn ready one by one → preview plays → open a clip → discard one →
+ * transcribe → "สร้างคลิปอัตโนมัติ" → recommended styles → pick one → cards turn ready one by one → preview plays → open a clip → discard one →
  * the clips menu lists the generated projects. Runs in whatever LLM_MODE the dev worker has (dev.sh default:
  * `rules`, which needs no CLI and no key). Needs the dev stack started by `scripts/dev.sh`.
  */
@@ -42,6 +42,17 @@ test('generate clips from a real live clip, review, preview, open, discard', asy
   await expect(page.getByTestId('clips-progress')).toBeVisible();
   await shot(page, '2-running');
 
+  // the analysis ends with recommended styles; nothing is edited before the merchant picks one
+  const chooser = page.getByTestId('style-chooser');
+  await expect(chooser).toBeVisible({ timeout: 300_000 });
+  await expect(chooser.locator('label')).toHaveCount(5);
+  await expect(chooser.locator('label').first()).toHaveAttribute('data-selected', 'true');
+  await expect(page.locator('[data-testid="clip-card"][data-status="ready"]')).toHaveCount(0);
+  await shot(page, '2b-choose-style');
+  const picked = (await chooser.locator('label').first().getAttribute('data-testid'))?.replace('advice-', '');
+  await page.getByTestId('clips-build').click();
+  await expect(page.getByTestId('clips-style')).toBeVisible({ timeout: 30_000 });
+
   // the first card becomes ready while the run may still be building the others
   const cards = page.getByTestId('clip-card');
   await expect(cards.first()).toBeVisible({ timeout: 300_000 });
@@ -74,6 +85,7 @@ test('generate clips from a real live clip, review, preview, open, discard', asy
       doc: { width: number; height: number; meta: { createdBy: string } };
     };
     expect([p.doc.width, p.doc.height, p.doc.meta.createdBy]).toEqual([1080, 1920, 'ai']);
+    expect((p.doc.meta as { styleId?: string }).styleId).toBe(picked);
   }
 
   // preview plays inside the card
@@ -140,20 +152,39 @@ test('partial and failed states render readable Thai (responses stubbed for a vi
     runId: card(1, 'x').id,
     status: 'running',
     mode: 'rules',
+    phase: 'building',
+    styleId: 'sale-fast',
+    advice: { origin: 'rules', items: [{ styleId: 'sale-fast', name: 'ขายไว ไฟลุก', reason: 'พูดราคาบ่อย' }] },
     clips: [card(1, 'planned'), card(2, 'failed')],
   };
   await page.route(`**/api/sources/${id}/clips`, (r) => r.fulfill({ json: body }));
   await page.goto(`/library/${id}`);
-  await expect(page.getByTestId('clips-progress')).toContainText('สร้างคลิปแล้ว 0 จาก 2');
-  await expect(page.getByText('กำลังสร้างคลิปนี้…')).toBeVisible();
+  await expect(page.getByTestId('clips-progress')).toContainText('ตัดต่อแล้ว 0 จาก 2 (สไตล์ ขายไว ไฟลุก)');
+  await expect(page.getByText('กำลังตัดต่อคลิปนี้…')).toBeVisible();
   await expect(page.getByText('สร้างคลิปนี้ไม่สำเร็จ')).toBeVisible();
   await shot(page, '7-partial');
-  body = { runId: card(1, 'x').id, status: 'failed', mode: 'rules', clips: [] };
+  body = {
+    runId: card(1, 'x').id,
+    status: 'failed',
+    mode: 'rules',
+    phase: 'failed',
+    styleId: null,
+    advice: null,
+    clips: [],
+  };
   await page.reload();
   await expect(page.getByRole('alert').filter({ hasText: 'สร้างคลิปไม่สำเร็จ' })).toBeVisible();
   await expect(page.getByTestId('clips-generate')).toBeEnabled();
   await shot(page, '8-failed');
-  body = { runId: card(1, 'x').id, status: 'succeeded', mode: 'rules', clips: [] };
+  body = {
+    runId: card(1, 'x').id,
+    status: 'succeeded',
+    mode: 'rules',
+    phase: 'done',
+    styleId: null,
+    advice: null,
+    clips: [],
+  };
   await page.reload();
   await expect(page.getByTestId('clips-empty')).toBeVisible();
   await shot(page, '9-empty');

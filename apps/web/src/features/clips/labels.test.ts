@@ -17,6 +17,9 @@ describe('clipsActive', () => {
       runId: null,
       status,
       mode: null,
+      phase: 'none' as const,
+      styleId: null,
+      advice: null,
       clips: [],
     });
     expect(clipsActive(s('pending'))).toBe(true);

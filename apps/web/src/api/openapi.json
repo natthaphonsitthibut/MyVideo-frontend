@@ -42,12 +42,30 @@
         ],
         "type": "object"
       },
+      "BuildClipsBody": {
+        "additionalProperties": false,
+        "properties": {
+          "styleId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "styleId"
+        ],
+        "type": "object"
+      },
       "CaptionWord": {
         "additionalProperties": false,
         "properties": {
           "asrText": {
             "minLength": 1,
             "type": "string"
+          },
+          "emphasis": {
+            "const": true,
+            "type": "boolean"
           },
           "endFrame": {
             "maximum": 9007199254740991,
@@ -204,6 +222,53 @@
       "ClipsState": {
         "additionalProperties": false,
         "properties": {
+          "advice": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "items": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "type": "string"
+                        },
+                        "styleId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "styleId",
+                        "name",
+                        "reason"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "origin": {
+                    "enum": [
+                      "ai",
+                      "rules"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "origin",
+                  "items"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "clips": {
             "items": {
               "$ref": "#/components/schemas/ClipSuggestion"
@@ -215,6 +280,17 @@
               "string",
               "null"
             ]
+          },
+          "phase": {
+            "enum": [
+              "none",
+              "analysing",
+              "choose_style",
+              "building",
+              "done",
+              "failed"
+            ],
+            "type": "string"
           },
           "runId": {
             "anyOf": [
@@ -238,12 +314,21 @@
               "cancelled"
             ],
             "type": "string"
+          },
+          "styleId": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
           "runId",
           "status",
           "mode",
+          "phase",
+          "styleId",
+          "advice",
           "clips"
         ],
         "type": "object"
@@ -4414,6 +4499,94 @@
           }
         ],
         "summary": "Start (or join) automatic clip generation for a source",
+        "tags": [
+          "clips"
+        ]
+      }
+    },
+    "/sources/{id}/clips/build": {
+      "post": {
+        "operationId": "buildClips",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildClipsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClipsState"
+                }
+              }
+            },
+            "description": "Edit started or joined"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Unknown style"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such source"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No finished analysis / nothing left to edit (Thai message)"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Too many unfinished runs"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Edit the analysed clips with the style the merchant picked (starts or joins the edit)",
         "tags": [
           "clips"
         ]

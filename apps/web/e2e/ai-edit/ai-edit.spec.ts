@@ -3,11 +3,11 @@ import { signIn } from '../auth';
 import { readySource, S01A_TITLE } from '../footage';
 
 /**
- * Style switching on a REAL AI clip (S01a = 10 min of the S01 Thai live-selling recording, already ingested and
- * transcribed in the dev database): a fresh live-to-clips run in the "sale-fast" style (jump cuts, zoom cuts,
- * sound effects) → the preview plays the jump-cut project smoothly on one shared video node and the sound
- * effects load → the clip page switches it to "premium" → new version, preview shows it. Runs in the dev
- * worker's LLM_MODE (repeat runs answer from the LLM cache). Needs the dev stack started by `scripts/dev.sh`.
+ * An AI-edited clip on REAL footage (S01a = 10 min of the S01 Thai live-selling recording, already ingested and
+ * transcribed in the dev database): a fresh live-to-clips run in the "sale-fast" style (jump cuts, re-frames,
+ * price tag / CTA graphics, sound effects) → the preview plays it smoothly on one shared video node and the sound
+ * effects load → the clip page shows it. Runs in the dev worker's LLM_MODE (repeat runs answer from the LLM cache).
+ * Needs the dev stack started by `scripts/dev.sh`.
  */
 test.describe.configure({ timeout: 600_000, mode: 'serial' });
 
@@ -20,7 +20,7 @@ type Clips = {
   clips: { rank: number; status: string; projectId: string | null }[];
 };
 
-test('AI clip: jump-cut preview plays smoothly, then switch its style without re-running AI', async ({
+test('AI clip with jump cuts, graphics and sounds: preview plays smoothly on one video node', async ({
   page,
 }) => {
   await signIn(page, '/library');
@@ -117,37 +117,8 @@ test('AI clip: jump-cut preview plays smoothly, then switch its style without re
   expect(soundStatuses.length).toBeGreaterThan(0);
   expect(soundStatuses.every((s) => s === 200 || s === 206)).toBe(true);
 
-  // --- restyle on the clip page
+  // the clip page shows the same clip
   await page.goto(`/clips/${projectId}`);
-  const picker = page.getByTestId('style-picker');
-  await expect(picker).toBeVisible({ timeout: 30_000 });
-  await expect(picker.locator('label')).toHaveCount(5);
-  await expect(page.getByTestId('style-sale-fast')).toHaveAttribute('data-selected', 'true');
-  await shot(page, '2-picker');
-
-  await page.getByTestId('style-premium').click();
-  await expect(page.getByTestId('restyle-working')).toBeVisible();
-  await expect(page.getByTestId('style-premium')).toHaveAttribute('data-selected', 'true');
-  await expect(page.getByTestId('restyle-working')).toHaveCount(0, { timeout: 120_000 });
-  await expect(page.getByText(`เวอร์ชัน ${v1.version + 1}`)).toBeVisible();
-  await expect(page.getByTestId('style-premium')).toHaveAttribute('data-selected', 'true');
-  await expect(page.getByRole('alert')).toHaveCount(0);
-
-  const v2 = (await (await page.request.get(`/api/projects/${projectId}`)).json()) as {
-    version: number;
-    doc: { meta: { styleId: string } };
-  };
-  expect([v2.version, v2.doc.meta.styleId]).toEqual([v1.version + 1, 'premium']);
-  const versions = (await (await page.request.get(`/api/projects/${projectId}/versions`)).json()) as {
-    items: { version: number; reason: string }[];
-  };
-  expect(versions.items[0]).toMatchObject({ version: v1.version + 1, reason: 'restyle' });
-
-  // the preview on the clip page plays the new version
-  const time = () => page.getByTestId('preview-track').getAttribute('aria-valuenow');
-  const before = await time();
-  await page.getByTestId('preview-toggle').click();
-  await expect.poll(time, { timeout: 10_000 }).not.toBe(before);
-  await page.getByTestId('preview-toggle').click();
-  await shot(page, '3-restyled');
+  await expect(page.getByTestId('preview-stage')).toBeVisible({ timeout: 30_000 });
+  await shot(page, '2-clip-page');
 });

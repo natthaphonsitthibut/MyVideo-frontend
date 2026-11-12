@@ -41,6 +41,22 @@ export function useGenerateClips(sourceId: string) {
   });
 }
 
+/** The merchant picked a recommended style: edit the analysed clips with it. */
+export function useBuildClips(sourceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (styleId: string) => {
+      const { data, error, response } = await api.POST('/sources/{id}/clips/build', {
+        params: { path: { id: sourceId } },
+        body: { styleId },
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    onSuccess: (state) => qc.setQueryData(clipsKey(sourceId), state),
+  });
+}
+
 export function useDiscardClip(sourceId: string) {
   const qc = useQueryClient();
   return useMutation({
@@ -72,46 +88,6 @@ export function useStylePacks(enabled = true) {
       return data.items;
     },
   });
-}
-
-/** Starts a restyle run (rebuild with another style, no AI call); resolves with the run id. */
-export function useRestyle(projectId: string) {
-  return useMutation({
-    mutationFn: async (styleId: string) => {
-      const { data, error, response } = await api.POST('/projects/{id}/restyle', {
-        params: { path: { id: projectId } },
-        body: { styleId },
-      });
-      if (!data) throw new ApiError(response.status, error);
-      return data.runId;
-    },
-  });
-}
-
-/** One workflow run, polled every second until it ends. */
-export function useRunStatus(runId: string | null) {
-  return useQuery({
-    queryKey: ['workflow-run', runId],
-    enabled: runId !== null,
-    queryFn: async () => {
-      const { data, error, response } = await api.GET('/workflow-runs/{id}', {
-        params: { path: { id: runId ?? '' } },
-      });
-      if (!data) throw new ApiError(response.status, error);
-      return data;
-    },
-    refetchInterval: (q) =>
-      q.state.data && ['succeeded', 'failed', 'cancelled'].includes(q.state.data.status) ? false : 1000,
-  });
-}
-
-/** Message of a refused API call (server messages for merchants are Thai). */
-export function apiErrorMessage(err: unknown): string | null {
-  if (!err) return null;
-  const body = err instanceof ApiError ? err.body : null;
-  const msg =
-    body && typeof body === 'object' && 'message' in body ? (body as { message: unknown }).message : null;
-  return typeof msg === 'string' ? msg : err instanceof Error ? err.message : 'error';
 }
 
 export function useProjects() {

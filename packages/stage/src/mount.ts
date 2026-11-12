@@ -102,7 +102,12 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
         box.style.cssText += `left:50%;top:50%;width:${p.width - 160}px;margin-left:${-(p.width - 160) / 2}px;`;
         const style = textStyleFor(e.style, e.styleRef);
         inner.style.cssText += `font-family:${style.fontFamily};font-weight:${style.fontWeight};font-size:${style.fontSize}px;line-height:1.25;color:${style.color};text-align:${style.align};white-space:pre-wrap;transform:translateY(-50%);`;
-        if (style.background) inner.style.background = style.background;
+        if (style.background) {
+          // a label, not a banner: the box hugs its (pre-broken) lines with a little padding
+          inner.style.background = style.background;
+          inner.style.cssText +=
+            'width:fit-content;max-width:100%;margin:0 auto;padding:0.12em 0.45em;border-radius:0.3em;box-sizing:border-box;';
+        }
         inner.textContent = e.content;
         break;
       }

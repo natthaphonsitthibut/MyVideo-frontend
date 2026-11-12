@@ -6,13 +6,55 @@ type Caption = Extract<StageElement, { type: 'caption' }>;
 
 /** Caption looks. Font size/line height drive both the builder's measure and the rendering (keep in sync). */
 export const CAPTION_STYLES = {
-  clean: { fontWeight: 600, fontSize: 64, lineHeight: 1.5, color: '#ffffff', active: '#ffffff' },
-  'bold-highlight': { fontWeight: 800, fontSize: 68, lineHeight: 1.5, color: '#ffffff', active: '#facc15' },
-  'pop-word': { fontWeight: 900, fontSize: 76, lineHeight: 1.5, color: '#ffffff', active: '#facc15' },
-  boxed: { fontWeight: 600, fontSize: 60, lineHeight: 1.6, color: '#ffffff', active: '#facc15' },
-  'outline-bold': { fontWeight: 900, fontSize: 72, lineHeight: 1.5, color: '#ffffff', active: '#67e8f9' },
+  clean: {
+    fontWeight: 600,
+    fontSize: 64,
+    lineHeight: 1.5,
+    color: '#ffffff',
+    active: '#ffffff',
+    emphasis: '#facc15',
+  },
+  'bold-highlight': {
+    fontWeight: 800,
+    fontSize: 68,
+    lineHeight: 1.5,
+    color: '#ffffff',
+    active: '#facc15',
+    emphasis: '#4ade80',
+  },
+  'pop-word': {
+    fontWeight: 900,
+    fontSize: 76,
+    lineHeight: 1.5,
+    color: '#ffffff',
+    active: '#facc15',
+    emphasis: '#4ade80',
+  },
+  boxed: {
+    fontWeight: 600,
+    fontSize: 60,
+    lineHeight: 1.6,
+    color: '#ffffff',
+    active: '#facc15',
+    emphasis: '#fb923c',
+  },
+  'outline-bold': {
+    fontWeight: 900,
+    fontSize: 72,
+    lineHeight: 1.5,
+    color: '#ffffff',
+    active: '#67e8f9',
+    emphasis: '#facc15',
+  },
   // weight 500 + firm shadow: 400 with a soft shadow was hard to read on bright product colours (S01a renders)
-  minimal: { fontWeight: 500, fontSize: 54, lineHeight: 1.5, color: '#ffffff', active: '#ffffff' },
+  minimal: {
+    fontWeight: 500,
+    fontSize: 54,
+    lineHeight: 1.5,
+    color: '#ffffff',
+    active: '#ffffff',
+    emphasis: '#e7c58b',
+  },
 } as const;
 export type CaptionStyleId = keyof typeof CAPTION_STYLES;
 
@@ -29,7 +71,8 @@ export const captionFont = (styleRef: string): string => {
 export const SAFE = { side: 108, right: 162, top: 240, bottom: 360 };
 const captionBoxWidth = (canvasWidth: number) => canvasWidth - SAFE.side - SAFE.right;
 export const captionMaxWidth = (canvasWidth: number, styleRef = 'clean') =>
-  captionBoxWidth(canvasWidth) - (styleRef === 'boxed' ? 32 : 0);
+  // boxed: its padding; pop-word: the side room each growing word gets (0.09 em × 2 per word, up to 3 words)
+  captionBoxWidth(canvasWidth) - (styleRef === 'boxed' ? 32 : styleRef === 'pop-word' ? 48 : 0);
 
 /**
  * Builds the caption DOM: one block per STORED line, `white-space: nowrap` (the browser never re-wraps Thai),
@@ -53,6 +96,7 @@ export function buildCaptionNode(
   box.style.cssText += `left:${SAFE.side}px;top:${centre - boxH / 2}px;width:${captionBoxWidth(width)}px;height:${boxH}px;`;
   inner.style.cssText += `font-family:${STAGE_FONT};font-weight:${s.fontWeight};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};text-align:center;-webkit-text-stroke:${Math.round(s.fontSize / 7)}px #000;paint-order:stroke fill;`;
   inner.style.setProperty('--active', s.active);
+  inner.style.setProperty('--emphasis', s.emphasis);
   inner.dataset.captionStyle = e.styleRef;
   if (e.styleRef === 'boxed' || e.styleRef === 'minimal') {
     inner.style.setProperty('-webkit-text-stroke', '0px');
@@ -73,7 +117,13 @@ export function buildCaptionNode(
       const span = document.createElement('span');
       span.dataset.w = String(wi);
       span.textContent = e.words[wi]?.text ?? '';
-      if (e.styleRef === 'pop-word') span.style.display = 'inline-block';
+      // a word that grows (pop / emphasis) gets side room: Thai words touch, so scaling would cover the neighbour
+      if (e.styleRef === 'pop-word') span.style.cssText += 'display:inline-block;margin:0 0.09em;';
+      if (e.words[wi]?.emphasis) {
+        span.dataset.emphasis = '';
+        span.style.cssText += 'display:inline-block;margin:0 0.09em;';
+        restWord(span);
+      }
       row.appendChild(span);
       if (k < line.length - 1) {
         const gap = wordGap(span.textContent, e.words[line[k + 1] as number]?.text ?? '');
@@ -84,6 +134,15 @@ export function buildCaptionNode(
   }
 }
 
+const EMPHASIS_SCALE = 1.08;
+
+/** A word's look when it is not the spoken one: plain, or the emphasis colour and size for the page's key word. */
+function restWord(span: HTMLElement) {
+  const key = span.dataset.emphasis !== undefined;
+  span.style.color = key ? 'var(--emphasis)' : '';
+  span.style.transform = key ? `scale(${EMPHASIS_SCALE})` : '';
+}
+
 /** Marks the spoken word (pure from the frame); the colour comes from the style's `--active`. */
 export function applyActiveWord(inner: HTMLElement, active: number, elapsed = 0) {
   const prev = inner.querySelector<HTMLElement>('[data-active]');
@@ -91,17 +150,19 @@ export function applyActiveWord(inner: HTMLElement, active: number, elapsed = 0)
   if (same && inner.dataset.captionStyle !== 'pop-word') return;
   if (prev && !same) {
     prev.removeAttribute('data-active');
-    prev.style.color = '';
-    prev.style.transform = '';
+    restWord(prev);
     prev.style.textDecoration = '';
   }
   if (active < 0) return;
   const el = inner.querySelector<HTMLElement>(`[data-w="${active}"]`);
   if (el) {
     el.dataset.active = '';
-    el.style.color = 'var(--active)';
+    // the key word keeps its own colour while spoken; the pop still plays on top of its size
+    const key = el.dataset.emphasis !== undefined;
+    el.style.color = key ? 'var(--emphasis)' : 'var(--active)';
     if (inner.dataset.captionStyle === 'pop-word') {
-      el.style.transform = `scale(${1 + 0.15 * (1 - Math.min(5, Math.max(0, elapsed)) / 5)})`;
+      const pop = 1 + 0.1 * (1 - Math.min(5, Math.max(0, elapsed)) / 5);
+      el.style.transform = `scale(${Math.round((key ? EMPHASIS_SCALE : 1) * pop * 1000) / 1000})`;
     }
     if (inner.dataset.captionStyle === 'minimal') el.style.textDecoration = 'underline';
   }
