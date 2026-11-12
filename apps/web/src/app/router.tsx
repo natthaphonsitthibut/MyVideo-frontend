@@ -21,6 +21,20 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
           },
         ],
       },
+      {
+        path: '/dev/player/:id',
+        element: (
+          <RequireAuth>
+            <Outlet />
+          </RequireAuth>
+        ),
+        children: [
+          {
+            index: true,
+            lazy: () => import('@/pages/dev/PlayerHarness').then((m) => ({ Component: m.PlayerHarness })),
+          },
+        ],
+      },
     ]
   : [];
 

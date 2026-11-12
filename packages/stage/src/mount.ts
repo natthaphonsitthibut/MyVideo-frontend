@@ -18,6 +18,11 @@ export type Stage = {
   readonly frame: number;
   /** Draws `frame`; resolves once every visible video shows it (frame-exact, order-independent). */
   seek(frame: number): Promise<void>;
+  /**
+   * Draws `frame` without touching media time (playback driver): returns the visible media elements and the time
+   * each should be at; hidden media are paused.
+   */
+  draw(frame: number): { el: HTMLMediaElement; time: number }[];
   /** Live edit: replace (or remove with null) one element without rebuilding the stage. */
   patch(id: string, element: StageElement | null): void;
   /** Every `apply` (seek/patch) notifies listeners with the frame. */
@@ -230,6 +235,9 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
     root,
     get frame() {
       return current;
+    },
+    draw(frame) {
+      return apply(frame);
     },
     async seek(frame) {
       const waits = apply(frame);
