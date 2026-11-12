@@ -63,6 +63,22 @@ export function useRestoreVersion(id: string) {
   });
 }
 
+/** Deletes a project with its versions and renders (the source videos stay in the library). */
+export function useDeleteProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error, response } = await api.DELETE('/projects/{id}', { params: { path: { id } } });
+      if (!response.ok) throw new ApiError(response.status, error);
+      return id;
+    },
+    onSuccess: async (id) => {
+      qc.removeQueries({ queryKey: projectKey(id) });
+      await qc.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+}
+
 /** Creates a project (version 1); the server validates the document and owns the id. */
 export function useCreateProject() {
   const qc = useQueryClient();

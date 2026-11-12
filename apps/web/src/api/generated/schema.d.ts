@@ -206,7 +206,8 @@ export interface paths {
         /** Save a new version (optimistic locking: `baseVersion` must be the current version) */
         put: operations["saveProject"];
         post?: never;
-        delete?: never;
+        /** Delete a project with all its versions and renders; running work for it is cancelled and its render files are removed by a retry-safe job. The source videos stay in the library. Idempotent: an unknown id is 204. */
+        delete: operations["deleteProject"];
         options?: never;
         head?: never;
         patch?: never;
@@ -462,7 +463,8 @@ export interface paths {
         get: operations["getSource"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete an uploaded video, its derived files and analyses (and, with withProjects=true, the projects using it). Running work for it is cancelled; files are removed by a retry-safe job. Idempotent: an unknown id is 204. */
+        delete: operations["deleteSource"];
         options?: never;
         head?: never;
         patch?: never;
@@ -514,6 +516,23 @@ export interface paths {
         put?: never;
         /** Edit the analysed clips with the style the merchant picked (starts or joins the edit) */
         post: operations["buildClips"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sources/{id}/dependents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Projects that use this source (they are deleted with it, after the merchant confirms) */
+        get: operations["getSourceDependents"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1352,6 +1371,13 @@ export interface components {
             baseVersion: number;
             doc: components["schemas"]["ProjectDraft"];
         };
+        SourceDependents: {
+            projects: {
+                /** Format: uuid */
+                id: string;
+                title: string;
+            }[];
+        };
         SourceList: {
             items: components["schemas"]["SourceSummary"][];
             nextCursor: string | null;
@@ -2068,6 +2094,26 @@ export interface operations {
             };
         };
     };
+    deleteProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted (or already gone) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listProjectRenders: {
         parameters: {
             query?: never;
@@ -2651,6 +2697,37 @@ export interface operations {
             };
         };
     };
+    deleteSource: {
+        parameters: {
+            query?: {
+                withProjects?: "true" | "false";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted (or already gone) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Projects use this source; repeat with withProjects=true */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     getSourceAsset: {
         parameters: {
             query?: never;
@@ -2834,6 +2911,37 @@ export interface operations {
             };
             /** @description Too many unfinished runs */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getSourceDependents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Projects using the source */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDependents"];
+                };
+            };
+            /** @description No such source for this merchant */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { API_BASE_URL, ApiError, api, type Schemas } from './client';
 import { applyRunEvent, type RunEvent, type RunSummary } from './runs';
@@ -74,6 +74,38 @@ export function useLiveRun(runId: string | null | undefined) {
     return () => es.close();
   }, [runId, done, qc]);
   return query;
+}
+
+/** Projects that would be deleted with the source (asked before the confirm dialog shows its text). */
+export function useSourceDependents(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...SOURCES_KEY, id, 'dependents'],
+    enabled,
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/sources/{id}/dependents', {
+        params: { path: { id } },
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+  });
+}
+
+/** Deletes a source (and, when confirmed, the projects using it); refreshes the library and project lists. */
+export function useDeleteSource() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, withProjects }: { id: string; withProjects: boolean }) => {
+      const { error, response } = await api.DELETE('/sources/{id}', {
+        params: { path: { id }, query: { withProjects: withProjects ? 'true' : 'false' } },
+      });
+      if (!response.ok) throw new ApiError(response.status, error);
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: SOURCES_KEY });
+      await qc.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
 }
 
 export const assetUrl = (sourceId: string, kind: 'proxy' | 'peaks' | 'sprites' | 'original') =>
