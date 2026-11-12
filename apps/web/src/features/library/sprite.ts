@@ -25,3 +25,22 @@ export function spriteStyle(
     backgroundSize: `${idx.cols * idx.tileWidth * scale}px ${idx.rows * idx.tileHeight * scale}px`,
   };
 }
+
+/** Like `spriteStyle`, but fills a `width`×`height` box with exactly one tile (CSS "cover", centred crop). */
+export function spriteCoverStyle(
+  sourceUrl: (sheet: number) => string,
+  idx: SpriteIndex,
+  t: number,
+  width: number,
+  height: number,
+) {
+  const c = spriteCell(idx, t);
+  const scale = Math.max(width / idx.tileWidth, height / idx.tileHeight);
+  const dx = (width - idx.tileWidth * scale) / 2;
+  const dy = (height - idx.tileHeight * scale) / 2;
+  return {
+    backgroundImage: `url(${sourceUrl(c.sheet)})`,
+    backgroundPosition: `${-c.x * scale + dx}px ${-c.y * scale + dy}px`,
+    backgroundSize: `${idx.cols * idx.tileWidth * scale}px ${idx.rows * idx.tileHeight * scale}px`,
+  };
+}

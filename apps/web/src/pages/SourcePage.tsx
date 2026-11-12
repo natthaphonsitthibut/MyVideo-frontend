@@ -5,6 +5,7 @@ import { useJobAction } from '@/api/runs';
 import { formatDuration, useLiveRun, useSource } from '@/api/sources';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AutoClipsPanel } from '@/features/clips/AutoClipsPanel';
 import { JOB_STATUS, TONE_CLASS } from '@/features/jobs/labels';
 import { INGEST_STEPS } from '@/features/source/ingest-steps';
 import { ProxyPlayer } from '@/features/source/ProxyPlayer';
@@ -134,6 +135,7 @@ export function SourcePage() {
           ) : null}
         </div>
       ) : null}
+      {s.status === 'ready' && s.hasAudio ? <AutoClipsPanel source={s} /> : null}
     </section>
   );
 }

@@ -16,8 +16,11 @@ const proxyUrl = (_id: string, asset: StageAsset) => `${API_BASE_URL}/sources/${
 export function PreviewPlayer({
   project,
   onPlayer,
+  frameClassName = 'h-[min(70vh,720px)]',
 }: {
   project: StageProject;
+  /** Height of the black stage frame (the controls sit below it). */
+  frameClassName?: string;
   /** Hands the transient player to a parent (e.g. a timeline) without React state. */
   onPlayer?: (p: Player | null) => void;
 }) {
@@ -113,7 +116,7 @@ export function PreviewPlayer({
     <div className="space-y-3" data-testid="preview-player">
       <div
         ref={frameRef}
-        className="relative mx-auto flex h-[min(70vh,720px)] w-full justify-center overflow-hidden rounded-xl bg-black"
+        className={`relative mx-auto flex w-full justify-center overflow-hidden rounded-xl bg-black ${frameClassName}`}
       >
         <div style={{ width: 'var(--stage-w)', overflow: 'hidden' }}>
           <div ref={hostRef} style={{ transformOrigin: '0 0' }} data-testid="preview-stage" />

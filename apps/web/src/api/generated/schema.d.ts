@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clip-suggestions/{id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hide a suggested clip (its project, if any, is kept) */
+        post: operations["discardClip"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -113,7 +130,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Projects of the merchant, newest change first (at most 200) */
+        get: operations["listProjects"];
         put?: never;
         /** Create a project (version 1) from a validated Project JSON */
         post: operations["createProject"];
@@ -329,6 +347,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/{id}/clips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Clip suggestions of the newest live-to-clips run of a source */
+        get: operations["getClips"];
+        put?: never;
+        /** Start (or join) automatic clip generation for a source */
+        post: operations["generateClips"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources/{id}/sprites/{sheet}": {
         parameters: {
             query?: never;
@@ -491,6 +527,32 @@ export interface components {
             /** @enum {string} */
             status: "up" | "down";
         };
+        ClipSuggestion: {
+            endMs: number;
+            error: string | null;
+            hook: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            origin: "rules" | "llm";
+            projectId: string | null;
+            quote: string | null;
+            rank: number;
+            reason: string;
+            score: number;
+            startMs: number;
+            /** @enum {string} */
+            status: "planned" | "ready" | "failed" | "discarded";
+            title: string;
+            type: string;
+        };
+        ClipsState: {
+            clips: components["schemas"]["ClipSuggestion"][];
+            mode: string | null;
+            runId: string | null;
+            /** @enum {string} */
+            status: "none" | "pending" | "running" | "succeeded" | "failed" | "cancelled";
+        };
         CreateProjectBody: {
             doc: components["schemas"]["ProjectDraft"];
             title: string;
@@ -504,6 +566,10 @@ export interface components {
         Fps: {
             den: number;
             num: number;
+        };
+        GenerateClipsBody: {
+            fresh?: boolean;
+            productName?: string;
         };
         HealthReport: {
             checks: {
@@ -825,10 +891,28 @@ export interface components {
             /** @constant */
             type: "cta";
         };
+        ProjectList: {
+            items: components["schemas"]["ProjectSummary"][];
+        };
         ProjectRecord: {
             /** Format: date-time */
             createdAt: string;
             doc: components["schemas"]["Project"];
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            version: number;
+        };
+        ProjectSummary: {
+            /** @enum {string} */
+            createdBy: "ai" | "user";
+            durationFrames: number;
+            fps: {
+                den: number;
+                num: number;
+            };
             /** Format: uuid */
             id: string;
             title: string;
@@ -1135,6 +1219,37 @@ export interface operations {
             };
         };
     };
+    discardClip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The discarded suggestion */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipSuggestion"];
+                };
+            };
+            /** @description No such suggestion */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     getHealth: {
         parameters: {
             query?: never;
@@ -1240,6 +1355,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listProjects: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Projects */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectList"];
                 };
             };
         };
@@ -1761,6 +1896,90 @@ export interface operations {
             };
             /** @description Range not satisfiable */
             416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getClips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description State and clips */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipsState"];
+                };
+            };
+            /** @description No such source */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    generateClips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateClipsBody"];
+            };
+        };
+        responses: {
+            /** @description Started or joined */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipsState"];
+                };
+            };
+            /** @description No such source */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Source not ready or not transcribed (Thai message) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Too many unfinished runs */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
