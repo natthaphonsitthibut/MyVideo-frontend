@@ -1,0 +1,22 @@
+{
+  "name": "@myvideo/stage",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The one compositor (ARCHITECTURE §7): mounts a Project JSON as DOM and draws any frame deterministically — used by the editor preview and the renderer.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@myvideo/timeline-core": "workspace:*"
+  },
+  "devDependencies": {
+    "jsdom": "31.0.0",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  }
+}
