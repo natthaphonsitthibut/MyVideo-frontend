@@ -26,13 +26,13 @@ function IngestSteps({ runId }: { runId: string | null }) {
         return (
           <li
             key={step.type}
-            className="flex items-center gap-3"
+            className="grid grid-cols-[minmax(0,1fr)_6rem] items-center gap-2 sm:grid-cols-[11rem_minmax(0,1fr)_6rem]"
             data-testid="ingest-step"
             data-step={step.type}
             data-status={j?.status ?? 'waiting'}
           >
-            <span className="w-44 shrink-0 text-sm">{step.label}</span>
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+            <span className="min-w-0 text-sm">{step.label}</span>
+            <div className="order-3 col-span-2 h-1.5 sm:order-none sm:col-span-1 overflow-hidden rounded-full bg-muted">
               <div
                 className={cn(
                   'h-full origin-left rounded-full transition-transform duration-200',
@@ -88,7 +88,7 @@ export function SourcePage() {
   if (source.isError) throw source.error;
   const s = source.data;
   return (
-    <section className="w-full max-w-6xl space-y-6">
+    <section className="page-layout w-full max-w-6xl">
       <div className="space-y-2">
         <Button variant="ghost" size="sm" asChild className="-ml-2">
           <Link to="/library">

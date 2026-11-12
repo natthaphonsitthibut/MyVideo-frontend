@@ -9,7 +9,7 @@ import { EmptyState } from './EmptyState';
 export function ClipsPage() {
   const projects = useProjects();
   return (
-    <section className="space-y-6">
+    <section className="page-layout">
       <h1 className="text-2xl font-semibold">คลิป</h1>
       {projects.isPending ? (
         <div className="space-y-2" role="status" aria-busy="true" aria-label="กำลังโหลด">
@@ -35,7 +35,7 @@ export function ClipsPage() {
                 className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 focus-visible:bg-muted/50"
               >
                 {p.createdBy === 'ai' ? (
-                  <Sparkles className="size-4 shrink-0 text-primary" aria-label="สร้างอัตโนมัติ" />
+                  <Sparkles className="size-4 shrink-0 text-accent-foreground" aria-label="สร้างอัตโนมัติ" />
                 ) : (
                   <Clapperboard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 )}

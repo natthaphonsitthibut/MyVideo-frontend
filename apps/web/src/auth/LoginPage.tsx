@@ -35,10 +35,12 @@ export function LoginPage() {
         : null;
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
+    <div className="flex min-h-dvh items-center justify-center px-page py-8">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-xl">เข้าสู่ระบบ MyVideo</CardTitle>
+          <CardTitle>
+            <h1 className="text-xl">เข้าสู่ระบบ MyVideo</h1>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4" noValidate>
@@ -46,6 +48,8 @@ export function LoginPage() {
               <Label htmlFor="email">อีเมล</Label>
               <Input
                 id="email"
+                name="email"
+                spellCheck={false}
                 type="email"
                 autoComplete="username"
                 required
@@ -57,6 +61,7 @@ export function LoginPage() {
               <Label htmlFor="password">รหัสผ่าน</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 autoComplete="current-password"
                 required
@@ -69,7 +74,12 @@ export function LoginPage() {
                 {error}
               </p>
             ) : null}
-            <Button type="submit" className="w-full" disabled={login.isPending || !email || !password}>
+            <Button
+              type="submit"
+              loading={login.isPending}
+              className="w-full"
+              disabled={login.isPending || !email || !password}
+            >
               {login.isPending ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ'}
             </Button>
           </form>

@@ -25,12 +25,7 @@ function CheckRow({ name, check }: { name: string; check: CheckStatus }) {
       </div>
       <div className="flex shrink-0 items-center gap-3 text-sm text-muted-foreground">
         <span>{check.latencyMs} ms</span>
-        <Badge
-          variant={up ? 'secondary' : 'destructive'}
-          className={up ? 'bg-success/15 text-success' : undefined}
-        >
-          {up ? 'ปกติ' : 'ล่ม'}
-        </Badge>
+        <Badge variant={up ? 'success' : 'destructive'}>{up ? 'ปกติ' : 'ล่ม'}</Badge>
       </div>
     </li>
   );
@@ -39,7 +34,7 @@ function CheckRow({ name, check }: { name: string; check: CheckStatus }) {
 export function StatusPage() {
   const health = useHealth();
   return (
-    <section className="w-full max-w-2xl space-y-6">
+    <section className="page-layout w-full max-w-2xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">สถานะระบบ</h1>
         <Button variant="outline" size="sm" onClick={() => health.refetch()} disabled={health.isFetching}>

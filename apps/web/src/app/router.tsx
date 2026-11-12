@@ -8,6 +8,10 @@ import { RouteError } from './RouteError';
 const devRoutes: RouteObject[] = import.meta.env.DEV
   ? [
       {
+        path: '/dev/components',
+        lazy: () => import('@/pages/dev/ComponentsPage').then((m) => ({ Component: m.ComponentsPage })),
+      },
+      {
         path: '/dev/stage/:id',
         element: (
           <RequireAuth>

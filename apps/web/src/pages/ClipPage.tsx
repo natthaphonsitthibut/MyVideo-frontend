@@ -16,7 +16,7 @@ export function ClipPage() {
     return (
       <div className="space-y-4" role="status" aria-busy="true" aria-label="กำลังโหลดคลิป">
         <Skeleton className="h-8 w-64" />
-        <Skeleton className="mx-auto aspect-[9/16] h-[min(70vh,720px)] rounded-xl" />
+        <Skeleton className="mx-auto aspect-[9/16] w-full max-w-[405px] rounded-xl" />
       </div>
     );
   }
@@ -26,7 +26,7 @@ export function ClipPage() {
   // the merchant video (library sounds have no source)
   const sourceId = Object.values(doc.assets).find((a) => a.sourceId)?.sourceId;
   return (
-    <section className="mx-auto w-full max-w-md space-y-4">
+    <section className="page-layout mx-auto w-full max-w-md">
       <div className="space-y-2">
         {sourceId ? (
           <Button variant="ghost" size="sm" asChild className="-ml-2">
@@ -36,7 +36,7 @@ export function ClipPage() {
             </Link>
           </Button>
         ) : null}
-        <h1 className="text-xl font-semibold break-words" data-testid="clip-title">
+        <h1 className="text-2xl font-semibold break-words" data-testid="clip-title">
           {rec.title}
         </h1>
         <p className="text-sm text-muted-foreground tabular-nums">

@@ -10,7 +10,7 @@ export function ExportsPage() {
   if (renders.isError) throw renders.error;
   const items = renders.data?.items ?? [];
   return (
-    <section className="space-y-6">
+    <section className="page-layout">
       <h1 className="text-2xl font-semibold">ไฟล์ส่งออก</h1>
       {renders.isPending ? (
         <div className="space-y-3" role="status" aria-busy="true" aria-label="กำลังโหลด">

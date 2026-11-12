@@ -30,9 +30,9 @@ function NavItem({
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+          'flex min-h-touch items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
           isActive
-            ? 'bg-accent text-accent-foreground'
+            ? 'bg-secondary text-primary'
             : 'text-muted-foreground hover:bg-muted hover:text-foreground',
         )
       }
@@ -83,6 +83,12 @@ export function AppShell() {
   const close = () => setOpen(false);
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-card focus:p-3"
+      >
+        ข้ามไปเนื้อหา
+      </a>
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-card px-4 md:hidden">
         <span className="text-lg font-semibold tracking-tight">MyVideo</span>
         <Button
@@ -120,7 +126,7 @@ export function AppShell() {
         <NavItem to="/status" label="สถานะระบบ" icon={Activity} onNavigate={close} />
         <Account />
       </aside>
-      <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-6">
+      <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-page py-6">
         <Suspense fallback={<PageFallback />}>
           <Outlet />
         </Suspense>

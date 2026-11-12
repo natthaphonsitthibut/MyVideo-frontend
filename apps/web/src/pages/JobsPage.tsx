@@ -11,7 +11,7 @@ export function JobsPage() {
   const test = useCreateTestRun();
   const startTest = (failFirstAttempt: boolean) => test.mutate({ ms: 6000, steps: 12, failFirstAttempt });
   return (
-    <section className="w-full max-w-3xl space-y-6">
+    <section className="page-layout w-full max-w-3xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">งานประมวลผล</h1>
