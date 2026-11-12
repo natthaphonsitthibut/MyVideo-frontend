@@ -6,8 +6,8 @@ import { signIn } from '../auth';
 /**
  * E07-F08 — automatic clips through the UI on REAL footage (C02, 55 s Thai live selling): upload → ingest →
  * transcribe → "สร้างคลิปอัตโนมัติ" → recommended styles → pick one → cards turn ready one by one → preview plays → open a clip → discard one →
- * the clips menu lists the generated projects. Runs in whatever LLM_MODE the dev worker has (dev.sh default:
- * `rules`, which needs no CLI and no key). Needs the dev stack started by `scripts/dev.sh`.
+ * the edited-clips page lists the generated projects. Uses the dev worker's LLM_MODE (local-agent by default).
+ * Needs the dev stack started by `scripts/dev.sh`.
  */
 const ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
 const CLIP = `${ROOT}footage/clips/live-tiedye-th-vertical-b.mp4`;
@@ -115,9 +115,9 @@ test('generate clips from a real live clip, review, preview, open, discard', asy
   await page.reload();
   await expect(cards).toHaveCount(total - 1, { timeout: 30_000 });
 
-  // the projects page lists generated projects (all of them, discarded ones included — the project is kept)
-  await page.goto('/projects');
-  await expect(page.getByTestId('project-row').first()).toBeVisible();
+  // The separate edited-clips page keeps all timelines, including a discarded suggestion's timeline.
+  await page.goto('/clips');
+  await expect(page.getByTestId('edited-clip-row').first()).toBeVisible();
   expect(await page.getByLabel('สร้างอัตโนมัติ').count()).toBeGreaterThanOrEqual(total);
   await shot(page, '6-clips-menu');
 });

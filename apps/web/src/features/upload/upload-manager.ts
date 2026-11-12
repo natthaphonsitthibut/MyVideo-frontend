@@ -102,7 +102,7 @@ export class UploadManager {
   }
 
   /** Validates and starts (or resumes, if this file was partly uploaded before) an upload. */
-  async add(file: File, cfg: UploadConfig): Promise<string> {
+  async add(file: File, cfg: UploadConfig, onReady?: (sourceId: string) => Promise<void>): Promise<string> {
     const id = `u${++this.seq}-${Date.now()}`;
     const invalid = validateFile(file, cfg);
     this.items.set(id, {
@@ -130,7 +130,7 @@ export class UploadManager {
         return retry;
       },
       onError: (err) => this.patch(id, { status: 'error', error: messageFor(err) }),
-      onSuccess: () => void this.finish(id, upload),
+      onSuccess: () => void this.finish(id, upload, onReady),
     });
     this.uploads.set(id, upload);
     const previous = await upload.findPreviousUploads();
@@ -139,7 +139,11 @@ export class UploadManager {
     return id;
   }
 
-  private async finish(id: string, upload: tus.Upload): Promise<void> {
+  private async finish(
+    id: string,
+    upload: tus.Upload,
+    onReady?: (sourceId: string) => Promise<void>,
+  ): Promise<void> {
     this.patch(id, { status: 'finishing', sent: this.items.get(id)?.size ?? 0 });
     const uploadId = upload.url?.split('/').pop() ?? '';
     // the hand-over is idempotent server-side; retry a few times if the network blips here
@@ -148,6 +152,17 @@ export class UploadManager {
         .GET('/sources/by-upload/{uploadId}', { params: { path: { uploadId } } })
         .catch(() => ({ data: undefined, response: { status: 0 } as Response }));
       if (data) {
+        try {
+          await onReady?.(data.id);
+        } catch {
+          this.patch(id, {
+            status: 'error',
+            sourceId: data.id,
+            error: 'วิดีโออยู่ในคลังแล้ว แต่เพิ่มเข้าโปรเจกต์ไม่สำเร็จ กด “เพิ่มจากคลังวิดีโอ” เพื่อลองอีกครั้ง',
+          });
+          this.onSourceReady(data.id);
+          return;
+        }
         this.patch(id, { status: 'done', sourceId: data.id });
         this.onSourceReady(data.id);
         return;

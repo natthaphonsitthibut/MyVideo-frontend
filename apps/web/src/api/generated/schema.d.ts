@@ -108,6 +108,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project folders, newest change first */
+        get: operations["listFolders"];
+        put?: never;
+        /** Create a project folder */
+        post: operations["createFolder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Footage and edited clips in a project folder */
+        get: operations["getFolder"];
+        put?: never;
+        post?: never;
+        /** Delete a folder; keep Library footage and editable clips */
+        delete: operations["deleteFolder"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add existing Library sources to a folder, atomically and idempotently */
+        post: operations["addFolderSources"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -816,6 +869,9 @@ export interface components {
             status: "none" | "pending" | "running" | "succeeded" | "failed" | "cancelled";
             styleId: string | null;
         };
+        CreateFolderBody: {
+            title: string;
+        };
         CreateProjectBody: {
             doc: components["schemas"]["ProjectDraft"];
             title: string;
@@ -833,6 +889,21 @@ export interface components {
             left: number;
             right: number;
             top: number;
+        };
+        FolderList: {
+            items: components["schemas"]["FolderRecord"][];
+        };
+        FolderRecord: {
+            clipIds: string[];
+            /** Format: uuid */
+            id: string;
+            sourceIds: string[];
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        FolderSourcesBody: {
+            sourceIds: string[];
         };
         Fps: {
             den: number;
@@ -1361,7 +1432,7 @@ export interface components {
             id: string;
             jobs: components["schemas"]["JobSummary"][];
             /** @enum {string} */
-            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "render" | "system_test";
+            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "render" | "purge" | "system_test";
             /** @enum {string} */
             status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
             subjectId: string | null;
@@ -1793,6 +1864,136 @@ export interface operations {
                 };
             };
             /** @description No such suggestion */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Folders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderList"];
+                };
+            };
+        };
+    };
+    createFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFolderBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderRecord"];
+                };
+            };
+        };
+    };
+    getFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Folder */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderRecord"];
+                };
+            };
+            /** @description No such folder or source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    deleteFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted or already absent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    addFolderSources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderSourcesBody"];
+            };
+        };
+        responses: {
+            /** @description Updated folder */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderRecord"];
+                };
+            };
+            /** @description No such folder or source for this merchant */
             404: {
                 headers: {
                     [name: string]: unknown;

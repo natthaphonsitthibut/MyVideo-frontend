@@ -11,13 +11,15 @@ test('signed-out visitors are sent to the login page', async ({ page }) => {
   await page.screenshot({ path: 'test-results/login-error.png', fullPage: true });
 });
 
-test('the app is two pages: projects and library; old page links land on projects', async ({ page }) => {
+test('navigation separates project folders, the Library and edited clips; removed pages redirect', async ({
+  page,
+}) => {
   await signIn(page, '/library');
   const nav = page.getByRole('navigation', { name: 'เมนูหลัก' });
-  await expect(nav.getByRole('link')).toHaveText(['โปรเจกต์', 'คลังวิดีโอ']);
+  await expect(nav.getByRole('link')).toHaveText(['โปรเจกต์', 'คลังวิดีโอ', 'คลิปที่ตัดแล้ว']);
   await expect(page.getByTestId('merchant-name')).not.toBeEmpty();
   await page.screenshot({ path: 'test-results/shell-library.png', fullPage: true });
-  for (const old of ['/clips', '/review-video', '/exports', '/brand', '/jobs', '/status']) {
+  for (const old of ['/review-video', '/exports', '/brand', '/jobs', '/status']) {
     await page.goto(old);
     await expect(page).toHaveURL(/\/projects$/);
   }

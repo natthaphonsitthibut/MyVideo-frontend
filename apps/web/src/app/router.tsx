@@ -77,6 +77,10 @@ export const routes: RouteObject[] = [
         lazy: () => import('@/pages/ProjectsPage').then((m) => ({ Component: m.ProjectsPage })),
       },
       {
+        path: 'projects/:id',
+        lazy: () => import('@/pages/ProjectFolderPage').then((m) => ({ Component: m.ProjectFolderPage })),
+      },
+      {
         path: 'library',
         lazy: () => import('@/pages/LibraryPage').then((m) => ({ Component: m.LibraryPage })),
       },
@@ -85,10 +89,14 @@ export const routes: RouteObject[] = [
         lazy: () => import('@/pages/SourcePage').then((m) => ({ Component: m.SourcePage })),
       },
       // pages removed in the two-page app (D-037): old links land on the projects list
-      ...['clips', 'review-video', 'exports', 'brand', 'jobs', 'status'].map((path) => ({
+      ...['review-video', 'exports', 'brand', 'jobs', 'status'].map((path) => ({
         path,
         element: <Navigate to="/projects" replace />,
       })),
+      {
+        path: 'clips',
+        lazy: () => import('@/pages/EditedClipsPage').then((m) => ({ Component: m.EditedClipsPage })),
+      },
       {
         path: 'clips/:id',
         lazy: () => import('@/pages/ClipPage').then((m) => ({ Component: m.ClipPage })),

@@ -120,7 +120,7 @@ function UploadRow({ item, mgr }: { item: UploadItem; mgr: UploadManager }) {
   );
 }
 
-export function UploadPanel() {
+export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: string) => Promise<void> } = {}) {
   const qc = useQueryClient();
   const cfg = useUploadConfig();
   const mgr = getManager();
@@ -145,7 +145,7 @@ export function UploadPanel() {
 
   const addFiles = (files: FileList | null) => {
     if (!files || !cfg.data) return;
-    for (const f of Array.from(files)) void mgr.add(f, cfg.data);
+    for (const f of Array.from(files)) void mgr.add(f, cfg.data, onSourceReady);
   };
   const onDrop = (e: DragEvent) => {
     e.preventDefault();

@@ -75,6 +75,7 @@ export function useDeleteProject() {
     onSuccess: async (id) => {
       qc.removeQueries({ queryKey: projectKey(id) });
       await qc.invalidateQueries({ queryKey: ['projects'] });
+      await qc.invalidateQueries({ queryKey: ['folders'] });
     },
   });
 }

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { API_BASE_URL, ApiError, api, type Schemas } from './client';
 import { applyRunEvent, type RunEvent, type RunSummary } from './runs';
@@ -7,6 +7,26 @@ export type SourceSummary = Schemas['SourceSummary'];
 export type SpriteIndex = NonNullable<SourceSummary['sprites']>;
 
 export const SOURCES_KEY = ['sources'] as const;
+
+/** Both the Library and project picker can reach older sources through the server's cursor. */
+export function useLibrarySources() {
+  return useInfiniteQuery({
+    queryKey: [...SOURCES_KEY, 'pages'],
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => {
+      const { data, error, response } = await api.GET('/sources', {
+        params: { query: { limit: 60, before: pageParam } },
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
+    refetchInterval: (query) =>
+      query.state.data?.pages.some((page) => page.items.some((source) => source.status === 'processing'))
+        ? 3000
+        : false,
+  });
+}
 
 export function useSources() {
   return useQuery({
@@ -104,6 +124,7 @@ export function useDeleteSource() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: SOURCES_KEY });
       await qc.invalidateQueries({ queryKey: ['projects'] });
+      await qc.invalidateQueries({ queryKey: ['folders'] });
     },
   });
 }

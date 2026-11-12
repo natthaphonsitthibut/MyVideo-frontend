@@ -1,4 +1,4 @@
-import { Activity, Clapperboard, Film, LogOut, Menu, X } from 'lucide-react';
+import { Activity, Clapperboard, Film, Folder, LogOut, Menu, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-/** The whole product is two pages (D-037): projects, and the footage library they are made from. */
+/** Project folders, all Library footage, and the separate collection of edited clips. */
 const NAV = [
-  { to: '/projects', label: 'โปรเจกต์', icon: Clapperboard },
+  { to: '/projects', label: 'โปรเจกต์', icon: Folder },
   { to: '/library', label: 'คลังวิดีโอ', icon: Film },
+  { to: '/clips', label: 'คลิปที่ตัดแล้ว', icon: Clapperboard },
 ] as const;
 
 function NavItem({
