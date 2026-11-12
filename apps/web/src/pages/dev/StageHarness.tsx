@@ -1,12 +1,25 @@
-import { mountStage, type Stage, type StageProject } from '@myvideo/stage';
+import {
+  buildCaptions,
+  canvasMeasure,
+  captionFont,
+  captionMaxWidth,
+  loadCaptionFont,
+  mountStage,
+  type Stage,
+  type StageProject,
+} from '@myvideo/stage';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router';
 import { API_BASE_URL, ApiError, api } from '@/api/client';
 
+const stageLib = { buildCaptions, canvasMeasure, captionFont, captionMaxWidth, loadCaptionFont };
+
 declare global {
   interface Window {
     __stage?: Stage & { durationFrames: number };
+    /** Caption builder with the real bundled font, for tests that lay out captions in the browser. */
+    __stageLib?: typeof stageLib;
   }
 }
 
@@ -36,6 +49,7 @@ export function StageHarness() {
       (_assetId, asset) => `${API_BASE_URL}/sources/${asset.sourceId}/assets/proxy`,
     );
     window.__stage = Object.assign(stage, { durationFrames: doc.durationFrames });
+    window.__stageLib = stageLib;
     return () => {
       delete window.__stage;
       stage.destroy();

@@ -12,6 +12,8 @@ export type VisibleElement = {
   mediaTime?: number;
   /** Keyframed numeric properties at this frame (e.g. `opacity`, `transform.x`). */
   values: Record<string, number>;
+  /** Captions: index of the word being spoken at this frame, -1 in a pause. */
+  activeWord?: number;
 };
 
 export type FrameState = { frame: number; visible: VisibleElement[] };
@@ -76,6 +78,9 @@ export function frameState(p: StageProject, frame: number): FrameState {
         local,
         values,
         ...('sourceInFrame' in e ? { mediaTime: mediaTimeAt(e, frame, p.fps) } : {}),
+        ...(e.type === 'caption'
+          ? { activeWord: e.words.findIndex((w) => local >= w.startFrame && local < w.endFrame) }
+          : {}),
       });
     }
   });

@@ -1,4 +1,5 @@
 import { frameToMs } from '@myvideo/timeline-core';
+import { applyActiveWord, buildCaptionNode } from './captions';
 import { frameState, type VisibleElement } from './frame-state';
 import { animationKeyframes } from './presets';
 import { textStyleFor } from './styles';
@@ -32,7 +33,8 @@ function transformCss(e: StageElement, v: Record<string, number>): string {
   if (!('transform' in e)) return '';
   const t = e.transform;
   const x = v['transform.x'] ?? t.x;
-  const y = v['transform.y'] ?? t.y;
+  // captions are placed in the safe area from transform.y at build time; don't offset them twice
+  const y = e.type === 'caption' ? 0 : (v['transform.y'] ?? t.y);
   const s = v['transform.scale'] ?? t.scale;
   const r = v['transform.rotation'] ?? t.rotation;
   return `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
@@ -117,8 +119,8 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
         break;
       }
       case 'caption':
-        // caption rendering (stored lines, word highlight) is added by the caption layer
         box.dataset.caption = '';
+        buildCaptionNode(box, inner, e, p.width, p.height);
         break;
     }
     const anim = (preset: StageElement['animationIn'], dir: 'in' | 'out') => {
@@ -168,6 +170,7 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
       if (!v) {
         if (n.box.style.visibility !== 'hidden') n.box.style.visibility = 'hidden';
         if (n.media && !n.media.paused) n.media.pause();
+        if (n.box.dataset.caption !== undefined) applyActiveWord(n.inner, -1);
         continue;
       }
       const e = v.element;
@@ -176,6 +179,7 @@ export function mountStage(container: HTMLElement, project: StageProject, resolv
       n.box.style.transform = transformCss(e, v.values);
       n.box.style.opacity = String(v.values.opacity ?? e.opacity ?? 1);
       for (const a of n.anims) a.currentTime = ms(v.local);
+      if (v.activeWord !== undefined) applyActiveWord(n.inner, v.activeWord);
       if (n.media && v.mediaTime !== undefined) waits.push({ el: n.media, time: v.mediaTime });
     }
     for (const l of listeners) l(frame);

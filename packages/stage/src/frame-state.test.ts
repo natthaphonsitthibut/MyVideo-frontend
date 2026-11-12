@@ -122,6 +122,39 @@ describe('frameState: visibility per frame', () => {
   });
 });
 
+describe('caption active word (follows word frames exactly)', () => {
+  const p = project();
+  p.tracks.push({ id: 'tc', kind: 'caption', elementIds: ['c1'] });
+  p.elements.c1 = {
+    type: 'caption',
+    id: 'c1',
+    trackId: 'tc',
+    startFrame: 200,
+    durationFrames: 60,
+    origin: 'ai',
+    words: [
+      { text: 'อบ', startFrame: 0, endFrame: 12 },
+      { text: '21.5', startFrame: 12, endFrame: 30 },
+      { text: 'ยา', startFrame: 35, endFrame: 45 },
+    ],
+    lines: [[0, 1, 2]],
+    styleRef: 'bold-highlight',
+    transform: tf,
+  };
+  it.each([
+    [200, 0],
+    [211, 0],
+    [212, 1], // switches on the word's first frame
+    [229, 1],
+    [230, -1], // pause between words
+    [235, 2],
+    [244, 2],
+    [245, -1],
+  ])('frame %i → word %i', (frame, word) => {
+    expect(frameState(p, frame).visible.find((v) => v.id === 'c1')?.activeWord).toBe(word);
+  });
+});
+
 describe('interpolate', () => {
   const kfs = [
     { frame: 0, value: 0, easing: 'ease-in-out' as const },
