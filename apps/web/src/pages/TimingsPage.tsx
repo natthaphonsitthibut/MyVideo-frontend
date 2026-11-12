@@ -53,7 +53,7 @@ function RunCard({ run }: { run: TimingRun }) {
   const status = RUN_STATUS[run.status];
   const groups = groupSteps(run.steps);
   return (
-    <article className="rounded-xl border bg-card p-4 sm:p-5" data-testid="timing-run">
+    <article className="min-w-0 rounded-xl border bg-card p-4 sm:p-5" data-testid="timing-run">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="font-semibold">{RUN_KIND_LABEL[run.kind]}</h2>
@@ -204,7 +204,7 @@ export function TimingsPage() {
           hint="อัปโหลดวิดีโอแล้วให้ AI ตัดคลิป เวลาของทุกขั้นจะขึ้นที่นี่"
         />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">
           {items.map((run) => (
             <RunCard key={run.runId} run={run} />
           ))}
