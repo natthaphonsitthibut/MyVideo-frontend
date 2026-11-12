@@ -1,6 +1,6 @@
 import { canvasMeasure, captionFont, captionMaxWidth, loadCaptionFont } from '@myvideo/stage';
-import { formatTimecode, setCaptionWords } from '@myvideo/timeline-core';
-import { Check, Sparkles, Undo2 } from 'lucide-react';
+import { type Command, formatTimecode, setCaptionWords } from '@myvideo/timeline-core';
+import { Check, Merge, Scissors, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,12 @@ import {
   captionRows,
   editCaptionWord,
   type Layout,
+  mergeCaptionWithNext,
   revertCaptionWord,
+  splitCaptionAt,
 } from './caption-edit';
 import type { EditorStore } from './editor-store';
+import { removeElement } from './text-elements';
 
 type CaptionEl = Parameters<typeof editCaptionWord>[0] & { styleRef: string };
 
@@ -56,6 +59,13 @@ export function CaptionsPanel({
     setEditing(null);
   };
 
+  const page = async (id: string, make: (layout: Layout) => Command) => {
+    const c = store.doc().elements[id] as unknown as CaptionEl | undefined;
+    if (!c) return;
+    store.run(make(await layoutFor(c.styleRef, canvasWidth)));
+    setEditing(null);
+  };
+
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">คลิปนี้ไม่มีคำบรรยาย</p>;
   return (
     <div className="space-y-2" data-testid="captions-panel">
@@ -66,7 +76,7 @@ export function CaptionsPanel({
         </p>
       ) : null}
       <ul className="max-h-[60vh] space-y-1 overflow-y-auto pr-1">
-        {rows.map((r) => (
+        {rows.map((r, ri) => (
           <li key={r.id} className="flex gap-3 rounded-md px-2 py-1.5 hover:bg-muted/50">
             <button
               type="button"
@@ -103,6 +113,19 @@ export function CaptionsPanel({
                         <Check />
                         บันทึก
                       </Button>
+                      {i > 0 ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            void page(r.id, (l) => splitCaptionAt(r.id, i, crypto.randomUUID(), l))
+                          }
+                          data-testid="caption-split"
+                        >
+                          <Scissors />
+                          ขึ้นบรรทัดใหม่ตรงนี้
+                        </Button>
+                      ) : null}
                       {w.ai ? (
                         <>
                           <Button
@@ -149,6 +172,34 @@ export function CaptionsPanel({
                 );
               })}
             </p>
+            <div className="flex shrink-0 items-start gap-0.5">
+              {rows[ri + 1] ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8"
+                  aria-label="รวมกับบรรทัดถัดไป"
+                  title="รวมกับบรรทัดถัดไป"
+                  onClick={() =>
+                    void page(r.id, (l) => mergeCaptionWithNext(r.id, rows[ri + 1]?.id ?? '', l))
+                  }
+                  data-testid="caption-merge"
+                >
+                  <Merge />
+                </Button>
+              ) : null}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8 text-destructive"
+                aria-label="ลบบรรทัดนี้"
+                title="ลบบรรทัดนี้ (เสียงพูดยังอยู่)"
+                onClick={() => store.run(removeElement(r.id))}
+                data-testid="caption-delete"
+              >
+                <Trash2 />
+              </Button>
+            </div>
           </li>
         ))}
       </ul>

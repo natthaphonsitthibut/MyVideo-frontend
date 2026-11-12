@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { acceptCaptionWord, captionRows, editCaptionWord, revertCaptionWord } from './caption-edit';
+import {
+  acceptCaptionWord,
+  captionRows,
+  editCaptionWord,
+  mergeCaptionWithNext,
+  revertCaptionWord,
+  splitCaptionAt,
+} from './caption-edit';
 
 // a real S01a caption page (sale-fast, one line): "รับพิมพ์รับมา 1,500 บาท" with an AI correction on พิมพ์
 const caption = {
@@ -48,5 +55,76 @@ describe('caption editing', () => {
     const ok = acceptCaptionWord(caption, 1);
     expect(ok.words[1]).toEqual({ text: 'พิมพ์', startFrame: 8, endFrame: 16 });
     expect(ok.lines).toEqual(caption.lines);
+  });
+});
+
+type Doc = {
+  elements: Record<string, unknown>;
+  tracks: { id: string; kind: string; elementIds: string[] }[];
+};
+
+describe('caption pages: merge, split', () => {
+  const layout = { measure, maxWidth: 2000, maxLines: 2 };
+  const next = {
+    ...caption,
+    id: 'c2',
+    startFrame: 80, // 10 frames after c1 ends (30 + 40)
+    durationFrames: 20,
+    words: [
+      { text: 'ส่ง', startFrame: 0, endFrame: 10 },
+      { text: 'ฟรี', startFrame: 10, endFrame: 20 },
+    ],
+    lines: [[0, 1]],
+  };
+  const doc = (els: Record<string, unknown>): Doc => ({
+    elements: structuredClone(els),
+    tracks: [{ id: 't', kind: 'caption', elementIds: Object.keys(els) }],
+  });
+
+  it('merging a page with the next keeps every word at its audio time and covers both pages', () => {
+    const d = doc({ c1: caption, c2: next });
+    mergeCaptionWithNext('c1', 'c2', layout).apply(d as never);
+    const m = d.elements.c1 as typeof caption;
+    expect(d.elements.c2).toBeUndefined();
+    expect(d.tracks[0]?.elementIds).toEqual(['c1']);
+    expect(m.startFrame).toBe(30);
+    expect(m.durationFrames).toBe(70); // 30 → 100
+    expect(m.words.map((w) => [w.text, w.startFrame, w.endFrame])).toEqual([
+      ['รับ', 0, 8],
+      ['พิมพ์', 8, 16],
+      ['รับมา', 16, 26],
+      ['1,500 บาท', 26, 40],
+      ['ส่ง', 50, 60],
+      ['ฟรี', 60, 70],
+    ]);
+    expect(m.lines.flat()).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(m.words[1]?.origin).toBe('ai'); // provenance kept
+  });
+
+  it('splitting before a word makes a new page that starts at that word', () => {
+    const d = doc({ c1: caption });
+    splitCaptionAt('c1', 2, 'c9', layout).apply(d as never);
+    const a = d.elements.c1 as typeof caption;
+    const b = d.elements.c9 as typeof caption;
+    expect(a.words.map((w) => w.text)).toEqual(['รับ', 'พิมพ์']);
+    expect(a.durationFrames).toBe(16);
+    expect(b).toMatchObject({
+      id: 'c9',
+      type: 'caption',
+      startFrame: 46,
+      durationFrames: 24,
+      styleRef: 'pop-word',
+    });
+    expect(b.words.map((w) => [w.text, w.startFrame, w.endFrame])).toEqual([
+      ['รับมา', 0, 10],
+      ['1,500 บาท', 10, 24],
+    ]);
+    expect(b.lines).toEqual([[0, 1]]);
+    expect(d.tracks[0]?.elementIds).toEqual(['c1', 'c9']);
+  });
+
+  it('splitting at the first word is refused (a page cannot be empty)', () => {
+    const d = doc({ c1: caption });
+    expect(() => splitCaptionAt('c1', 0, 'c9', layout).apply(d as never)).toThrow();
   });
 });

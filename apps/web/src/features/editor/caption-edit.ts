@@ -1,4 +1,5 @@
 import { layoutLines, type Measure } from '@myvideo/stage';
+import type { Command } from '@myvideo/timeline-core';
 
 /**
  * Caption text editing (E08-F04), pure: a word keeps its audio timing; the page's lines are laid out again with
@@ -52,6 +53,68 @@ export function revertCaptionWord(c: Caption, index: number, layout: Layout) {
   const w = c.words[index];
   if (!w?.asrText) return { words: c.words, lines: c.lines };
   return editCaptionWord(c, index, w.asrText, layout);
+}
+
+type PageDraft = {
+  elements: Record<string, (Caption & { durationFrames: number; trackId?: string }) | undefined>;
+  tracks: { id: string; kind: string; elementIds: string[] }[];
+};
+
+/** One page with the next one (every word keeps its audio time; the page covers both). */
+export function mergeCaptionWithNext(id: string, nextId: string, layout: Layout): Command {
+  return {
+    label: 'merge captions',
+    apply(raw) {
+      const d = raw as unknown as PageDraft;
+      const a = d.elements[id];
+      const b = d.elements[nextId];
+      if (!a || !b || a.type !== 'caption' || b.type !== 'caption') throw new Error('not two captions');
+      const shift = b.startFrame - a.startFrame;
+      a.words = [
+        ...a.words,
+        ...b.words.map((w) => ({ ...w, startFrame: w.startFrame + shift, endFrame: w.endFrame + shift })),
+      ];
+      a.durationFrames = shift + b.durationFrames;
+      a.lines = relayout(a.words, layout);
+      delete d.elements[nextId];
+      for (const t of d.tracks) t.elementIds = t.elementIds.filter((x) => x !== nextId);
+    },
+  };
+}
+
+/** A new page starting at word `index` (the first page ends with the previous word). */
+export function splitCaptionAt(id: string, index: number, newId: string, layout: Layout): Command {
+  return {
+    label: 'split caption',
+    apply(raw) {
+      const d = raw as unknown as PageDraft;
+      const c = d.elements[id];
+      if (!c || c.type !== 'caption') throw new Error(`caption ${id} not found`);
+      const at = c.words[index];
+      const last = c.words[index - 1];
+      if (index <= 0 || !at || !last) throw new Error('split needs words on both sides');
+      const cut = at.startFrame;
+      const head = c.words.slice(0, index);
+      const tail = c.words
+        .slice(index)
+        .map((w) => ({ ...w, startFrame: w.startFrame - cut, endFrame: w.endFrame - cut }));
+      d.elements[newId] = {
+        ...structuredClone(c),
+        id: newId,
+        startFrame: c.startFrame + cut,
+        durationFrames: c.durationFrames - cut,
+        words: tail,
+        lines: relayout(tail, layout),
+      };
+      c.words = head;
+      c.durationFrames = last.endFrame;
+      c.lines = relayout(head, layout);
+      for (const t of d.tracks) {
+        const i = t.elementIds.indexOf(id);
+        if (i >= 0) t.elementIds.splice(i + 1, 0, newId);
+      }
+    },
+  };
 }
 
 export function acceptCaptionWord(c: Caption, index: number) {
