@@ -11,7 +11,8 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router';
-import { API_BASE_URL, ApiError, api } from '@/api/client';
+import { ApiError, api } from '@/api/client';
+import { mediaUrl } from '@/features/preview/media-url';
 
 const stageLib = { buildCaptions, canvasMeasure, captionFont, captionMaxWidth, loadCaptionFont };
 
@@ -46,11 +47,7 @@ export function StageHarness() {
     if (!el || !doc) return;
     // `?media=original` draws with the files the renderer uses (preview/render parity test)
     const kind = new URLSearchParams(location.search).get('media') === 'original' ? 'original' : 'proxy';
-    const stage = mountStage(
-      el,
-      doc as unknown as StageProject,
-      (_assetId, asset) => `${API_BASE_URL}/sources/${asset.sourceId}/assets/${kind}`,
-    );
+    const stage = mountStage(el, doc as unknown as StageProject, (_assetId, asset) => mediaUrl(asset, kind));
     window.__stage = Object.assign(stage, { durationFrames: doc.durationFrames });
     window.__stageLib = stageLib;
     return () => {

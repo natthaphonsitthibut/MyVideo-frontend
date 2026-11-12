@@ -2,11 +2,11 @@ import { createPlayer, mountStage, type Player, type StageAsset, type StageProje
 import { formatTimecode } from '@myvideo/timeline-core';
 import { Pause, Play } from 'lucide-react';
 import { type KeyboardEvent, type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { API_BASE_URL } from '@/api/client';
 import { Button } from '@/components/ui/button';
+import { mediaUrl } from './media-url';
 
-/** Preview media = source proxies (editor-performance: never play originals in the browser). */
-const proxyUrl = (_id: string, asset: StageAsset) => `${API_BASE_URL}/sources/${asset.sourceId}/assets/proxy`;
+/** Preview media = source proxies (editor-performance: never play originals in the browser) + library sounds. */
+const proxyUrl = (_id: string, asset: StageAsset) => mediaUrl(asset, 'proxy');
 
 /**
  * React wrapper around the stage + preview driver (editor-performance): React renders once per project; the

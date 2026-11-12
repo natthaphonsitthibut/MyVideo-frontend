@@ -32,7 +32,9 @@ export type StageElement = TimelineElement & {
 };
 
 export type StageAsset = {
-  sourceId: string;
+  /** A merchant source; library sounds have `libraryId` instead (exactly one is set). */
+  sourceId?: string;
+  libraryId?: string;
   kind: 'video' | 'audio' | 'image';
   durationFrames: number;
   hasAudio: boolean;

@@ -23,7 +23,8 @@ export function ClipPage() {
   if (project.isError) throw project.error;
   const rec = project.data;
   const doc = rec.doc;
-  const sourceId = Object.values(doc.assets)[0]?.sourceId;
+  // the merchant video (library sounds have no source)
+  const sourceId = Object.values(doc.assets).find((a) => a.sourceId)?.sourceId;
   return (
     <section className="mx-auto w-full max-w-md space-y-4">
       <div className="space-y-2">

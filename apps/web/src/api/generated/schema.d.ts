@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/library/sounds/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream a product library sound (WAV, supports HTTP Range). Same for every merchant; never merchant data (D-026). */
+        get: operations["getLibrarySound"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects": {
         parameters: {
             query?: never;
@@ -674,8 +691,9 @@ export interface components {
             height?: number;
             /** @enum {string} */
             kind: "video" | "audio" | "image";
+            libraryId?: string;
             /** Format: uuid */
-            sourceId: string;
+            sourceId?: string;
             width?: number;
         };
         ProjectDraft: {
@@ -1356,6 +1374,51 @@ export interface operations {
             };
             /** @description Job is not dead or cancelled */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getLibrarySound: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Whole file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Requested byte range */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such library sound, or its file is not installed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Range not satisfiable */
+            416: {
                 headers: {
                     [name: string]: unknown;
                 };

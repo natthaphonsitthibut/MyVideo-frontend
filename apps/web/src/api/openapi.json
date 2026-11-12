@@ -766,6 +766,10 @@
             ],
             "type": "string"
           },
+          "libraryId": {
+            "pattern": "^[a-z0-9-]{1,64}$",
+            "type": "string"
+          },
           "sourceId": {
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -778,7 +782,6 @@
           }
         },
         "required": [
-          "sourceId",
           "kind",
           "durationFrames",
           "hasAudio"
@@ -3261,6 +3264,59 @@
         "summary": "Retry a dead or cancelled job (gives it a fresh attempt budget)",
         "tags": [
           "jobs"
+        ]
+      }
+    },
+    "/library/sounds/{id}": {
+      "get": {
+        "operationId": "getLibrarySound",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z0-9-]{1,64}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Whole file"
+          },
+          "206": {
+            "description": "Requested byte range"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such library sound, or its file is not installed"
+          },
+          "416": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Range not satisfiable"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Stream a product library sound (WAV, supports HTTP Range). Same for every merchant; never merchant data (D-026).",
+        "tags": [
+          "library"
         ]
       }
     },
