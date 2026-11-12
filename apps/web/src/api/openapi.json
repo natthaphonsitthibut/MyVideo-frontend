@@ -2891,6 +2891,11 @@
       "TranscriptState": {
         "additionalProperties": false,
         "properties": {
+          "aiFixedCount": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
           "chunkCount": {
             "maximum": 9007199254740991,
             "minimum": -9007199254740991,
@@ -2930,6 +2935,11 @@
               "string",
               "null"
             ]
+          },
+          "needsReviewCount": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
           },
           "runId": {
             "anyOf": [
@@ -2980,7 +2990,9 @@
           "durationMs",
           "language",
           "model",
-          "error"
+          "error",
+          "aiFixedCount",
+          "needsReviewCount"
         ],
         "type": "object"
       },
@@ -3004,6 +3016,21 @@
           "kind": {
             "type": "string"
           },
+          "mergedInto": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "needsReview": {
+            "type": "boolean"
+          },
           "original": {
             "type": [
               "string",
@@ -3026,7 +3053,9 @@
           "kind",
           "original",
           "aiFixed",
-          "heard"
+          "heard",
+          "mergedInto",
+          "needsReview"
         ],
         "type": "object"
       },
@@ -4988,6 +5017,74 @@
           }
         ],
         "summary": "Correct one word of the ready transcript (stored as a user layer; the ASR original is kept)",
+        "tags": [
+          "transcripts"
+        ]
+      }
+    },
+    "/sources/{id}/transcript/words/{seq}/{index}/review": {
+      "post": {
+        "operationId": "reviewTranscriptWord",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "seq",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptSegment"
+                }
+              }
+            },
+            "description": "The segment with the word marked as checked"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such source/word, or the word has no AI correction"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Accept an AI correction after checking it (a merged name: its whole span)",
         "tags": [
           "transcripts"
         ]

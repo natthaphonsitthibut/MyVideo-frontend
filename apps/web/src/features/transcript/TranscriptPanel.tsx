@@ -1,5 +1,15 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDown, ChevronUp, CircleAlert, LocateFixed, RotateCcw, Search, Undo2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  CircleAlert,
+  LocateFixed,
+  RotateCcw,
+  Search,
+  Sparkles,
+  Undo2,
+} from 'lucide-react';
 import {
   type KeyboardEvent,
   type MouseEvent,
@@ -15,6 +25,7 @@ import { formatDuration } from '@/api/sources';
 import {
   type TranscriptSegment,
   useEditWord,
+  useReviewWord,
   useStartTranscript,
   useTranscriptSegments,
   useTranscriptState,
@@ -25,6 +36,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CreateClipBar, useWordSelection } from '@/features/clip/CreateClipBar';
 import type { ClipSource } from '@/features/clip/clip-project';
 import { cn } from '@/lib/utils';
+import { ReviewBar } from './ReviewBar';
+import { type ReviewTarget, reviewSummary, reviewTargets, stepTarget } from './review-queue';
 import { buildWordIndex, findSegmentAt, findWordAt, searchSegments } from './word-index';
 import { wordMarking } from './word-marking';
 
@@ -55,6 +68,14 @@ export function TranscriptPanel({
   const state = useTranscriptState(sourceId);
   const start = useStartTranscript(sourceId);
   const t = state.data;
+  // a finished run may have added AI corrections to an already cached transcript: reload its words
+  const qc = useQueryClient();
+  const lastStatus = useRef(t?.status);
+  useEffect(() => {
+    if (lastStatus.current === 'running' && t?.status === 'ready')
+      void qc.invalidateQueries({ queryKey: ['transcript-segments', sourceId] });
+    lastStatus.current = t?.status;
+  }, [t?.status, qc, sourceId]);
 
   let body: React.ReactNode;
   if (!t) {
@@ -235,6 +256,31 @@ function TranscriptViewer({
   const save = (seq: number, index: number, text: string | null) =>
     edit.mutate({ seq, index, text }, { onSuccess: () => setEditing(null) });
 
+  // review queue of AI corrections: only the focused target is state; marks are data attributes on the words
+  const targets = useMemo(() => reviewTargets(segments), [segments]);
+  const summary = useMemo(() => reviewSummary(segments), [segments]);
+  const review = useReviewWord(sourceId, transcriptId);
+  const [focus, setFocus] = useState<number | null>(null);
+  const focusTarget = (i: number | null) => {
+    setFocus(i);
+    const t = i === null ? undefined : targets[i];
+    if (!t) return;
+    stopFollowing();
+    virtualizer.scrollToIndex(t.segment, { align: 'center' });
+    // after the virtual row is rendered: move keyboard focus to the word
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        scrollRef.current
+          ?.querySelector<HTMLElement>(`[data-seq="${t.seq}"][data-wi="${t.index}"]`)
+          ?.focus({ preventScroll: true }),
+      ),
+    );
+  };
+  // the queue shrinks when a word is checked/reverted: stay on the same position (= the next word)
+  const focusIndex =
+    focus !== null && focus >= targets.length ? (targets.length ? targets.length - 1 : null) : focus;
+  const focused: ReviewTarget | undefined = focusIndex !== null ? targets[focusIndex] : undefined;
+
   const resumeFollow = () => {
     followRef.current = true;
     setFollowing(true);
@@ -254,7 +300,21 @@ function TranscriptViewer({
           <h2 className="font-medium">คำถอดเสียง</h2>
           <span className="text-xs text-muted-foreground tabular-nums">{segments.length} ช่วง</span>
         </div>
-        <p className="text-xs text-muted-foreground">คำที่ขีดเส้นประ = AI แก้ให้ (แก้เองได้)</p>
+        <ReviewBar
+          aiFixed={summary.aiFixed}
+          targets={targets}
+          focus={focusIndex}
+          busy={review.isPending || edit.isPending}
+          onStep={(dir) => focusTarget(stepTarget(targets.length, focusIndex, dir))}
+          onAccept={(t) => review.mutate({ seq: t.seq, index: t.index })}
+          onEdit={(t) => setEditing({ seq: t.seq, index: t.index })}
+          onRevert={(t) => save(t.seq, t.index, null)}
+        />
+        {summary.aiFixed > 0 ? (
+          <p className="text-xs text-muted-foreground">
+            ✦ สีเหลือง = AI แก้ให้ รอคุณตรวจ · เส้นประ = AI แก้และตรวจแล้ว · ดับเบิลคลิกคำเพื่อแก้เอง
+          </p>
+        ) : null}
         <div className="flex items-center gap-1">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -347,7 +407,9 @@ function TranscriptViewer({
                     </button>
                     <p className="min-w-0 text-[15px] leading-7 break-words">
                       {seg.words.map((w, wi) =>
-                        editing?.seq === seg.seq && editing.index === wi ? (
+                        // a word the AI merged into the name before it is not shown (that word carries the span)
+                        w.mergedInto !== null && w.mergedInto !== undefined ? null : editing?.seq ===
+                            seg.seq && editing.index === wi ? (
                           <WordEditor
                             // biome-ignore lint/suspicious/noArrayIndexKey: words are positional inside an immutable segment
                             key={wi}
@@ -367,10 +429,21 @@ function TranscriptViewer({
                             data-wi={wi}
                             data-edited={w.original !== null ? '' : undefined}
                             data-ai-fixed={wordMarking(w).ai ? '' : undefined}
+                            data-needs-review={w.needsReview ? '' : undefined}
+                            data-review-focus={
+                              focused?.seq === seg.seq && focused.index === wi ? '' : undefined
+                            }
+                            tabIndex={w.needsReview ? -1 : undefined}
                             title={wordMarking(w).title}
-                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-muted-foreground/60 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4"
+                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-muted-foreground/60 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-needs-review:bg-amber-100 data-needs-review:text-amber-950 data-needs-review:no-underline data-review-focus:ring-2 data-review-focus:ring-amber-500"
                           >
                             {w.text}
+                            {w.needsReview ? (
+                              <Sparkles
+                                className="ml-0.5 inline size-3 align-super text-amber-600"
+                                aria-hidden
+                              />
+                            ) : null}
                           </span>
                         ),
                       )}

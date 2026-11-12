@@ -2,10 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError, api, type Schemas } from './client';
 
 export type TranscriptState = Schemas['TranscriptState'];
-export type TranscriptSegment = Omit<Schemas['TranscriptSegment'], 'words'> & {
-  // Optional while older cached responses and generated clients are still in use.
-  words: (Schemas['TranscriptWord'] & { aiFixed?: boolean; heard?: string | null })[];
-};
+export type TranscriptSegment = Schemas['TranscriptSegment'];
 type SegmentPage = Schemas['TranscriptSegmentPage'];
 
 const stateKey = (sourceId: string) => ['transcript', sourceId] as const;
@@ -53,6 +50,24 @@ export function useEditWord(sourceId: string, transcriptId: string) {
         v.text === null
           ? await api.DELETE('/sources/{id}/transcript/words/{seq}/{index}', { params })
           : await api.PUT('/sources/{id}/transcript/words/{seq}/{index}', { params, body: { text: v.text } });
+      if (!res.data) throw new ApiError(res.response.status, res.error);
+      return res.data;
+    },
+    onSuccess: (segment) =>
+      qc.setQueryData<TranscriptSegment[]>(['transcript-segments', sourceId, transcriptId], (old) =>
+        old?.map((s) => (s.seq === segment.seq ? segment : s)),
+      ),
+  });
+}
+
+/** The merchant checked an AI correction and keeps it; the returned segment replaces the cached one. */
+export function useReviewWord(sourceId: string, transcriptId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { seq: number; index: number }) => {
+      const res = await api.POST('/sources/{id}/transcript/words/{seq}/{index}/review', {
+        params: { path: { id: sourceId, seq: v.seq, index: v.index } },
+      });
       if (!res.data) throw new ApiError(res.response.status, res.error);
       return res.data;
     },

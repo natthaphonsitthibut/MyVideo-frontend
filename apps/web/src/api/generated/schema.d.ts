@@ -486,6 +486,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/{id}/transcript/words/{seq}/{index}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept an AI correction after checking it (a merged name: its whole span) */
+        post: operations["reviewTranscriptWord"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/style-packs": {
         parameters: {
             query?: never;
@@ -1185,12 +1202,14 @@ export interface components {
             transcriptId: string;
         };
         TranscriptState: {
+            aiFixedCount: number;
             chunkCount: number;
             chunksDone: number;
             durationMs: number | null;
             error: string | null;
             language: string | null;
             model: string | null;
+            needsReviewCount: number;
             runId: string | null;
             segmentCount: number;
             /** @enum {string} */
@@ -1202,6 +1221,8 @@ export interface components {
             endMs: number;
             heard: string | null;
             kind: string;
+            mergedInto: number | null;
+            needsReview: boolean;
             original: string | null;
             startMs: number;
             text: string;
@@ -2480,6 +2501,39 @@ export interface operations {
                 };
             };
             /** @description No such source, ready transcript, segment or word */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    reviewTranscriptWord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                seq: number;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The segment with the word marked as checked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptSegment"];
+                };
+            };
+            /** @description No such source/word, or the word has no AI correction */
             404: {
                 headers: {
                     [name: string]: unknown;
