@@ -82,6 +82,19 @@ describe('layoutLines (greedy fill, measured)', () => {
 });
 
 describe('buildCaptions', () => {
+  it('a sentence-final particle ends the page even without a pause (no word of the next sentence pulled in)', () => {
+    // real S01a: "... 10 บาทนะคะ / ส่งของวันพฤหัสนะ" spoken without a pause
+    const said = [
+      w('ตัวละ', 0, 10),
+      w('10 บาท', 10, 30),
+      w('นะคะ', 30, 40),
+      w('ส่ง', 40, 48),
+      w('ของ', 48, 56),
+    ];
+    const caps = buildCaptions(said, { measure, maxWidth: 2000, maxLines: 2, pauseFrames: 15, maxWords: 3 });
+    expect(caps.map((c) => c.words.map((x) => x.text).join('|'))).toEqual(['ตัวละ|10 บาทนะคะ', 'ส่ง|ของ']);
+  });
+
   const words = [
     // real S01 words (12:00–12:05), frames at 30 fps relative to the clip
     w('อบ', 0, 12),

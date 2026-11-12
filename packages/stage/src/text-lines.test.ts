@@ -17,6 +17,13 @@ describe('phrase tokens (never split a number from what it counts)', () => {
     expect(phraseTokens('ตัวนี้ อก 22 ยาว 29')).toEqual(['ตัวนี้', 'อก 22', 'ยาว 29']);
     expect(phraseTokens('มี ไซซ์ L XL')).toEqual(['มี', 'ไซซ์ L XL']);
     expect(phraseTokens('สวย มาก นะคะ')).toEqual(['สวย', 'มากนะคะ']);
+    // real S01a title: a trailing number stays with the word it belongs to ("ตัวละ 10")
+    expect(phraseTokens('ค่าส่ง 2 ตัวแรก 50 บาท ตัวต่อไปตัวละ 10')).toEqual([
+      'ค่าส่ง',
+      '2 ตัวแรก',
+      '50 บาท',
+      'ตัวต่อไปตัวละ 10',
+    ]);
   });
 });
 

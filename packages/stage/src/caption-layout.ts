@@ -16,6 +16,8 @@ export type CaptionPage = {
 export type Measure = (text: string) => number;
 
 /** Thai final particles: never start a line, always ride with the word before. */
+/** A phrase ending in a polite final particle ends a spoken sentence: captions never carry on past it. */
+const SENTENCE_END = /(?:ค่ะ|คะ|ครับ|ครับผม|จ้า|จ้ะ|จ๊ะ)$/u;
 const PARTICLES = new Set([
   'ค่ะ',
   'คะ',
@@ -185,7 +187,8 @@ export function buildCaptions(input: readonly TimedWord[], opts: BuildOptions): 
   for (const w of words) {
     const run = runs[runs.length - 1];
     const last = run?.[run.length - 1];
-    if (!run || !last || w.startFrame - last.endFrame >= opts.pauseFrames) runs.push([w]);
+    if (!run || !last || w.startFrame - last.endFrame >= opts.pauseFrames || SENTENCE_END.test(last.text))
+      runs.push([w]);
     else run.push(w);
   }
   const pages: CaptionPage[] = [];

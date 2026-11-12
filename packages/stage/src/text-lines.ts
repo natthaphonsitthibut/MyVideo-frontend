@@ -80,6 +80,13 @@ export function phraseTokens(text: string): string[] {
     }
     out.push(tok);
   }
+  // a number left on its own (end of the text, or before a measure word) belongs to the word before it
+  for (let i = out.length - 1; i > 0; i--) {
+    if (NUMBER.test(out[i] as string)) {
+      out[i - 1] = `${out[i - 1]} ${out[i]}`;
+      out.splice(i, 1);
+    }
+  }
   return out;
 }
 
