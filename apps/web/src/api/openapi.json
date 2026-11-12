@@ -1138,6 +1138,46 @@
           {
             "additionalProperties": false,
             "properties": {
+              "animationIn": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
+              "animationOut": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
               "assetId": {
                 "format": "uuid",
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -1387,6 +1427,46 @@
           {
             "additionalProperties": false,
             "properties": {
+              "animationIn": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
+              "animationOut": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
               "assetId": {
                 "format": "uuid",
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -1603,6 +1683,11 @@
               "locked": {
                 "type": "boolean"
               },
+              "opacity": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
               "origin": {
                 "enum": [
                   "ai",
@@ -1652,6 +1737,46 @@
           {
             "additionalProperties": false,
             "properties": {
+              "animationIn": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
+              "animationOut": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
               "durationFrames": {
                 "maximum": 9007199254740991,
                 "minimum": 1,
@@ -1719,6 +1844,11 @@
               "locked": {
                 "type": "boolean"
               },
+              "opacity": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
               "origin": {
                 "enum": [
                   "ai",
@@ -1780,6 +1910,46 @@
           {
             "additionalProperties": false,
             "properties": {
+              "animationIn": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
+              "animationOut": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
               "durationFrames": {
                 "maximum": 9007199254740991,
                 "minimum": 1,
@@ -1842,6 +2012,11 @@
               "locked": {
                 "type": "boolean"
               },
+              "opacity": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
               "origin": {
                 "enum": [
                   "ai",
@@ -1901,6 +2076,46 @@
           {
             "additionalProperties": false,
             "properties": {
+              "animationIn": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
+              "animationOut": {
+                "additionalProperties": false,
+                "properties": {
+                  "durationFrames": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "presetId": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetId",
+                  "durationFrames"
+                ],
+                "type": "object"
+              },
               "durationFrames": {
                 "maximum": 9007199254740991,
                 "minimum": 1,
@@ -1959,6 +2174,11 @@
               },
               "locked": {
                 "type": "boolean"
+              },
+              "opacity": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
               },
               "origin": {
                 "enum": [
@@ -3362,6 +3582,12 @@
               "overlay"
             ],
             "type": "string"
+          },
+          "locked": {
+            "type": "boolean"
+          },
+          "muted": {
+            "type": "boolean"
           }
         },
         "required": [

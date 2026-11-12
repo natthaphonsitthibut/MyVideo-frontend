@@ -20,7 +20,15 @@ type Common = {
   durationFrames: number;
   origin: 'ai' | 'user' | 'template';
   locked?: boolean;
+  /** Animated numeric properties, frames relative to the element start (advanced mode). */
+  keyframes?: Record<string, Keyframe[]>;
+  animationIn?: Animation;
+  animationOut?: Animation;
+  opacity?: number;
 };
+export type Easing = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'hold';
+export type Keyframe = { frame: number; value: number; easing: Easing };
+export type Animation = { presetId: string; durationFrames: number };
 type Media = { assetId: string; sourceInFrame: number; playbackRate: number; volume: number };
 
 export type VideoEl = Common & Media & { type: 'video'; transform: Transform; fit: string };
@@ -42,6 +50,9 @@ export type TimelineTrack = {
   id: string;
   kind: 'video' | 'audio' | 'caption' | 'overlay';
   elementIds: string[];
+  /** Locked: its elements cannot be edited. Muted: its audio is silent in preview and render. */
+  locked?: boolean;
+  muted?: boolean;
 };
 
 export type TimelineDoc = {
@@ -49,4 +60,6 @@ export type TimelineDoc = {
   durationFrames: number;
   tracks: TimelineTrack[];
   elements: Record<string, TimelineElement>;
+  /** Asset lengths (project frames): media cannot be trimmed or slowed past the end of its source. */
+  assets?: Record<string, { durationFrames: number }>;
 };

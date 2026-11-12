@@ -943,6 +943,14 @@ export interface components {
             width: number;
         };
         ProjectElement: {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
             /** Format: uuid */
             assetId: string;
             crop?: components["schemas"]["Crop"];
@@ -998,6 +1006,14 @@ export interface components {
             type: "audio";
             volume: number;
         } | {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
             /** Format: uuid */
             assetId: string;
             crop?: components["schemas"]["Crop"];
@@ -1046,6 +1062,7 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
             startFrame: number;
@@ -1057,6 +1074,14 @@ export interface components {
             /** @constant */
             type: "text";
         } | {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
             durationFrames: number;
             /** Format: uuid */
             id: string;
@@ -1070,6 +1095,7 @@ export interface components {
             };
             lines: number[][];
             locked?: boolean;
+            opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
             startFrame: number;
@@ -1082,6 +1108,14 @@ export interface components {
             type: "caption";
             words: components["schemas"]["CaptionWord"][];
         } | {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
             durationFrames: number;
             fill: string;
             height: number;
@@ -1096,6 +1130,7 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
             radius?: number;
@@ -1109,6 +1144,14 @@ export interface components {
             type: "shape";
             width: number;
         } | {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
             durationFrames: number;
             /** Format: uuid */
             id: string;
@@ -1122,6 +1165,7 @@ export interface components {
             };
             label: string;
             locked?: boolean;
+            opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
             startFrame: number;
@@ -1396,6 +1440,8 @@ export interface components {
             id: string;
             /** @enum {string} */
             kind: "video" | "audio" | "caption" | "overlay";
+            locked?: boolean;
+            muted?: boolean;
         };
         TranscriptSegment: {
             endMs: number;

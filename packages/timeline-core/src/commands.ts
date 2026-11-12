@@ -28,8 +28,16 @@ function get(d: TimelineDoc, id: string): TimelineElement {
 function editable(d: TimelineDoc, id: string): TimelineElement {
   const e = get(d, id);
   if (e.locked) throw new CommandError(`element ${id} is locked`);
+  if (d.tracks.find((t) => t.id === e.trackId)?.locked)
+    throw new CommandError(`element ${id} is on a locked track`);
   return e;
 }
+
+/** For other command modules: the element if it may be edited (exists, not locked, track not locked). */
+export const editableElement = editable;
+export const trackOf = track;
+export const assertElementPlacement = assertPlacement;
+export const sortTrackElements = sortTrack;
 
 function track(d: TimelineDoc, id: string): TimelineTrack {
   const t = d.tracks.find((x) => x.id === id);
@@ -48,6 +56,11 @@ function assertPlacement(d: TimelineDoc, e: TimelineElement) {
     throw new CommandError(
       `element ${e.id} would run past the end of the project (${d.durationFrames} frames)`,
     );
+  if (e.type === 'video' || e.type === 'audio') {
+    const asset = d.assets?.[e.assetId];
+    if (asset && e.sourceInFrame + Math.round(e.durationFrames * e.playbackRate) > asset.durationFrames)
+      throw new CommandError(`element ${e.id} would run past the end of its source media`);
+  }
   for (const otherId of t.elementIds) {
     if (otherId === e.id) continue;
     const o = d.elements[otherId];

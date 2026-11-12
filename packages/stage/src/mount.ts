@@ -36,6 +36,11 @@ export type Stage = {
 
 const HALF_FRAME = 0.5;
 
+/** Element volume for the preview: a muted track (advanced timeline) is silent, as in the render. */
+function trackMuted(p: StageProject, trackId: string): boolean {
+  return p.tracks.some((t) => t.id === trackId && t.muted);
+}
+
 function transformCss(e: StageElement, v: Record<string, number>): string {
   if (!('transform' in e)) return '';
   const t = e.transform;
@@ -64,6 +69,8 @@ export function mountStage(
   root.dataset.stage = '';
   root.style.cssText = `position:relative;width:${p.width}px;height:${p.height}px;overflow:hidden;background:#000;contain:strict;${brandVars(theme)};`;
   container.appendChild(root);
+  const volumeOf = (e: { trackId: string; volume: number }) =>
+    trackMuted(p, e.trackId) ? 0 : Math.min(1, e.volume);
   const nodes = new Map<string, Node>();
   const videos = new Map<string, { group: VideoGroup; el: HTMLVideoElement; active?: string }>();
   const listeners = new Set<(f: number) => void>();
@@ -100,7 +107,7 @@ export function mountStage(
         if (asset) el.src = resolve(e.assetId, asset);
         el.preload = 'auto';
         el.muted = true;
-        el.volume = Math.min(1, e.volume);
+        el.volume = volumeOf(e);
         node.media = el;
         inner.appendChild(el);
         break;
@@ -228,7 +235,7 @@ export function mountStage(
         ? `inset(${e.crop.top * 100}% ${e.crop.right * 100}% ${e.crop.bottom * 100}% ${e.crop.left * 100}%)`
         : '';
       video.el.playbackRate = e.playbackRate;
-      video.el.volume = Math.min(1, e.volume);
+      video.el.volume = volumeOf(e);
       // re-seek at a cut only when the source jumps: a zoom cut continues the same time and must not stutter
       if (
         playback &&
