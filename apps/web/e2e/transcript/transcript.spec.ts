@@ -102,7 +102,9 @@ test('correct a word → it survives a reload → revert restores the recognised
   };
   let sourceId: string | undefined;
   for (const s of list.items.filter((x) => x.status === 'ready')) {
-    const st = (await (await page.request.get(`/api/sources/${s.id}/transcript`)).json()) as { status: string };
+    const st = (await (await page.request.get(`/api/sources/${s.id}/transcript`)).json()) as {
+      status: string;
+    };
     if (st.status === 'ready') {
       sourceId = s.id;
       break;
