@@ -37,6 +37,29 @@ export function useStartTranscript(sourceId: string) {
   });
 }
 
+/**
+ * Correct (text) or revert (null) one word. The server keeps the correction as a user layer; the returned segment
+ * replaces the cached one, so the list updates without refetching the transcript.
+ */
+export function useEditWord(sourceId: string, transcriptId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { seq: number; index: number; text: string | null }) => {
+      const params = { path: { id: sourceId, seq: v.seq, index: v.index } };
+      const res =
+        v.text === null
+          ? await api.DELETE('/sources/{id}/transcript/words/{seq}/{index}', { params })
+          : await api.PUT('/sources/{id}/transcript/words/{seq}/{index}', { params, body: { text: v.text } });
+      if (!res.data) throw new ApiError(res.response.status, res.error);
+      return res.data;
+    },
+    onSuccess: (segment) =>
+      qc.setQueryData<TranscriptSegment[]>(['transcript-segments', sourceId, transcriptId], (old) =>
+        old?.map((s) => (s.seq === segment.seq ? segment : s)),
+      ),
+  });
+}
+
 /** Every segment of a ready transcript, fetched page by page (immutable per transcript id → cached forever). */
 export function useTranscriptSegments(sourceId: string, transcriptId: string | null | undefined) {
   return useQuery({

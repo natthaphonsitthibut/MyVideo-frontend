@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDown, ChevronUp, CircleAlert, LocateFixed, RotateCcw, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, CircleAlert, LocateFixed, RotateCcw, Search, Undo2 } from 'lucide-react';
 import {
   type KeyboardEvent,
   type MouseEvent,
@@ -14,6 +14,7 @@ import { ApiError } from '@/api/client';
 import { formatDuration } from '@/api/sources';
 import {
   type TranscriptSegment,
+  useEditWord,
   useStartTranscript,
   useTranscriptSegments,
   useTranscriptState,
@@ -202,6 +203,19 @@ function TranscriptViewer({
     if (!el || !v) return;
     v.currentTime = Number(el.dataset.start) / 1000;
   };
+  // corrections: double-click a word → inline editor (rare → React state is fine here)
+  const [editing, setEditing] = useState<{ seq: number; index: number } | null>(null);
+  const edit = useEditWord(sourceId, transcriptId);
+  const startEdit = (e: MouseEvent<HTMLElement>) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-wi]');
+    if (!el) return;
+    stopFollowing();
+    videoRef.current?.pause();
+    setEditing({ seq: Number(el.dataset.seq), index: Number(el.dataset.wi) });
+  };
+  const save = (seq: number, index: number, text: string | null) =>
+    edit.mutate({ seq, index, text }, { onSuccess: () => setEditing(null) });
+
   const resumeFollow = () => {
     followRef.current = true;
     setFollowing(true);
@@ -281,6 +295,7 @@ function TranscriptViewer({
             ref={scrollRef}
             className="h-full overflow-y-auto overscroll-contain"
             onClick={seekFrom}
+            onDoubleClick={startEdit}
             onWheel={stopFollowing}
             onTouchMove={stopFollowing}
             data-testid="transcript-scroll"
@@ -311,17 +326,33 @@ function TranscriptViewer({
                       {formatDuration(seg.startMs)}
                     </button>
                     <p className="min-w-0 text-[15px] leading-7 break-words">
-                      {seg.words.map((w, wi) => (
-                        <span
-                          // biome-ignore lint/suspicious/noArrayIndexKey: words are positional inside an immutable segment
-                          key={wi}
-                          data-w={first + wi}
-                          data-start={w.startMs}
-                          className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground"
-                        >
-                          {w.text}
-                        </span>
-                      ))}
+                      {seg.words.map((w, wi) =>
+                        editing?.seq === seg.seq && editing.index === wi ? (
+                          <WordEditor
+                            // biome-ignore lint/suspicious/noArrayIndexKey: words are positional inside an immutable segment
+                            key={wi}
+                            word={w}
+                            saving={edit.isPending}
+                            onSave={(text) => save(seg.seq, wi, text)}
+                            onRevert={() => save(seg.seq, wi, null)}
+                            onCancel={() => setEditing(null)}
+                          />
+                        ) : (
+                          <span
+                            // biome-ignore lint/suspicious/noArrayIndexKey: words are positional inside an immutable segment
+                            key={wi}
+                            data-w={first + wi}
+                            data-start={w.startMs}
+                            data-seq={seg.seq}
+                            data-wi={wi}
+                            data-edited={w.original !== null ? '' : undefined}
+                            title={w.original !== null ? `เดิม: ${w.original}` : undefined}
+                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:decoration-dotted data-edited:underline-offset-4"
+                          >
+                            {w.text}
+                          </span>
+                        ),
+                      )}
                     </p>
                   </div>
                 );
@@ -341,6 +372,77 @@ function TranscriptViewer({
           </Button>
         ) : null}
       </div>
+      <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">กดคำเพื่อไปที่ช่วงนั้น · ดับเบิลคลิกคำเพื่อแก้</p>
+      {edit.isError ? (
+        <p role="alert" className="px-3 pb-2 text-xs text-destructive">
+          บันทึกคำที่แก้ไม่สำเร็จ ลองอีกครั้ง
+        </p>
+      ) : null}
     </section>
+  );
+}
+
+/** Inline editor for one word: Enter saves, Esc cancels; the word keeps its timing. */
+function WordEditor({
+  word,
+  saving,
+  onSave,
+  onRevert,
+  onCancel,
+}: {
+  word: TranscriptSegment['words'][number];
+  saving: boolean;
+  onSave: (text: string) => void;
+  onRevert: () => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(word.text);
+  const submit = () => {
+    const text = value.normalize('NFC').trim();
+    if (!text || text === word.text) onCancel();
+    else onSave(text);
+  };
+  return (
+    <span className="mr-[0.2em] inline-flex items-center gap-1 align-middle">
+      <input
+        // biome-ignore lint/a11y/noAutofocus: the editor opens on an explicit double-click; focus belongs in it
+        autoFocus
+        value={value}
+        maxLength={200}
+        disabled={saving}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submit();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            onCancel();
+          }
+        }}
+        onClick={(e) => e.stopPropagation()}
+        aria-label={`แก้คำ “${word.text}” (Enter บันทึก, Esc ยกเลิก)`}
+        className="h-7 rounded-md border border-primary bg-background px-1.5 text-[15px] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        style={{ width: `${Math.max(4, value.length + 2)}ch` }}
+        data-testid="word-editor"
+      />
+      {word.original !== null ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-7 px-2 text-xs"
+          disabled={saving}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRevert();
+          }}
+          title={`คืนเป็น “${word.original}”`}
+        >
+          <Undo2 />
+          คืนค่าเดิม
+        </Button>
+      ) : null}
+    </span>
   );
 }
