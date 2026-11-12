@@ -822,8 +822,13 @@ export interface components {
         SourceSummary: {
             /** Format: date-time */
             createdAt: string;
+            durationFrames: number | null;
             durationMs: number | null;
             failureReason: string | null;
+            fps: {
+                den: number;
+                num: number;
+            } | null;
             hasAudio: boolean | null;
             hasPeaks: boolean;
             hasProxy: boolean;
