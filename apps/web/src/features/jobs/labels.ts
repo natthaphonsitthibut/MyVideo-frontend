@@ -4,6 +4,7 @@ export const RUN_KIND_LABEL: Record<RunSummary['kind'], string> = {
   ingest: 'นำเข้าวิดีโอ',
   transcribe: 'ถอดเสียง',
   live_to_clips: 'ตัดคลิปจากไลฟ์',
+  restyle_clip: 'เปลี่ยนสไตล์คลิป',
   review_to_video: 'สร้างวิดีโอรีวิว',
   render: 'เรนเดอร์ MP4',
   system_test: 'ทดสอบระบบคิว',

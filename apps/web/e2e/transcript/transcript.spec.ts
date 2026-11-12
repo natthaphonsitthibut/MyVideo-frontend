@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { expect, type Page, test } from '@playwright/test';
 import { signIn } from '../auth';
+import { readySource, S01_TITLE } from '../footage';
 
 const footage = (p: string) => fileURLToPath(new URL(`../../../../../footage/${p}`, import.meta.url));
 const TALK = footage('clips/talkinghead-th-portrait.mp4'); // real Thai speech, 54.5 s, MANIFEST C03
@@ -165,7 +166,7 @@ test('long transcript (45-min live) scrolls at 60 fps', async ({ page }) => {
   const list = (await (await page.request.get('/api/sources?limit=100')).json()) as {
     items: { id: string; title: string; status: string }[];
   };
-  const long = list.items.find((s) => s.title.includes('ZXgMkBc01mI') && s.status === 'ready');
+  const long = readySource(list.items, S01_TITLE);
   test.skip(!long, 'the 45-min live S01 is not ingested + transcribed in this dev database (epic-gate data)');
   if (!long) return;
   const state = (await (await page.request.get(`/api/sources/${long.id}/transcript`)).json()) as {

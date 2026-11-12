@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page, test } from '@playwright/test';
 import { signIn } from '../auth';
+import { readySource, S01_TITLE } from '../footage';
 
 /**
  * E05-F07 acceptance on REAL data: the 45-min live S01 (MANIFEST S01) with its real transcript. Select words in the
@@ -61,7 +62,7 @@ test('select words in the real S01 transcript → สร้างคลิป �
   const list = (await (await page.request.get('/api/sources?limit=100')).json()) as {
     items: { id: string; title: string; status: string; fps: { num: number; den: number } | null }[];
   };
-  const s01 = list.items.find((s) => s.title.includes('ZXgMkBc01mI') && s.status === 'ready');
+  const s01 = readySource(list.items, S01_TITLE);
   test.skip(!s01?.fps, 'S01 is not ingested in this dev database');
   if (!s01?.fps) return;
   const fps = s01.fps.num / s01.fps.den;

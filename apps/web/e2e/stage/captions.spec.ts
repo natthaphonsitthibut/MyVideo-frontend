@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page, test } from '@playwright/test';
 import { signIn } from '../auth';
+import { readySource, S01_TITLE } from '../footage';
 
 /**
  * Captions on a REAL Thai transcript excerpt (S01 12:00–12:20): lines are built in the browser with the bundled
@@ -29,7 +30,7 @@ async function realWords(page: Page) {
   const list = (await (await page.request.get('/api/sources?limit=100')).json()) as {
     items: { id: string; title: string; status: string }[];
   };
-  const s01 = list.items.find((s) => s.title.includes('ZXgMkBc01mI') && s.status === 'ready');
+  const s01 = readySource(list.items, S01_TITLE);
   test.skip(!s01, 'S01 is not ingested in this dev database');
   const seg = (await (
     await page.request.get(`/api/sources/${s01?.id}/transcript/segments?from=0&limit=1000`)

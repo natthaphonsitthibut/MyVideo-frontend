@@ -3,6 +3,7 @@ import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { signIn } from '../auth';
+import { readySource, S01_TITLE } from '../footage';
 
 /**
  * E06-F04 acceptance on REAL footage: a 6 s clip of the live S01 → clip page → "ส่งออก MP4" → live progress →
@@ -24,7 +25,7 @@ test('open clip → Export → progress → download → plays with the right du
       durationFrames: number | null;
     }[];
   };
-  const s01 = list.items.find((s) => s.title.includes('ZXgMkBc01mI') && s.status === 'ready');
+  const s01 = readySource(list.items, S01_TITLE);
   test.skip(!s01?.fps, 'S01 is not ingested in this dev database');
   if (!s01?.fps || !s01.durationFrames) return;
 

@@ -1,5 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { signIn } from '../auth';
+import { readySource, S01A_TITLE } from '../footage';
 
 /**
  * Style switching on a REAL AI clip (S01a = 10 min of the S01 Thai live-selling recording, already ingested and
@@ -26,7 +27,7 @@ test('AI clip: jump-cut preview plays smoothly, then switch its style without re
   const list = (await (await page.request.get('/api/sources?limit=100')).json()) as {
     items: { id: string; title: string; status: string }[];
   };
-  const s01a = list.items.find((s) => s.title === 'ZXgMkBc01mI-10m-20m' && s.status === 'ready');
+  const s01a = readySource(list.items, S01A_TITLE);
   test.skip(!s01a, 'S01a is not ingested in this dev database');
   const sourceId = s01a?.id ?? '';
 
