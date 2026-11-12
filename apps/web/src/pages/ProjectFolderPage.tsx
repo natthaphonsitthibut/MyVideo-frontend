@@ -1,17 +1,17 @@
-import { formatTimecode } from '@myvideo/timeline-core';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clapperboard, Library } from 'lucide-react';
+import { Library } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { addFolderSources, useAddFolderSources, useFolder } from '@/api/folders';
-import { useProject } from '@/api/projects';
 import { useLibrarySources, useSource } from '@/api/sources';
 import { Button } from '@/components/ui/button';
+import { PageBackLink } from '@/components/ui/page-back-link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EditedClipCard } from '@/features/clip/EditedClipCard';
 import { SourceCard } from '@/features/library/SourceCard';
 import { UploadPanel } from '@/features/upload/UploadPanel';
 
-function FolderSource({ id }: { id: string }) {
+function FolderSource({ id, folderId }: { id: string; folderId: string }) {
   const source = useSource(id);
   return source.isPending ? (
     <Skeleton className="aspect-video" />
@@ -23,36 +23,7 @@ function FolderSource({ id }: { id: string }) {
       </Button>
     </p>
   ) : (
-    <SourceCard source={source.data} />
-  );
-}
-
-function FolderClip({ id }: { id: string }) {
-  const clip = useProject(id);
-  if (clip.isPending) return <Skeleton className="h-20" />;
-  if (clip.isError)
-    return (
-      <p role="alert">
-        โหลดคลิปไม่ได้{' '}
-        <Button variant="ghost" onClick={() => clip.refetch()}>
-          ลองอีกครั้ง
-        </Button>
-      </p>
-    );
-  return (
-    <Link
-      to={`/clips/${id}`}
-      className="flex min-h-24 items-center gap-3 rounded-xl border bg-card p-4 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      data-testid="edited-clip"
-    >
-      <Clapperboard className="size-6 shrink-0 text-primary" aria-hidden />
-      <div className="min-w-0">
-        <h3 className="truncate font-medium">{clip.data.title}</h3>
-        <p className="text-sm text-muted-foreground">
-          {formatTimecode(clip.data.doc.durationFrames, clip.data.doc.fps)} · ดูและแก้ไขคลิป
-        </p>
-      </div>
-    </Link>
+    <SourceCard source={source.data} to={`/library/${id}?project=${folderId}`} />
   );
 }
 
@@ -155,12 +126,7 @@ export function ProjectFolderPage() {
   return (
     <div className="page-layout">
       <header className="space-y-3">
-        <Button variant="ghost" size="sm" asChild className="-ml-2">
-          <Link to="/projects">
-            <ArrowLeft aria-hidden />
-            โปรเจกต์ทั้งหมด
-          </Link>
-        </Button>
+        <PageBackLink to="/projects">โปรเจกต์ทั้งหมด</PageBackLink>
         <h1 className="text-2xl font-semibold break-words">{f.title}</h1>
       </header>
       <section aria-labelledby="footage-heading" className="space-y-5">
@@ -189,7 +155,7 @@ export function ProjectFolderPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="ฟุตเทจในโปรเจกต์">
             {f.sourceIds.map((sourceId) => (
               <li key={sourceId}>
-                <FolderSource id={sourceId} />
+                <FolderSource id={sourceId} folderId={id} />
               </li>
             ))}
           </ul>
@@ -208,7 +174,7 @@ export function ProjectFolderPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="คลิปที่ตัดแล้วในโปรเจกต์">
             {f.clipIds.map((clipId) => (
               <li key={clipId}>
-                <FolderClip id={clipId} />
+                <EditedClipCard id={clipId} to={`/clips/${clipId}?project=${id}`} />
               </li>
             ))}
           </ul>

@@ -1,10 +1,12 @@
-import { ArrowLeft, CircleAlert, RotateCcw } from 'lucide-react';
+import { CircleAlert, RotateCcw } from 'lucide-react';
 import { useRef } from 'react';
-import { Link, useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 import { useJobAction } from '@/api/runs';
 import { formatDuration, useLiveRun, useSource } from '@/api/sources';
 import { Button } from '@/components/ui/button';
+import { PageBackLink } from '@/components/ui/page-back-link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { clipOrigin, sourceClipSearch } from '@/features/clip/navigation';
 import { AutoClipsPanel } from '@/features/clips/AutoClipsPanel';
 import { JOB_STATUS, TONE_CLASS } from '@/features/jobs/labels';
 import { INGEST_STEPS } from '@/features/source/ingest-steps';
@@ -75,6 +77,8 @@ function IngestSteps({ runId }: { runId: string | null }) {
 
 export function SourcePage() {
   const { id = '' } = useParams();
+  const search = useLocation().search;
+  const origin = clipOrigin(search);
   const source = useSource(id);
   const videoRef = useRef<HTMLVideoElement>(null);
   if (source.isPending) {
@@ -90,12 +94,9 @@ export function SourcePage() {
   return (
     <section className="page-layout">
       <div className="space-y-2">
-        <Button variant="ghost" size="sm" asChild className="-ml-2">
-          <Link to="/library">
-            <ArrowLeft />
-            คลังวิดีโอ
-          </Link>
-        </Button>
+        <PageBackLink to={origin.menu === '/projects' ? origin.to : '/library'}>
+          {origin.menu === '/projects' ? origin.label : 'คลังวิดีโอ'}
+        </PageBackLink>
         <h1 className="text-2xl font-semibold break-words">{s.title}</h1>
         <p className="text-sm text-muted-foreground tabular-nums">
           {formatDuration(s.durationMs)}
@@ -135,7 +136,9 @@ export function SourcePage() {
           ) : null}
         </div>
       ) : null}
-      {s.status === 'ready' && s.hasAudio ? <AutoClipsPanel source={s} /> : null}
+      {s.status === 'ready' && s.hasAudio ? (
+        <AutoClipsPanel source={s} clipSearch={sourceClipSearch(search, s.id)} />
+      ) : null}
     </section>
   );
 }

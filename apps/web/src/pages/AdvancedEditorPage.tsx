@@ -1,14 +1,16 @@
 import type { Player, Stage, StageElement, StageProject } from '@myvideo/stage';
 import { addTrack, type Command } from '@myvideo/timeline-core';
-import { ArrowLeft, Music, PictureInPicture2, Plus, Redo2, Type, Undo2 } from 'lucide-react';
+import { Music, PictureInPicture2, Plus, Redo2, Type, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 import { type ProjectRecord, useProject } from '@/api/projects';
 import { useSources } from '@/api/sources';
 import { Button } from '@/components/ui/button';
+import { PageBackLink } from '@/components/ui/page-back-link';
 import { SaveStatus } from '@/components/ui/save-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { clipOrigin } from '@/features/clip/navigation';
 import { addTextElement } from '@/features/editor/text-elements';
 import { useEditorMeta, useEditorStore } from '@/features/editor/use-editor';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
@@ -47,6 +49,7 @@ export function AdvancedEditorPage() {
 }
 
 function Advanced({ record }: { record: ProjectRecord }) {
+  const origin = clipOrigin(useLocation().search);
   const store = useEditorStore(record);
   const { status, canUndo, canRedo } = useEditorMeta(store);
   const [mounted, setMounted] = useState(() => record.doc as unknown as StageProject);
@@ -137,12 +140,7 @@ function Advanced({ record }: { record: ProjectRecord }) {
       data-testid="advanced-editor"
     >
       <header className="mb-3 flex flex-wrap items-center gap-2">
-        <Button variant="ghost" size="sm" asChild className="-ml-2">
-          <Link to={`/clips/${record.id}/edit`}>
-            <ArrowLeft />
-            แก้แบบง่าย
-          </Link>
-        </Button>
+        <PageBackLink to={`/clips/${record.id}/edit${origin.search}`}>แก้แบบง่าย</PageBackLink>
         <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{record.title}</h1>
         <SaveStatus state={saveState} onRetry={() => void store.retry()} />
         <Button

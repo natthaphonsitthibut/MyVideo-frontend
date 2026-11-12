@@ -58,10 +58,12 @@ function ClipCard({
   onDiscard,
   discarding,
   waitingForStyle,
+  clipSearch,
 }: {
   source: SourceSummary;
   clip: ClipSuggestion;
   waitingForStyle: boolean;
+  clipSearch: string;
   previewing: boolean;
   onPreview: (on: boolean) => void;
   onDiscard: () => void;
@@ -118,7 +120,7 @@ function ClipCard({
                   {previewing ? 'ปิดตัวอย่าง' : 'ดูตัวอย่าง'}
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to={`/clips/${clip.projectId}`}>
+                  <Link to={`/clips/${clip.projectId}${clipSearch}`}>
                     <Pencil />
                     เปิดคลิป
                   </Link>
@@ -142,7 +144,13 @@ function ClipCard({
 }
 
 /** "สร้างคลิปอัตโนมัติ" on a ready, transcribed source + the review list (E07-F08). */
-export function AutoClipsPanel({ source }: { source: SourceSummary }) {
+export function AutoClipsPanel({
+  source,
+  clipSearch = `?source=${source.id}`,
+}: {
+  source: SourceSummary;
+  clipSearch?: string;
+}) {
   const transcript = useTranscriptState(source.id, source.status === 'ready');
   const ready = transcript.data?.status === 'ready';
   const clips = useClips(source.id, ready);
@@ -271,6 +279,7 @@ export function AutoClipsPanel({ source }: { source: SourceSummary }) {
                   onDiscard={() => discard.mutate(c.id)}
                   discarding={discard.isPending}
                   waitingForStyle={phase === 'choose_style'}
+                  clipSearch={clipSearch}
                 />
               ))}
             </ul>

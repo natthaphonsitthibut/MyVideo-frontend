@@ -1,9 +1,10 @@
 import { Activity, Clapperboard, Film, Folder, LogOut, Menu, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { activeNavHref } from '@/features/clip/navigation';
 import { cn } from '@/lib/utils';
 
 /** Project folders, all Library footage, and the separate collection of edited clips. */
@@ -24,22 +25,21 @@ function NavItem({
   icon: typeof Film;
   onNavigate?: () => void;
 }) {
+  const location = useLocation();
+  const active = activeNavHref(location.pathname, location.search) === to;
   return (
-    <NavLink
+    <Link
       to={to}
       onClick={onNavigate}
-      className={({ isActive }) =>
-        cn(
-          'flex min-h-touch items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-          isActive
-            ? 'bg-secondary text-primary'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-        )
-      }
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'flex min-h-touch items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+        active ? 'bg-secondary text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+      )}
     >
       <Icon className="size-4" aria-hidden />
       {label}
-    </NavLink>
+    </Link>
   );
 }
 

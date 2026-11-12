@@ -1,12 +1,13 @@
 import { canvasMeasure, captionFont, loadCaptionFont } from '@myvideo/stage';
 import { Scissors, X } from 'lucide-react';
 import { type RefObject, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { ApiError } from '@/api/client';
 import { useCreateProject } from '@/api/projects';
 import { formatDuration } from '@/api/sources';
 import { Button } from '@/components/ui/button';
 import { buildClipDoc, CLIP_CAPTION_STYLE, type ClipSource, type ClipWord } from './clip-project';
+import { sourceClipSearch } from './navigation';
 
 export type WordRange = { from: number; to: number };
 
@@ -72,6 +73,7 @@ export function CreateClipBar({
 }) {
   const create = useCreateProject();
   const navigate = useNavigate();
+  const search = useLocation().search;
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const picked = words.slice(range.from, range.to + 1);
@@ -94,7 +96,7 @@ export function CreateClipBar({
       });
       const rec = await create.mutateAsync({ title: doc.meta.title ?? 'คลิปใหม่', doc });
       onClear();
-      navigate(`/clips/${rec.id}`);
+      navigate(`/clips/${rec.id}${sourceClipSearch(search, source.id)}`);
     } catch (err) {
       setError(errorText(err));
       setBusy(false);

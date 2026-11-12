@@ -1,12 +1,14 @@
 import type { Player, Stage, StageElement, StageProject } from '@myvideo/stage';
-import { ArrowLeft, Redo2, Undo2 } from 'lucide-react';
+import { Redo2, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useLocation, useParams } from 'react-router';
 import { type ProjectRecord, useProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
+import { PageBackLink } from '@/components/ui/page-back-link';
 import { SaveStatus } from '@/components/ui/save-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { clipOrigin } from '@/features/clip/navigation';
 import { BrandPanel } from '@/features/editor/BrandPanel';
 import { CaptionsPanel } from '@/features/editor/CaptionsPanel';
 import { ReframePanel } from '@/features/editor/ReframePanel';
@@ -40,6 +42,7 @@ export function QuickEditPage() {
 }
 
 function Editor({ record }: { record: ProjectRecord }) {
+  const origin = clipOrigin(useLocation().search);
   const store = useEditorStore(record);
   const { status, canUndo, canRedo } = useEditorMeta(store);
   // the stage is mounted from the opened version and patched element by element; only a change of the clip's
@@ -120,18 +123,13 @@ function Editor({ record }: { record: ProjectRecord }) {
       data-testid="quick-edit"
     >
       <header className="mb-4 flex flex-wrap items-center gap-3">
-        <Button variant="ghost" size="sm" asChild className="-ml-2">
-          <Link to={`/clips/${record.id}`}>
-            <ArrowLeft />
-            กลับ
-          </Link>
-        </Button>
+        <PageBackLink to={`/clips/${record.id}${origin.search}`}>กลับไปคลิป</PageBackLink>
         <h1 className="min-w-0 flex-1 truncate text-lg font-semibold" data-testid="edit-title">
           {record.title}
         </h1>
         <Button variant="outline" size="sm" asChild>
           <Link
-            to={`/clips/${record.id}/advanced`}
+            to={`/clips/${record.id}/advanced${origin.search}`}
             data-testid="open-advanced"
             onClick={() => void store.flush()}
           >

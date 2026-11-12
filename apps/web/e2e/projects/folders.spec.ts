@@ -27,7 +27,7 @@ test('project folder: upload footage, add from Library, keep edited clips in a s
   await footage.getByTestId('upload-input').setInputFiles(CLIP);
   const sourceId = ((await (await handover).json()) as { id: string }).id;
   await expect(
-    footage.locator(`[data-testid="source-card-link"][href="/library/${sourceId}"]`),
+    footage.locator(`[data-testid="source-card-link"][href^="/library/${sourceId}"]`),
   ).toBeVisible();
   // A manually cut, editable timeline from this real upload appears only in the edited section.
   // This checks folder membership; it does not claim to evaluate AI edit quality.
@@ -88,11 +88,11 @@ test('project folder: upload footage, add from Library, keep edited clips in a s
   const folderUrl = page.url();
   await page.goto('/clips');
   await expect(page.getByRole('heading', { name: 'คลิปที่ตัดแล้ว', exact: true })).toBeVisible();
-  await expect(page.locator(`a[href="/clips/${editedId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="edited-clip"][href="/clips/${editedId}"]`)).toBeVisible();
   await page.screenshot({ path: 'test-results/edited-clips-page.png', fullPage: true });
   await page.goto(folderUrl);
   await clips.getByTestId('edited-clip').click();
-  await expect(page).toHaveURL(new RegExp(`/clips/${editedId}$`));
+  await expect(page).toHaveURL(new RegExp(`/clips/${editedId}\\?project=[a-f0-9-]+$`));
   await page.goBack();
   await page.setViewportSize({ width: 375, height: 812 });
   await expect
@@ -108,7 +108,7 @@ test('project folder: upload footage, add from Library, keep edited clips in a s
   await expect(clips.getByTestId('source-card')).toHaveCount(0);
   await page.reload();
   await expect(
-    footage.locator(`[data-testid="source-card-link"][href="/library/${sourceId}"]`),
+    footage.locator(`[data-testid="source-card-link"][href^="/library/${sourceId}"]`),
   ).toBeVisible();
   await page.goto('/library');
   await expect(page.locator(`[data-testid="source-card-link"][href="/library/${sourceId}"]`)).toBeVisible();
@@ -120,7 +120,7 @@ test('project folder: upload footage, add from Library, keep edited clips in a s
   await page.locator(`input[data-source-id="${sourceId}"]`).check();
   await page.getByRole('button', { name: 'เพิ่มวิดีโอที่เลือก', exact: true }).click();
   await expect(
-    footage.locator(`[data-testid="source-card-link"][href="/library/${sourceId}"]`),
+    footage.locator(`[data-testid="source-card-link"][href^="/library/${sourceId}"]`),
   ).toBeVisible();
   await page.screenshot({ path: 'test-results/project-folder.png', fullPage: true });
 });

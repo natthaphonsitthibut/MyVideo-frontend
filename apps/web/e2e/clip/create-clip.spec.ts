@@ -113,8 +113,8 @@ test('select words in the real S01 transcript → สร้างคลิป �
   await page.screenshot({ path: 'test-results/clip-selected.png' });
 
   await page.getByTestId('clip-create').click();
-  await expect(page).toHaveURL(/\/clips\/[0-9a-f-]{36}$/, { timeout: 30_000 });
-  const id = page.url().split('/').pop() ?? '';
+  await expect(page).toHaveURL(new RegExp(`/clips/[0-9a-f-]{36}\\?source=${s01.id}$`), { timeout: 30_000 });
+  const id = new URL(page.url()).pathname.split('/').pop() ?? '';
 
   // the saved project: the right source range and exactly the picked words as captions
   const rec = (await (await page.request.get(`/api/projects/${id}`)).json()) as {

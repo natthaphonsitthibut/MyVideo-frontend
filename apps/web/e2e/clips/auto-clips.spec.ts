@@ -103,7 +103,7 @@ test('generate clips from a real live clip, review, preview, open, discard', asy
   // open the clip page (the editable project)
   const firstTitle = (await first.getByTestId('clip-title').textContent()) ?? '';
   await first.getByRole('link', { name: 'เปิดคลิป' }).click();
-  await expect(page).toHaveURL(/\/clips\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(new RegExp(`/clips/[0-9a-f-]{36}\\?source=${sourceId}$`));
   await expect(page.getByTestId('clip-title')).toHaveText(firstTitle);
   await shot(page, '5-clip-page');
 

@@ -55,12 +55,12 @@ function Processing({ runId }: { runId: string | null }) {
   );
 }
 
-export function SourceCard({ source }: { source: SourceSummary }) {
+export function SourceCard({ source, to }: { source: SourceSummary; to?: string }) {
   // The delete button is a sibling of the link, not inside it: React events from the dialog (a portal) would
   // otherwise bubble to the link and navigate.
   return (
     <div className="relative" data-testid="source-card" data-status={source.status}>
-      <SourceCardLink source={source} />
+      <SourceCardLink source={source} to={to ?? `/library/${source.id}`} />
       <div className="absolute top-2 right-2">
         <DeleteSourceButton source={source} />
       </div>
@@ -68,10 +68,10 @@ export function SourceCard({ source }: { source: SourceSummary }) {
   );
 }
 
-function SourceCardLink({ source }: { source: SourceSummary }) {
+function SourceCardLink({ source, to }: { source: SourceSummary; to: string }) {
   return (
     <Link
-      to={`/library/${source.id}`}
+      to={to}
       className="group block overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
       data-testid="source-card-link"
     >

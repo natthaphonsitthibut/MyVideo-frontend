@@ -1,12 +1,11 @@
-import { formatTimecode } from '@myvideo/timeline-core';
 import { Clapperboard, Sparkles, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router';
 import { useProjects } from '@/api/clips';
 import { useDeleteProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EditedClipCard } from '@/features/clip/EditedClipCard';
 import { EmptyState } from './EmptyState';
 
 /** Every editable clip, including those whose footage appears in multiple project folders. */
@@ -36,35 +35,22 @@ export function EditedClipsPage() {
           hint="เพิ่มฟุตเทจในโปรเจกต์ แล้วสร้างคลิปอัตโนมัติ คลิปจะรวมอยู่ที่นี่"
         />
       ) : (
-        <ul className="divide-y rounded-xl border bg-card" aria-label="คลิปที่ตัดแล้วทั้งหมด">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label="คลิปที่ตัดแล้วทั้งหมด">
           {clips.data.map((clip) => (
-            <li
-              key={clip.id}
-              className="flex items-center gap-2 pr-3 [content-visibility:auto]"
-              data-testid="edited-clip-row"
-            >
-              <Link
-                to={`/clips/${clip.id}`}
-                className="flex min-w-0 flex-1 items-center gap-3 px-4 py-4 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
+            <li key={clip.id} className="[content-visibility:auto]" data-testid="edited-clip-row">
+              <EditedClipCard id={clip.id}>
                 {clip.createdBy === 'ai' ? (
                   <Sparkles className="size-5 shrink-0 text-primary" aria-label="สร้างอัตโนมัติ" />
-                ) : (
-                  <Clapperboard className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-                )}
-                <span className="min-w-0 flex-1 truncate font-medium">{clip.title}</span>
-                <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
-                  {formatTimecode(clip.durationFrames, clip.fps)}
-                </span>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`ลบคลิป ${clip.title}`}
-                onClick={() => setTarget(clip)}
-              >
-                <Trash2 aria-hidden />
-              </Button>
+                ) : null}
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={`ลบคลิป ${clip.title}`}
+                  onClick={() => setTarget(clip)}
+                >
+                  <Trash2 aria-hidden />
+                </Button>
+              </EditedClipCard>
             </li>
           ))}
         </ul>

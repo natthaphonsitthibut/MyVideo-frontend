@@ -71,8 +71,8 @@ test('upload → transcribe → fix a word → clip → export, worker killed mi
   await page.mouse.move(bb.x + bb.width - 1, bb.y + bb.height / 2, { steps: 10 });
   await page.mouse.up();
   await page.getByTestId('clip-create').click();
-  await expect(page).toHaveURL(/\/clips\/[0-9a-f-]{36}$/, { timeout: 30_000 });
-  const projectId = page.url().split('/').pop() ?? '';
+  await expect(page).toHaveURL(new RegExp(`/clips/[0-9a-f-]{36}\\?source=${sourceId}$`), { timeout: 30_000 });
+  const projectId = new URL(page.url()).pathname.split('/').pop() ?? '';
   const rec = (await (await page.request.get(`/api/projects/${projectId}`)).json()) as {
     doc: {
       fps: { num: number; den: number };
