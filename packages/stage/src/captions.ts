@@ -20,7 +20,7 @@ export const CAPTION_STYLES = {
     lineHeight: 1.5,
     color: '#ffffff',
     active: '#facc15',
-    emphasis: '#4ade80',
+    emphasis: '#facc15',
   },
   'pop-word': {
     fontWeight: 900,
@@ -28,7 +28,7 @@ export const CAPTION_STYLES = {
     lineHeight: 1.5,
     color: '#ffffff',
     active: '#facc15',
-    emphasis: '#4ade80',
+    emphasis: '#facc15',
   },
   boxed: {
     fontWeight: 600,
