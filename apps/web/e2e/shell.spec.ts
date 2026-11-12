@@ -16,7 +16,7 @@ test('navigation separates project folders, the Library and edited clips; remove
 }) => {
   await signIn(page, '/library');
   const nav = page.getByRole('navigation', { name: 'เมนูหลัก' });
-  await expect(nav.getByRole('link')).toHaveText(['โปรเจกต์', 'คลังวิดีโอ', 'คลิปที่ตัดแล้ว']);
+  await expect(nav.getByRole('link')).toHaveText(['โปรเจกต์', 'คลังวิดีโอ', 'คลิปที่ตัดแล้ว', 'บันทึกเวลา']);
   await expect(page.getByTestId('merchant-name')).not.toBeEmpty();
   await page.screenshot({ path: 'test-results/shell-library.png', fullPage: true });
   for (const old of ['/review-video', '/exports', '/brand', '/jobs', '/status']) {
