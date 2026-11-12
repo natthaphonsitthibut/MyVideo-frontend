@@ -5,6 +5,34 @@ const w = (text: string, startFrame: number, endFrame: number) => ({ text, start
 /** Test measure: 40 px per code point, 10 px per word gap (real layout uses canvas measureText on the bundled font). */
 const measure = (s: string) => [...s].reduce((n, c) => n + (c === WORD_GAP ? 10 : 40), 0);
 
+describe('Thai token spacing', () => {
+  it.each([
+    [['ขาย', 'ราคา', 'นี้', 'ครับผม'], 'ขายราคานี้ครับผม'],
+    [['รับ', 'พิม', 'น้ำ', 'มา', '100', 'บาท'], 'รับพิมน้ำมา 100 บาท'],
+    [['ขายA', 'ไทย', 'Bขาย', 'ราคา'], 'ขายA ไทย Bขายราคา'],
+    [['hello', 'world'], 'hello world'],
+  ])('joins %j using the script at each boundary', (tokens, expected) => {
+    const words = tokens.map((text, i) => w(text, i, i + 1));
+    expect(
+      lineText(
+        words,
+        words.map((_, i) => i),
+      ),
+    ).toBe(expected);
+  });
+
+  it('fits contiguous Thai exactly and still breaks at token boundaries', () => {
+    const words = ['ขาย', 'ราคา', 'นี้', 'ครับผม'].map((text, i) => w(text, i, i + 1));
+    expect(layoutLines(words, measure, 280)).toEqual([[0, 1], [2], [3]]);
+  });
+
+  it('preserves number-unit glue while removing Thai token gaps in built pages', () => {
+    const words = ['รับ', 'พิม', 'น้ำ', 'มา', '100', 'บาท'].map((text, i) => w(text, i, i + 1));
+    const [page] = buildCaptions(words, { measure, maxWidth: 2000, maxLines: 2, pauseFrames: 15 });
+    expect(page && lineText(page.words, page.lines[0] ?? [])).toBe('รับพิมน้ำมา 100 บาท');
+  });
+});
+
 describe('glueWords (E01 rules)', () => {
   it('currency + number, number + % / unit, final particles stick to the previous word', () => {
     // tokens as the backend tokenizer produces them for real live lines
@@ -39,7 +67,7 @@ describe('glueWords (E01 rules)', () => {
 describe('layoutLines (greedy fill, measured)', () => {
   it('fills lines up to the width, never splits a word', () => {
     const words = ['ตัวนี้', 'เป็น', 'ไซส์', 'เอม', 'ผู้หญิง', 'นะคะ'].map((t, i) => w(t, i * 10, i * 10 + 10));
-    const lines = layoutLines(words, measure, 480); // 12 code points per line (words joined with a 0.25 em gap)
+    const lines = layoutLines(words, measure, 480); // 12 Thai code points per line, without token gaps
     for (const l of lines) {
       const width = measure(lineText(words, l));
       expect(width).toBeLessThanOrEqual(480);

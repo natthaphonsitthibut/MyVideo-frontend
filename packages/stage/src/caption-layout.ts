@@ -84,14 +84,30 @@ export function glueWords(words: readonly TimedWord[]): TimedWord[] {
 }
 
 /**
- * Gap between caption words: a THIN SPACE (U+2009). Thai is written without word spaces; a full space between every
- * token reads wrong, while a thin gap keeps highlighted words apart. Used by both layout and rendering.
+ * Default gap between caption words: a THIN SPACE (U+2009). Thai-to-Thai boundaries omit it.
+ * Layout and rendering must both use `wordGap` to select the separator.
  */
 export const WORD_GAP = ' ';
 
-/** The exact string the stage draws for a line: words joined by `WORD_GAP`. */
-export const lineText = (words: readonly TimedWord[], line: readonly number[]) =>
-  line.map((i) => words[i]?.text ?? '').join(WORD_GAP);
+/** Inspect only the boundary characters, including Thai combining marks, without allocating substrings. */
+export function wordGap(left: string, right: string): string {
+  const end = left.charCodeAt(left.length - 1);
+  const start = right.charCodeAt(0);
+  return end >= 0x0e00 && end <= 0x0e7f && start >= 0x0e00 && start <= 0x0e7f ? '' : WORD_GAP;
+}
+
+/** The exact string the stage draws for a line, with the same boundary separators as its word spans. */
+export function lineText(words: readonly TimedWord[], line: readonly number[]): string {
+  let text = '';
+  let previous = '';
+  for (let k = 0; k < line.length; k++) {
+    const current = words[line[k] as number]?.text ?? '';
+    if (k > 0) text += wordGap(previous, current);
+    text += current;
+    previous = current;
+  }
+  return text;
+}
 
 /**
  * Greedy fill: returns lines as word indexes. Each candidate line is measured as the exact string the stage draws

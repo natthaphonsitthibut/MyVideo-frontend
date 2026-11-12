@@ -1,4 +1,4 @@
-import { WORD_GAP } from './caption-layout';
+import { wordGap } from './caption-layout';
 import { STAGE_FONT } from './styles';
 import type { StageElement } from './types';
 
@@ -51,7 +51,10 @@ export function buildCaptionNode(
       span.dataset.w = String(wi);
       span.textContent = e.words[wi]?.text ?? '';
       row.appendChild(span);
-      if (k < line.length - 1) row.appendChild(document.createTextNode(WORD_GAP));
+      if (k < line.length - 1) {
+        const gap = wordGap(span.textContent, e.words[line[k + 1] as number]?.text ?? '');
+        if (gap) row.appendChild(document.createTextNode(gap));
+      }
     });
     inner.appendChild(row);
   }
