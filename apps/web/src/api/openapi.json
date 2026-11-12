@@ -45,10 +45,18 @@
       "CaptionWord": {
         "additionalProperties": false,
         "properties": {
+          "asrText": {
+            "minLength": 1,
+            "type": "string"
+          },
           "endFrame": {
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
+          },
+          "origin": {
+            "const": "ai",
+            "type": "string"
           },
           "startFrame": {
             "maximum": 9007199254740991,

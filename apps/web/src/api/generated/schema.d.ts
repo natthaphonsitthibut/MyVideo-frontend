@@ -517,7 +517,10 @@ export interface components {
             statusCode: number;
         };
         CaptionWord: {
+            asrText?: string;
             endFrame: number;
+            /** @constant */
+            origin?: "ai";
             startFrame: number;
             text: string;
         };
