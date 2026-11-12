@@ -106,6 +106,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a project (version 1) from a validated Project JSON */
+        post: operations["createProject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current version of a project */
+        get: operations["getProject"];
+        /** Save a new version (optimistic locking: `baseVersion` must be the current version) */
+        put: operations["saveProject"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All versions of a project, newest first */
+        get: operations["listProjectVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{id}/versions/{version}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an older version as a NEW version (history is never rewritten) */
+        post: operations["restoreProjectVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources": {
         parameters: {
             query?: never;
@@ -342,11 +411,30 @@ export interface components {
             message: string;
             statusCode: number;
         };
+        CaptionWord: {
+            endFrame: number;
+            startFrame: number;
+            text: string;
+        };
         CheckStatus: {
             error?: string;
             latencyMs: number;
             /** @enum {string} */
             status: "up" | "down";
+        };
+        CreateProjectBody: {
+            doc: components["schemas"]["ProjectDraft"];
+            title: string;
+        };
+        Crop: {
+            bottom: number;
+            left: number;
+            right: number;
+            top: number;
+        };
+        Fps: {
+            den: number;
+            num: number;
         };
         HealthReport: {
             checks: {
@@ -408,6 +496,291 @@ export interface components {
                 role: "owner" | "editor";
             };
         };
+        Project: {
+            assets: {
+                [key: string]: components["schemas"]["ProjectAsset"];
+            };
+            /** Format: uuid */
+            brandKitId?: string;
+            durationFrames: number;
+            elements: {
+                [key: string]: components["schemas"]["ProjectElement"];
+            };
+            fps: components["schemas"]["Fps"];
+            height: number;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            merchantId: string;
+            meta: {
+                /** @enum {string} */
+                createdBy: "ai" | "user";
+                title?: string;
+                /** Format: uuid */
+                workflowRunId?: string;
+            };
+            /** @constant */
+            schemaVersion: 1;
+            templateRef?: {
+                templateId: string;
+                templateVersion: number;
+            };
+            tracks: components["schemas"]["Track"][];
+            width: number;
+        };
+        ProjectAsset: {
+            durationFrames: number;
+            hasAudio: boolean;
+            height?: number;
+            /** @enum {string} */
+            kind: "video" | "audio" | "image";
+            /** Format: uuid */
+            sourceId: string;
+            width?: number;
+        };
+        ProjectDraft: {
+            assets: {
+                [key: string]: components["schemas"]["ProjectAsset"];
+            };
+            /** Format: uuid */
+            brandKitId?: string;
+            durationFrames: number;
+            elements: {
+                [key: string]: components["schemas"]["ProjectElement"];
+            };
+            fps: components["schemas"]["Fps"];
+            height: number;
+            meta: {
+                /** @enum {string} */
+                createdBy: "ai" | "user";
+                title?: string;
+                /** Format: uuid */
+                workflowRunId?: string;
+            };
+            /** @constant */
+            schemaVersion: 1;
+            templateRef?: {
+                templateId: string;
+                templateVersion: number;
+            };
+            tracks: components["schemas"]["Track"][];
+            width: number;
+        };
+        ProjectElement: {
+            /** Format: uuid */
+            assetId: string;
+            crop?: components["schemas"]["Crop"];
+            durationFrames: number;
+            /** @enum {string} */
+            fit: "cover" | "contain" | "fill";
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            opacity?: number;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            playbackRate: number;
+            sourceInFrame: number;
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "video";
+            volume: number;
+        } | {
+            /** Format: uuid */
+            assetId: string;
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            playbackRate: number;
+            sourceInFrame: number;
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            /** @constant */
+            type: "audio";
+            volume: number;
+        } | {
+            /** Format: uuid */
+            assetId: string;
+            crop?: components["schemas"]["Crop"];
+            durationFrames: number;
+            /** @enum {string} */
+            fit: "cover" | "contain" | "fill";
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            opacity?: number;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "image";
+        } | {
+            animationIn?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            animationOut?: {
+                durationFrames: number;
+                presetId: string;
+            };
+            content: string;
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            style?: components["schemas"]["TextStyle"];
+            styleRef?: string;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "text";
+        } | {
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            lines: number[][];
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            /** @enum {string} */
+            styleRef: "clean" | "bold-highlight";
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "caption";
+            words: components["schemas"]["CaptionWord"][];
+        } | {
+            durationFrames: number;
+            fill: string;
+            height: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            radius?: number;
+            /** @enum {string} */
+            shape: "rect" | "ellipse";
+            startFrame: number;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "shape";
+            width: number;
+        } | {
+            durationFrames: number;
+            /** Format: uuid */
+            id: string;
+            keyframes?: {
+                [key: string]: {
+                    /** @enum {string} */
+                    easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "hold";
+                    frame: number;
+                    value: number;
+                }[];
+            };
+            label: string;
+            locked?: boolean;
+            /** @enum {string} */
+            origin: "ai" | "user" | "template";
+            startFrame: number;
+            styleRef: string;
+            /** Format: uuid */
+            trackId: string;
+            transform: components["schemas"]["Transform"];
+            /** @constant */
+            type: "cta";
+        };
+        ProjectRecord: {
+            /** Format: date-time */
+            createdAt: string;
+            doc: components["schemas"]["Project"];
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            version: number;
+        };
+        ProjectVersionList: {
+            items: components["schemas"]["ProjectVersionSummary"][];
+        };
+        ProjectVersionSummary: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            reason: "create" | "save" | "restore";
+            restoredFrom: number | null;
+            version: number;
+        };
+        RestoreBody: {
+            baseVersion: number;
+        };
         RunEvent: {
             /** Format: date-time */
             at: string;
@@ -438,6 +811,10 @@ export interface components {
             subjectId: string | null;
             subjectType: string | null;
         };
+        SaveProjectBody: {
+            baseVersion: number;
+            doc: components["schemas"]["ProjectDraft"];
+        };
         SourceList: {
             items: components["schemas"]["SourceSummary"][];
             nextCursor: string | null;
@@ -445,8 +822,13 @@ export interface components {
         SourceSummary: {
             /** Format: date-time */
             createdAt: string;
+            durationFrames: number | null;
             durationMs: number | null;
             failureReason: string | null;
+            fps: {
+                den: number;
+                num: number;
+            } | null;
             hasAudio: boolean | null;
             hasPeaks: boolean;
             hasProxy: boolean;
@@ -480,6 +862,22 @@ export interface components {
             ms: number;
             /** @default 10 */
             steps: number;
+        };
+        TextStyle: {
+            /** @enum {string} */
+            align: "left" | "center" | "right";
+            background?: string;
+            color: string;
+            fontFamily: string;
+            fontSize: number;
+            fontWeight: number;
+        };
+        Track: {
+            elementIds: string[];
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "video" | "audio" | "caption" | "overlay";
         };
         TranscriptSegment: {
             endMs: number;
@@ -517,6 +915,12 @@ export interface components {
         };
         TranscriptWordEdit: {
             text: string;
+        };
+        Transform: {
+            rotation: number;
+            scale: number;
+            x: number;
+            y: number;
         };
         UploadConfig: {
             chunkBytes: number;
@@ -730,6 +1134,199 @@ export interface operations {
                 };
             };
             /** @description Job is not dead or cancelled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    createProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjectBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description Project JSON failed validation (issues listed) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The project */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    saveProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveProjectBody"];
+            };
+        };
+        responses: {
+            /** @description Saved as a new version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description Project JSON failed validation (issues listed) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Version conflict: someone saved after `baseVersion` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listProjectVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectVersionList"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    restoreProjectVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreBody"];
+            };
+        };
+        responses: {
+            /** @description Restored as a new version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description No such project or version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Version conflict */
             409: {
                 headers: {
                     [name: string]: unknown;

@@ -1,11 +1,46 @@
-import { createBrowserRouter, Navigate, type RouteObject } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router';
 import { LoginPage } from '@/auth/LoginPage';
 import { RequireAuth } from '@/auth/RequireAuth';
 import { AppShell, PageFallback } from './AppShell';
 import { RouteError } from './RouteError';
 
+/** Dev-only pages (tests and debugging); never in a production build. */
+const devRoutes: RouteObject[] = import.meta.env.DEV
+  ? [
+      {
+        path: '/dev/stage/:id',
+        element: (
+          <RequireAuth>
+            <Outlet />
+          </RequireAuth>
+        ),
+        children: [
+          {
+            index: true,
+            lazy: () => import('@/pages/dev/StageHarness').then((m) => ({ Component: m.StageHarness })),
+          },
+        ],
+      },
+      {
+        path: '/dev/player/:id',
+        element: (
+          <RequireAuth>
+            <Outlet />
+          </RequireAuth>
+        ),
+        children: [
+          {
+            index: true,
+            lazy: () => import('@/pages/dev/PlayerHarness').then((m) => ({ Component: m.PlayerHarness })),
+          },
+        ],
+      },
+    ]
+  : [];
+
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage />, errorElement: <RouteError /> },
+  ...devRoutes,
   {
     path: '/',
     element: (
@@ -26,6 +61,10 @@ export const routes: RouteObject[] = [
         lazy: () => import('@/pages/SourcePage').then((m) => ({ Component: m.SourcePage })),
       },
       { path: 'clips', lazy: () => import('@/pages/ClipsPage').then((m) => ({ Component: m.ClipsPage })) },
+      {
+        path: 'clips/:id',
+        lazy: () => import('@/pages/ClipPage').then((m) => ({ Component: m.ClipPage })),
+      },
       {
         path: 'exports',
         lazy: () => import('@/pages/ExportsPage').then((m) => ({ Component: m.ExportsPage })),

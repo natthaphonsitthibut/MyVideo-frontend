@@ -22,6 +22,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CreateClipBar, useWordSelection } from '@/features/clip/CreateClipBar';
+import type { ClipSource } from '@/features/clip/clip-project';
 import { cn } from '@/lib/utils';
 import { buildWordIndex, findSegmentAt, findWordAt, searchSegments } from './word-index';
 
@@ -41,10 +43,13 @@ export function TranscriptPanel({
   sourceId,
   hasAudio,
   videoRef,
+  clipSource,
 }: {
   sourceId: string;
   hasAudio: boolean | null;
   videoRef: VideoRef;
+  /** What a clip is cut from (null until the source is probed). */
+  clipSource: ClipSource | null;
 }) {
   const state = useTranscriptState(sourceId);
   const start = useStartTranscript(sourceId);
@@ -54,7 +59,14 @@ export function TranscriptPanel({
   if (!t) {
     body = <Skeleton className="h-24 w-full" />;
   } else if (t.status === 'ready' && t.transcriptId) {
-    return <TranscriptViewer sourceId={sourceId} transcriptId={t.transcriptId} videoRef={videoRef} />;
+    return (
+      <TranscriptViewer
+        sourceId={sourceId}
+        transcriptId={t.transcriptId}
+        videoRef={videoRef}
+        clipSource={clipSource}
+      />
+    );
   } else if (t.status === 'running') {
     const planned = t.chunkCount > 0;
     const p = planned ? t.chunksDone / t.chunkCount : 0;
@@ -121,15 +133,19 @@ function TranscriptViewer({
   sourceId,
   transcriptId,
   videoRef,
+  clipSource,
 }: {
   sourceId: string;
   transcriptId: string;
   videoRef: VideoRef;
+  clipSource: ClipSource | null;
 }) {
   const segs = useTranscriptSegments(sourceId, transcriptId);
   const segments = segs.data ?? EMPTY;
   const index = useMemo(() => buildWordIndex(segments), [segments]);
+  const allWords = useMemo(() => segments.flatMap((s) => s.words), [segments]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [selected, clearSelection] = useWordSelection(scrollRef);
   const virtualizer = useVirtualizer({
     count: segments.length,
     getScrollElement: () => scrollRef.current,
@@ -198,6 +214,8 @@ function TranscriptViewer({
     goToMatch(matchPos + (e.shiftKey ? -1 : 1));
   };
   const seekFrom = (e: MouseEvent<HTMLElement>) => {
+    // the end of a drag-select is not a seek
+    if (document.getSelection()?.isCollapsed === false) return;
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-start]');
     const v = videoRef.current;
     if (!el || !v) return;
@@ -372,7 +390,13 @@ function TranscriptViewer({
           </Button>
         ) : null}
       </div>
-      <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">กดคำเพื่อไปที่ช่วงนั้น · ดับเบิลคลิกคำเพื่อแก้</p>
+      {selected ? (
+        <CreateClipBar range={selected} words={allWords} source={clipSource} onClear={clearSelection} />
+      ) : (
+        <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">
+          กดคำเพื่อไปที่ช่วงนั้น · ลากคลุมคำเพื่อสร้างคลิป · ดับเบิลคลิกคำเพื่อแก้
+        </p>
+      )}
       {edit.isError ? (
         <p role="alert" className="px-3 pb-2 text-xs text-destructive">
           บันทึกคำที่แก้ไม่สำเร็จ ลองอีกครั้ง

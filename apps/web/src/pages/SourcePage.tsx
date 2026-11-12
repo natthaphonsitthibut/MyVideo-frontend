@@ -121,7 +121,16 @@ export function SourcePage() {
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
           <ProxyPlayer source={s} videoRef={videoRef} />
           {s.status === 'ready' ? (
-            <TranscriptPanel sourceId={s.id} hasAudio={s.hasAudio} videoRef={videoRef} />
+            <TranscriptPanel
+              sourceId={s.id}
+              hasAudio={s.hasAudio}
+              videoRef={videoRef}
+              clipSource={
+                s.fps && s.durationFrames
+                  ? { id: s.id, fps: s.fps, durationFrames: s.durationFrames, hasAudio: !!s.hasAudio }
+                  : null
+              }
+            />
           ) : null}
         </div>
       ) : null}

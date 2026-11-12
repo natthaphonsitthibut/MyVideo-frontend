@@ -9,6 +9,8 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   outputDir: './test-results',
+  // Visual baselines show real footage → kept in the workspace footage folder, never in this repo.
+  snapshotPathTemplate: '{testDir}/../../../../footage/baselines/{testFilePath}/{arg}{ext}',
   use: {
     baseURL: process.env.MYVIDEO_WEB_URL ?? 'http://127.0.0.1:5180',
     trace: 'retain-on-failure',

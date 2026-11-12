@@ -10,11 +10,28 @@ test.describe.configure({ timeout: 300_000 });
 /** Starts recording rAF frame deltas and long tasks in the page. */
 async function startPerf(page: Page) {
   await page.evaluate(() => {
-    const w = window as unknown as { __perf: { deltas: number[]; long: number[]; on: boolean } };
-    w.__perf = { deltas: [], long: [], on: true };
+    const w = window as unknown as {
+      __perf: { deltas: number[]; long: number[]; loaf: string[]; on: boolean };
+    };
+    w.__perf = { deltas: [], long: [], loaf: [], on: true };
     new PerformanceObserver((l) => {
       for (const e of l.getEntries()) w.__perf.long.push(e.duration);
     }).observe({ type: 'longtask' });
+    // attribution for any long frame (Long Animation Frames API): which script ran, so a failure says why
+    new PerformanceObserver((l) => {
+      for (const e of l.getEntries() as unknown as {
+        duration: number;
+        blockingDuration: number;
+        scripts: { invoker: string; sourceFunctionName: string; sourceURL: string; duration: number }[];
+      }[]) {
+        if (e.blockingDuration <= 0) continue;
+        const scripts = e.scripts.map(
+          (s) =>
+            `${s.invoker} ${s.sourceFunctionName}@${s.sourceURL.split('/').pop()?.split('?')[0]} ${Math.round(s.duration)}ms`,
+        );
+        w.__perf.loaf.push(`${Math.round(e.duration)}ms [${scripts.join('; ')}]`);
+      }
+    }).observe({ type: 'long-animation-frame' });
     let last = performance.now();
     const loop = (t: number) => {
       w.__perf.deltas.push(t - last);
@@ -27,7 +44,9 @@ async function startPerf(page: Page) {
 
 async function stopPerf(page: Page) {
   return page.evaluate(() => {
-    const w = window as unknown as { __perf: { deltas: number[]; long: number[]; on: boolean } };
+    const w = window as unknown as {
+      __perf: { deltas: number[]; long: number[]; loaf: string[]; on: boolean };
+    };
     w.__perf.on = false;
     const d = w.__perf.deltas.slice(2).sort((a, b) => a - b);
     return {
@@ -35,6 +54,7 @@ async function stopPerf(page: Page) {
       p95: d[Math.floor(d.length * 0.95)] ?? 0,
       max: d[d.length - 1] ?? 0,
       longTasks: w.__perf.long,
+      blockingFrames: w.__perf.loaf,
     };
   });
 }
@@ -102,7 +122,9 @@ test('correct a word → it survives a reload → revert restores the recognised
   };
   let sourceId: string | undefined;
   for (const s of list.items.filter((x) => x.status === 'ready')) {
-    const st = (await (await page.request.get(`/api/sources/${s.id}/transcript`)).json()) as { status: string };
+    const st = (await (await page.request.get(`/api/sources/${s.id}/transcript`)).json()) as {
+      status: string;
+    };
     if (st.status === 'ready') {
       sourceId = s.id;
       break;
@@ -166,7 +188,7 @@ test('long transcript (45-min live) scrolls at 60 fps', async ({ page }) => {
   const perf = await stopPerf(page);
   const top = await scroller.evaluate((el) => el.scrollTop);
   console.log(
-    `segments ${state.segmentCount} · scrolled ${top}px · frames ${perf.frames} · p95 ${perf.p95.toFixed(1)} ms · max ${perf.max.toFixed(1)} ms · long tasks ${JSON.stringify(perf.longTasks)}`,
+    `segments ${state.segmentCount} · scrolled ${top}px · frames ${perf.frames} · p95 ${perf.p95.toFixed(1)} ms · max ${perf.max.toFixed(1)} ms · long tasks ${JSON.stringify(perf.longTasks)} · blocking frames ${JSON.stringify(perf.blockingFrames)}`,
   );
   await page.screenshot({ path: 'test-results/transcript-long-scrolled.png', fullPage: true });
   expect(top).toBeGreaterThan(10_000);
