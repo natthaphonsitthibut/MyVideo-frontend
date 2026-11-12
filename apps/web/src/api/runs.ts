@@ -10,6 +10,17 @@ export type RunEvent = Schemas['RunEvent'];
 export const RUNS_KEY = ['workflow-runs'] as const;
 const TERMINAL_RUN = new Set(['succeeded', 'failed', 'cancelled']);
 
+/**
+ * True when a job just failed and the cache has no error text for it: events carry only status/progress, so the
+ * list must be refetched right away — waiting for the stream's `end` left a window where a dead job showed no
+ * reason (flaky jobs e2e, 2026-11-13).
+ */
+export function needsDetails(list: RunList | undefined, ev: RunEvent): boolean {
+  if (ev.kind !== 'job' || (ev.status !== 'dead' && ev.status !== 'failed')) return false;
+  const job = list?.items.find((r) => r.id === ev.runId)?.jobs.find((j) => j.id === ev.jobId);
+  return !job?.error;
+}
+
 /** Applies one SSE event to the cached list (pure; unit-tested). Unknown runs/jobs are ignored. */
 export function applyRunEvent(list: RunList | undefined, ev: RunEvent): RunList | undefined {
   if (!list) return list;
@@ -72,7 +83,9 @@ export function useLiveRuns(list: RunList | undefined): void {
       const es = new EventSource(`${API_BASE_URL}/workflow-runs/${id}/events`, { withCredentials: true });
       const onEvent = (e: MessageEvent<string>) => {
         const ev = JSON.parse(e.data) as RunEvent;
+        const fetchDetails = needsDetails(qc.getQueryData<RunList>(RUNS_KEY), ev);
         qc.setQueryData<RunList>(RUNS_KEY, (old) => applyRunEvent(old, ev));
+        if (fetchDetails) void qc.invalidateQueries({ queryKey: RUNS_KEY });
       };
       es.addEventListener('job', onEvent);
       es.addEventListener('run', onEvent);

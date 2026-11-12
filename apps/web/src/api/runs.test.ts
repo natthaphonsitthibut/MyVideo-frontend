@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyRunEvent, type RunList } from './runs';
+import { applyRunEvent, needsDetails, type RunList } from './runs';
 
 const job = {
   id: 'j1',
@@ -33,6 +33,38 @@ const list: RunList = {
   ],
   nextCursor: null,
 };
+
+describe('needsDetails', () => {
+  const ev = (kind: 'job' | 'run', status: string) =>
+    ({
+      id: '1',
+      kind,
+      runId: 'r1',
+      jobId: kind === 'job' ? 'j1' : null,
+      status,
+      progress: null,
+      at: '',
+    }) as const;
+  it('asks for a refetch as soon as a job fails (events carry no error text)', () => {
+    expect(needsDetails(list, ev('job', 'dead'))).toBe(true);
+    expect(needsDetails(list, ev('job', 'failed'))).toBe(true);
+  });
+  it('not for progress, other statuses, or a job whose error is already cached', () => {
+    expect(needsDetails(list, ev('job', 'running'))).toBe(false);
+    expect(needsDetails(list, ev('run', 'failed'))).toBe(false); // the stream end refetches runs
+    const withError: RunList = {
+      ...list,
+      items: list.items.map((r) => ({
+        ...r,
+        jobs: r.jobs.map((j) => ({
+          ...j,
+          error: { message: 'x', name: 'Error', fatal: true, attempt: 1, at: '' },
+        })),
+      })),
+    } as RunList;
+    expect(needsDetails(withError, ev('job', 'dead'))).toBe(false);
+  });
+});
 
 describe('applyRunEvent', () => {
   it('updates job status and progress', () => {
