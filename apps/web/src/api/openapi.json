@@ -93,6 +93,24 @@
         ],
         "type": "object"
       },
+      "CreateProjectBody": {
+        "additionalProperties": false,
+        "properties": {
+          "doc": {
+            "$ref": "#/components/schemas/ProjectDraft"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "doc"
+        ],
+        "type": "object"
+      },
       "Crop": {
         "additionalProperties": false,
         "properties": {
@@ -586,6 +604,122 @@
           "kind",
           "durationFrames",
           "hasAudio"
+        ],
+        "type": "object"
+      },
+      "ProjectDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "assets": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProjectAsset"
+            },
+            "propertyNames": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "brandKitId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "durationFrames": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "elements": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProjectElement"
+            },
+            "propertyNames": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "fps": {
+            "$ref": "#/components/schemas/Fps"
+          },
+          "height": {
+            "maximum": 4096,
+            "minimum": 16,
+            "type": "integer"
+          },
+          "meta": {
+            "additionalProperties": false,
+            "properties": {
+              "createdBy": {
+                "enum": [
+                  "ai",
+                  "user"
+                ],
+                "type": "string"
+              },
+              "title": {
+                "maxLength": 200,
+                "type": "string"
+              },
+              "workflowRunId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "createdBy"
+            ],
+            "type": "object"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "templateRef": {
+            "additionalProperties": false,
+            "properties": {
+              "templateId": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "templateVersion": {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "templateId",
+              "templateVersion"
+            ],
+            "type": "object"
+          },
+          "tracks": {
+            "items": {
+              "$ref": "#/components/schemas/Track"
+            },
+            "type": "array"
+          },
+          "width": {
+            "maximum": 4096,
+            "minimum": 16,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "fps",
+          "width",
+          "height",
+          "durationFrames",
+          "assets",
+          "tracks",
+          "elements",
+          "meta"
         ],
         "type": "object"
       },
@@ -1458,6 +1592,117 @@
           }
         ]
       },
+      "ProjectRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "id": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "version": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "version",
+          "doc",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "ProjectVersionList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectVersionSummary"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "ProjectVersionSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "create",
+              "save",
+              "restore"
+            ],
+            "type": "string"
+          },
+          "restoredFrom": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "createdAt",
+          "reason",
+          "restoredFrom"
+        ],
+        "type": "object"
+      },
+      "RestoreBody": {
+        "additionalProperties": false,
+        "properties": {
+          "baseVersion": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "baseVersion"
+        ],
+        "type": "object"
+      },
       "RunEvent": {
         "additionalProperties": false,
         "properties": {
@@ -1616,6 +1861,24 @@
           "createdAt",
           "finishedAt",
           "jobs"
+        ],
+        "type": "object"
+      },
+      "SaveProjectBody": {
+        "additionalProperties": false,
+        "properties": {
+          "baseVersion": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/ProjectDraft"
+          }
+        },
+        "required": [
+          "baseVersion",
+          "doc"
         ],
         "type": "object"
       },
@@ -2485,6 +2748,302 @@
         "summary": "Retry a dead or cancelled job (gives it a fresh attempt budget)",
         "tags": [
           "jobs"
+        ]
+      }
+    },
+    "/projects": {
+      "post": {
+        "operationId": "createProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRecord"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Project JSON failed validation (issues listed)"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create a project (version 1) from a validated Project JSON",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{id}": {
+      "get": {
+        "operationId": "getProject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRecord"
+                }
+              }
+            },
+            "description": "The project"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project for this merchant"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The current version of a project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "put": {
+        "operationId": "saveProject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProjectBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRecord"
+                }
+              }
+            },
+            "description": "Saved as a new version"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Project JSON failed validation (issues listed)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project for this merchant"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Version conflict: someone saved after `baseVersion`"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Save a new version (optimistic locking: `baseVersion` must be the current version)",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{id}/versions": {
+      "get": {
+        "operationId": "listProjectVersions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectVersionList"
+                }
+              }
+            },
+            "description": "Versions"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project for this merchant"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "All versions of a project, newest first",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{id}/versions/{version}/restore": {
+      "post": {
+        "operationId": "restoreProjectVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRecord"
+                }
+              }
+            },
+            "description": "Restored as a new version"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such project or version"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Version conflict"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Restore an older version as a NEW version (history is never rewritten)",
+        "tags": [
+          "projects"
         ]
       }
     },

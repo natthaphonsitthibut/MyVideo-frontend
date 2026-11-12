@@ -106,6 +106,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a project (version 1) from a validated Project JSON */
+        post: operations["createProject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current version of a project */
+        get: operations["getProject"];
+        /** Save a new version (optimistic locking: `baseVersion` must be the current version) */
+        put: operations["saveProject"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All versions of a project, newest first */
+        get: operations["listProjectVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{id}/versions/{version}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an older version as a NEW version (history is never rewritten) */
+        post: operations["restoreProjectVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources": {
         parameters: {
             query?: never;
@@ -353,6 +422,10 @@ export interface components {
             /** @enum {string} */
             status: "up" | "down";
         };
+        CreateProjectBody: {
+            doc: components["schemas"]["ProjectDraft"];
+            title: string;
+        };
         Crop: {
             bottom: number;
             left: number;
@@ -464,6 +537,34 @@ export interface components {
             /** Format: uuid */
             sourceId: string;
             width?: number;
+        };
+        ProjectDraft: {
+            assets: {
+                [key: string]: components["schemas"]["ProjectAsset"];
+            };
+            /** Format: uuid */
+            brandKitId?: string;
+            durationFrames: number;
+            elements: {
+                [key: string]: components["schemas"]["ProjectElement"];
+            };
+            fps: components["schemas"]["Fps"];
+            height: number;
+            meta: {
+                /** @enum {string} */
+                createdBy: "ai" | "user";
+                title?: string;
+                /** Format: uuid */
+                workflowRunId?: string;
+            };
+            /** @constant */
+            schemaVersion: 1;
+            templateRef?: {
+                templateId: string;
+                templateVersion: number;
+            };
+            tracks: components["schemas"]["Track"][];
+            width: number;
         };
         ProjectElement: {
             /** Format: uuid */
@@ -655,6 +756,31 @@ export interface components {
             /** @constant */
             type: "cta";
         };
+        ProjectRecord: {
+            /** Format: date-time */
+            createdAt: string;
+            doc: components["schemas"]["Project"];
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            version: number;
+        };
+        ProjectVersionList: {
+            items: components["schemas"]["ProjectVersionSummary"][];
+        };
+        ProjectVersionSummary: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            reason: "create" | "save" | "restore";
+            restoredFrom: number | null;
+            version: number;
+        };
+        RestoreBody: {
+            baseVersion: number;
+        };
         RunEvent: {
             /** Format: date-time */
             at: string;
@@ -684,6 +810,10 @@ export interface components {
             status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
             subjectId: string | null;
             subjectType: string | null;
+        };
+        SaveProjectBody: {
+            baseVersion: number;
+            doc: components["schemas"]["ProjectDraft"];
         };
         SourceList: {
             items: components["schemas"]["SourceSummary"][];
@@ -999,6 +1129,199 @@ export interface operations {
                 };
             };
             /** @description Job is not dead or cancelled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    createProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjectBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description Project JSON failed validation (issues listed) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The project */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    saveProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveProjectBody"];
+            };
+        };
+        responses: {
+            /** @description Saved as a new version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description Project JSON failed validation (issues listed) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Version conflict: someone saved after `baseVersion` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listProjectVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectVersionList"];
+                };
+            };
+            /** @description No such project for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    restoreProjectVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreBody"];
+            };
+        };
+        responses: {
+            /** @description Restored as a new version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRecord"];
+                };
+            };
+            /** @description No such project or version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Version conflict */
             409: {
                 headers: {
                     [name: string]: unknown;
