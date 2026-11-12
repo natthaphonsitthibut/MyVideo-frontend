@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Uploaded videos of the signed-in merchant, newest first */
+        get: operations["listSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources/by-upload/{uploadId}": {
         parameters: {
             query?: never;
@@ -368,18 +385,40 @@ export interface components {
             subjectId: string | null;
             subjectType: string | null;
         };
+        SourceList: {
+            items: components["schemas"]["SourceSummary"][];
+            nextCursor: string | null;
+        };
         SourceSummary: {
             /** Format: date-time */
             createdAt: string;
+            durationMs: number | null;
             failureReason: string | null;
+            hasAudio: boolean | null;
+            hasPeaks: boolean;
+            hasProxy: boolean;
+            height: number | null;
             /** Format: uuid */
             id: string;
             ingestRunId: string | null;
             originalFilename: string;
             sizeBytes: number;
+            sprites: {
+                cols: number;
+                count: number;
+                durationMs: number;
+                intervalSec: number;
+                rows: number;
+                sheets: number;
+                tileHeight: number;
+                tileWidth: number;
+                /** @constant */
+                version: 1;
+            } | null;
             /** @enum {string} */
             status: "processing" | "ready" | "failed";
             title: string;
+            width: number | null;
         };
         TestRunRequest: {
             /** @default false */
@@ -607,6 +646,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listSources: {
+        parameters: {
+            query?: {
+                limit?: number;
+                before?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of sources */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceList"];
                 };
             };
         };
