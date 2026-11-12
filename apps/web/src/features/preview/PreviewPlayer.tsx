@@ -1,4 +1,11 @@
-import { createPlayer, mountStage, type Player, type StageAsset, type StageProject } from '@myvideo/stage';
+import {
+  createPlayer,
+  mountStage,
+  type Player,
+  type Stage,
+  type StageAsset,
+  type StageProject,
+} from '@myvideo/stage';
 import { formatTimecode } from '@myvideo/timeline-core';
 import { Pause, Play } from 'lucide-react';
 import { type KeyboardEvent, type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -16,6 +23,7 @@ const proxyUrl = (_id: string, asset: StageAsset) => mediaUrl(asset, 'proxy');
 export function PreviewPlayer({
   project,
   onPlayer,
+  onStage,
   frameClassName = 'h-[min(70vh,720px)]',
 }: {
   project: StageProject;
@@ -23,6 +31,8 @@ export function PreviewPlayer({
   frameClassName?: string;
   /** Hands the transient player to a parent (e.g. a timeline) without React state. */
   onPlayer?: (p: Player | null) => void;
+  /** Hands the mounted stage to an editor so edits patch elements in place (no remount per edit). */
+  onStage?: (s: Stage | null) => void;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -58,6 +68,7 @@ export function PreviewPlayer({
     const player = createPlayer(stage, project);
     playerRef.current = player;
     onPlayer?.(player);
+    onStage?.(stage);
     let lastPlaying = false;
     const off = player.subscribe(({ frame, playing: p }) => {
       if (headRef.current)
@@ -74,11 +85,12 @@ export function PreviewPlayer({
     return () => {
       off();
       onPlayer?.(null);
+      onStage?.(null);
       player.destroy();
       stage.destroy();
       playerRef.current = null;
     };
-  }, [project, total, onPlayer]);
+  }, [project, total, onPlayer, onStage]);
 
   // scrub: measure once per gesture; latest seek wins (player.seek drops stale ones)
   const gesture = useRef({ active: false, left: 0, width: 1 });

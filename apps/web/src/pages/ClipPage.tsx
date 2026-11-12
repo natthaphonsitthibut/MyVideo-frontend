@@ -1,6 +1,6 @@
 import type { StageProject } from '@myvideo/stage';
 import { formatTimecode } from '@myvideo/timeline-core';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import { useProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,12 @@ export function ClipPage() {
           ความยาว {formatTimecode(doc.durationFrames, doc.fps)} · แนวตั้ง 9:16 · เวอร์ชัน {rec.version}
         </p>
       </div>
+      <Button asChild className="w-full" data-testid="open-editor">
+        <Link to={`/clips/${rec.id}/edit`}>
+          <Pencil />
+          แก้คลิป
+        </Link>
+      </Button>
       <PreviewPlayer project={doc as unknown as StageProject} />
       <ExportPanel projectId={rec.id} version={rec.version} />
     </section>
