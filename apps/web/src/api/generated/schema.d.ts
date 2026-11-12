@@ -1054,7 +1054,7 @@ export interface components {
             id: string;
             jobs: components["schemas"]["JobSummary"][];
             /** @enum {string} */
-            kind: "ingest" | "transcribe" | "live_to_clips" | "review_to_video" | "render" | "system_test";
+            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "review_to_video" | "render" | "system_test";
             /** @enum {string} */
             status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
             subjectId: string | null;

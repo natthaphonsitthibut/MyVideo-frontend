@@ -55,7 +55,7 @@ it.each([
   expect(normalized.style.fontWeight).toBe(inner.style.fontWeight);
   expect(inner.textContent).toBe(lineText(words, lines[0]!));
   if (id === 'boxed') {
-    expect(captionMaxWidth(1080, String(id))).toBe(832);
+    expect(captionMaxWidth(1080, String(id))).toBe(778);
     expect(inner.firstElementChild?.getAttribute('style')).toContain('padding');
   }
 });
@@ -75,9 +75,20 @@ it('pops the spoken word from its frame, including backward seeks and clearing',
   expect(inner.querySelector('[data-active]')).toBeNull();
 });
 
+it('keeps captions clear of the right-hand platform buttons (right 15 % of a 9:16 frame)', () => {
+  const { box } = styledCaption('clean');
+  const left = Number.parseFloat(box.style.left);
+  const right = left + Number.parseFloat(box.style.width);
+  expect(left).toBe(108);
+  expect(right).toBeLessThanOrEqual(1080 * 0.85);
+  // lines are laid out for exactly the box width, so a full line never reaches the buttons either
+  expect(captionMaxWidth(1080)).toBe(right - left);
+});
+
 it('wraps before the boxed padding would cross the safe area', () => {
   const { words } = styledCaption('boxed');
-  const measure = (text: string) => text.length * 170;
+  // 5 characters: 800 px fits the plain width (810), not the boxed one (810 − 32)
+  const measure = (text: string) => text.length * 160;
   expect(layoutLines(words, measure, captionMaxWidth(1080))).toEqual([[0, 1]]);
   expect(layoutLines(words, measure, captionMaxWidth(1080, 'boxed'))).toEqual([[0], [1]]);
 });
