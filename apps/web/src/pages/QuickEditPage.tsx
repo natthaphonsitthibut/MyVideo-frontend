@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { SaveStatus } from '@/components/ui/save-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BrandPanel } from '@/features/editor/BrandPanel';
 import { CaptionsPanel } from '@/features/editor/CaptionsPanel';
 import { ReframePanel } from '@/features/editor/ReframePanel';
 import { StylePanel } from '@/features/editor/StylePanel';
@@ -53,8 +54,11 @@ function Editor({ record }: { record: ProjectRecord }) {
     () =>
       store.subscribe((ids) => {
         const stage = stageRef.current;
-        const doc = store.doc();
-        if (doc.durationFrames !== initial.durationFrames) {
+        const doc = store.doc() as unknown as StageProject;
+        // a new/removed asset (the brand logo) is not patchable element by element: mount again
+        const assetsChanged =
+          Object.keys(doc.assets).sort().join() !== Object.keys(initial.assets).sort().join();
+        if (doc.durationFrames !== initial.durationFrames || assetsChanged) {
           setMounted(structuredClone(doc) as unknown as StageProject);
           return;
         }
@@ -166,7 +170,11 @@ function Editor({ record }: { record: ProjectRecord }) {
             <TabsTrigger value="style">สไตล์</TabsTrigger>
             <TabsTrigger value="crop">ครอบภาพ</TabsTrigger>
             <TabsTrigger value="texts">ข้อความ</TabsTrigger>
+            <TabsTrigger value="brand">แบรนด์</TabsTrigger>
           </TabsList>
+          <TabsContent value="brand">
+            <BrandPanel store={store} />
+          </TabsContent>
           <TabsContent value="crop">
             <ReframePanel
               store={store}
