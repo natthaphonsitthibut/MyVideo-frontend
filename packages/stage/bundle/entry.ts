@@ -3,7 +3,14 @@
  * sets `window.MyVideoStage`. The backend renderer opens a blank page with `stage.css` + `stage.js`, calls
  * `MyVideoStage.render.load(project, urls)` once and then `render.seek(frame)` for every frame it captures.
  */
-import { captionFont, loadCaptionFont, mountStage, type Stage, type StageProject } from '../src/index';
+import {
+  type BrandTheme,
+  captionFont,
+  loadCaptionFont,
+  mountStage,
+  type Stage,
+  type StageProject,
+} from '../src/index';
 
 export * from '../src/index';
 
@@ -34,12 +41,16 @@ let current: Stage | null = null;
 
 /** Render host: drives the stage frame by frame in a headless page (no clock, no network beyond `urls`). */
 export const render = {
-  async load(project: StageProject, urls: Record<string, string>): Promise<{ frames: number }> {
+  async load(
+    project: StageProject,
+    urls: Record<string, string>,
+    theme?: Partial<BrandTheme>,
+  ): Promise<{ frames: number }> {
     current?.destroy();
     document.documentElement.style.cssText = 'margin:0;padding:0;background:#000;';
     document.body.style.cssText = 'margin:0;padding:0;background:#000;overflow:hidden;';
     const container = document.getElementById('stage') ?? document.body;
-    current = mountStage(container, project, (id) => urls[id] ?? '');
+    current = mountStage(container, project, (id) => urls[id] ?? '', theme);
     await loadFonts();
     await Promise.all([...current.root.querySelectorAll<HTMLMediaElement>('video,audio')].map(mediaReady));
     return { frames: project.durationFrames };

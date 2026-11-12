@@ -1,3 +1,4 @@
+import { brandColor, brandFont } from './brand';
 import type { TextStyle } from './types';
 
 /** Bundled fonts only (ARCHITECTURE §7: no system fonts in a render). The host page loads these families. */
@@ -25,6 +26,14 @@ const NAMED: Record<string, TextStyle> = {
 };
 
 export function textStyleFor(style: TextStyle | undefined, ref: string | undefined): TextStyle {
-  if (style) return { ...style, fontFamily: `${style.fontFamily}, ${STAGE_FONT}` };
+  if (style) {
+    const background = brandColor(style.background);
+    return {
+      ...style,
+      fontFamily: brandFont(style.fontFamily) ?? `${style.fontFamily}, ${STAGE_FONT}`,
+      color: brandColor(style.color) ?? style.color,
+      ...(background ? { background } : {}),
+    };
+  }
   return NAMED[ref ?? ''] ?? (NAMED.body as TextStyle);
 }

@@ -55,6 +55,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/brand-kit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The merchant's brand kit (defaults when never saved) */
+        get: operations["getBrandKit"];
+        /** Save colours, font and default call-to-action */
+        put: operations["saveBrandKit"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/brand-kit/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The logo image */
+        get: operations["getBrandLogo"];
+        /** Upload the logo (raw image body: PNG, JPEG or WebP, max 2 MB) */
+        put: operations["uploadBrandLogo"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clip-suggestions/{id}/discard": {
         parameters: {
             query?: never;
@@ -601,6 +637,24 @@ export interface components {
             message: string;
             statusCode: number;
         };
+        BrandKit: {
+            accentColor: string;
+            defaultCta: string;
+            /** @enum {string} */
+            font: "noto-sans-thai";
+            hasLogo: boolean;
+            primaryColor: string;
+            textColor: string;
+            updatedAt: string | null;
+        };
+        BrandKitBody: {
+            accentColor: string;
+            defaultCta: string;
+            /** @enum {string} */
+            font: "noto-sans-thai";
+            primaryColor: string;
+            textColor: string;
+        };
         BuildClipsBody: {
             styleId: string;
         };
@@ -771,6 +825,8 @@ export interface components {
             width: number;
         };
         ProjectAsset: {
+            /** @constant */
+            brandLogo?: true;
             durationFrames: number;
             hasAudio: boolean;
             height?: number;
@@ -1340,6 +1396,124 @@ export interface operations {
             };
             /** @description Not signed in */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getBrandKit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Brand kit */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandKit"];
+                };
+            };
+        };
+    };
+    saveBrandKit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrandKitBody"];
+            };
+        };
+        responses: {
+            /** @description Saved brand kit */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandKit"];
+                };
+            };
+            /** @description Invalid body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getBrandLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No logo uploaded */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    uploadBrandLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved brand kit */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandKit"];
+                };
+            };
+            /** @description Logo too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Not a PNG/JPEG/WebP image */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };

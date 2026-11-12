@@ -1,4 +1,5 @@
 import { frameToMs } from '@myvideo/timeline-core';
+import { type BrandTheme, brandVars } from './brand';
 import { applyActiveWord, buildCaptionNode } from './captions';
 import { frameState, type VisibleElement } from './frame-state';
 import { animationKeyframes } from './presets';
@@ -51,11 +52,17 @@ function transformCss(e: StageElement, v: Record<string, number>): string {
  * the frame (`frameState`); animations are paused WAAPI effects whose time is set from the frame — never the
  * wall clock — so preview and render draw the same pixels for the same frame.
  */
-export function mountStage(container: HTMLElement, project: StageProject, resolve: AssetResolver): Stage {
+export function mountStage(
+  container: HTMLElement,
+  project: StageProject,
+  resolve: AssetResolver,
+  /** The merchant's current brand kit: brand tokens in element styles resolve to it (E08-F08). */
+  theme?: Partial<BrandTheme>,
+): Stage {
   let p = structuredClone(project);
   const root = document.createElement('div');
   root.dataset.stage = '';
-  root.style.cssText = `position:relative;width:${p.width}px;height:${p.height}px;overflow:hidden;background:#000;contain:strict;`;
+  root.style.cssText = `position:relative;width:${p.width}px;height:${p.height}px;overflow:hidden;background:#000;contain:strict;${brandVars(theme)};`;
   container.appendChild(root);
   const nodes = new Map<string, Node>();
   const videos = new Map<string, { group: VideoGroup; el: HTMLVideoElement; active?: string }>();

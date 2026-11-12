@@ -42,6 +42,95 @@
         ],
         "type": "object"
       },
+      "BrandKit": {
+        "additionalProperties": false,
+        "properties": {
+          "accentColor": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "defaultCta": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          },
+          "font": {
+            "enum": [
+              "noto-sans-thai"
+            ],
+            "type": "string"
+          },
+          "hasLogo": {
+            "type": "boolean"
+          },
+          "primaryColor": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "textColor": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryColor",
+          "accentColor",
+          "textColor",
+          "font",
+          "defaultCta",
+          "hasLogo",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "BrandKitBody": {
+        "additionalProperties": false,
+        "properties": {
+          "accentColor": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "defaultCta": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          },
+          "font": {
+            "enum": [
+              "noto-sans-thai"
+            ],
+            "type": "string"
+          },
+          "primaryColor": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "textColor": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "primaryColor",
+          "accentColor",
+          "textColor",
+          "font",
+          "defaultCta"
+        ],
+        "type": "object"
+      },
       "BuildClipsBody": {
         "additionalProperties": false,
         "properties": {
@@ -830,6 +919,10 @@
       "ProjectAsset": {
         "additionalProperties": false,
         "properties": {
+          "brandLogo": {
+            "const": true,
+            "type": "boolean"
+          },
           "durationFrames": {
             "maximum": 9007199254740991,
             "minimum": 1,
@@ -2746,11 +2839,11 @@
             "type": "string"
           },
           "background": {
-            "pattern": "^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$",
+            "pattern": "^(#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?|brand:(primary|accent|text))$",
             "type": "string"
           },
           "color": {
-            "pattern": "^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$",
+            "pattern": "^(#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?|brand:(primary|accent|text))$",
             "type": "string"
           },
           "fontFamily": {
@@ -3260,6 +3353,149 @@
         "summary": "Current user and merchant",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/brand-kit": {
+      "get": {
+        "operationId": "getBrandKit",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandKit"
+                }
+              }
+            },
+            "description": "Brand kit"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The merchant's brand kit (defaults when never saved)",
+        "tags": [
+          "brand"
+        ]
+      },
+      "put": {
+        "operationId": "saveBrandKit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrandKitBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandKit"
+                }
+              }
+            },
+            "description": "Saved brand kit"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Invalid body"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Save colours, font and default call-to-action",
+        "tags": [
+          "brand"
+        ]
+      }
+    },
+    "/brand-kit/logo": {
+      "get": {
+        "operationId": "getBrandLogo",
+        "responses": {
+          "200": {
+            "description": "Image"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No logo uploaded"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The logo image",
+        "tags": [
+          "brand"
+        ]
+      },
+      "put": {
+        "operationId": "uploadBrandLogo",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandKit"
+                }
+              }
+            },
+            "description": "Saved brand kit"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Logo too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Not a PNG/JPEG/WebP image"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Upload the logo (raw image body: PNG, JPEG or WebP, max 2 MB)",
+        "tags": [
+          "brand"
         ]
       }
     },

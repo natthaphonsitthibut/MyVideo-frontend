@@ -1,6 +1,6 @@
 import type { Player, Stage, StageElement, StageProject } from '@myvideo/stage';
 import { ArrowLeft, Redo2, Undo2 } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { type ProjectRecord, useProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { CaptionsPanel } from '@/features/editor/CaptionsPanel';
 import { ReframePanel } from '@/features/editor/ReframePanel';
 import { StylePanel } from '@/features/editor/StylePanel';
 import { TextsPanel } from '@/features/editor/TextsPanel';
+import { TrimBar } from '@/features/editor/TrimBar';
 import { useEditorMeta, useEditorStore } from '@/features/editor/use-editor';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
 
@@ -36,8 +37,10 @@ export function QuickEditPage() {
 function Editor({ record }: { record: ProjectRecord }) {
   const store = useEditorStore(record);
   const { status, canUndo, canRedo } = useEditorMeta(store);
-  // the stage is mounted once from the opened version; later edits patch it element by element
-  const initial = useRef(record.doc as unknown as StageProject).current;
+  // the stage is mounted from the opened version and patched element by element; only a change of the clip's
+  // length (trim, or undoing it) mounts it again from the current document
+  const [mounted, setMounted] = useState(() => record.doc as unknown as StageProject);
+  const initial = mounted;
   const stageRef = useRef<Stage | null>(null);
   const onStage = useCallback((s: Stage | null) => {
     stageRef.current = s;
@@ -50,12 +53,41 @@ function Editor({ record }: { record: ProjectRecord }) {
     () =>
       store.subscribe((ids) => {
         const stage = stageRef.current;
-        if (!stage) return;
         const doc = store.doc();
+        if (doc.durationFrames !== initial.durationFrames) {
+          setMounted(structuredClone(doc) as unknown as StageProject);
+          return;
+        }
+        if (!stage) return;
         for (const elId of ids) stage.patch(elId, (doc.elements[elId] as StageElement | undefined) ?? null);
       }),
-    [store],
+    [store, initial],
   );
+  // space = play/pause, ←/→ = one frame (⇧ = one second); never while typing in a field
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)
+      )
+        return;
+      const p = playerRef.current;
+      if (!p || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === ' ') {
+        e.preventDefault();
+        void (p.playing ? p.pause() : p.play());
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const fps = store.doc().fps;
+        const step = e.shiftKey ? Math.round(fps.num / fps.den) : 1;
+        const max = store.doc().durationFrames - 1;
+        void p.seek(Math.max(0, Math.min(max, p.frame + (e.key === 'ArrowLeft' ? -step : step))));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [store]);
   // ⌘Z / ⇧⌘Z (not while typing in a field: the browser's own undo applies there)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -115,12 +147,19 @@ function Editor({ record }: { record: ProjectRecord }) {
         </div>
       </header>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-        <PreviewPlayer
-          project={initial}
-          onStage={onStage}
-          onPlayer={onPlayer}
-          frameClassName="h-[min(72vh,760px)]"
-        />
+        <div className="space-y-3">
+          <PreviewPlayer
+            key={initial.durationFrames}
+            project={initial}
+            onStage={onStage}
+            onPlayer={onPlayer}
+            frameClassName="h-[min(72vh,760px)]"
+          />
+          <TrimBar store={store} durationFrames={initial.durationFrames} />
+          <p className="text-xs text-muted-foreground">
+            เว้นวรรค = เล่น/หยุด · ← → = ทีละเฟรม (⇧ = ทีละวินาที) · ⌘Z = ย้อนกลับ
+          </p>
+        </div>
         <Tabs defaultValue="captions" className="min-w-0">
           <TabsList aria-label="สิ่งที่แก้ได้">
             <TabsTrigger value="captions">คำบรรยาย</TabsTrigger>

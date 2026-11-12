@@ -231,3 +231,28 @@
     min-height: 2.75rem;
   }
 }
+
+/* Quick Edit trim bar: two overlaid range inputs; only the thumbs take the pointer (E08-F09). */
+.trim-handle::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 40px;
+  border-radius: 4px;
+  background: var(--color-primary, #f5c518);
+  cursor: ew-resize;
+}
+.trim-handle::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 40px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--color-primary, #f5c518);
+  cursor: ew-resize;
+}
+.trim-handle:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
