@@ -10,6 +10,7 @@
     "includes": [
       "**",
       "!**/dist",
+      "!**/dist-bundle",
       "!**/*.md",
       "!**/openapi.json",
       "!apps/web/src/api/generated",
