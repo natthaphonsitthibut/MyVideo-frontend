@@ -55,6 +55,33 @@ export function addTextElement(a: { id: string; trackId: string; at: number; tex
   };
 }
 
+/** The AI's own words for this clip (hook, title, a quote of the seller), distinct, for the merchant to pick. */
+export function aiTextOptions(
+  clip: { hook: string | null; title: string; quote: string | null } | undefined,
+): { kind: string; text: string }[] {
+  if (!clip) return [];
+  const out: { kind: string; text: string }[] = [];
+  const add = (kind: string, t: string | null) => {
+    const text = t?.normalize('NFC').trim();
+    if (text && !out.some((o) => o.text === text)) out.push({ kind, text: text.slice(0, 500) });
+  };
+  add('หัวคลิป', clip.hook);
+  add('ชื่อคลิป', clip.title);
+  add('คำพูดเด่น', clip.quote);
+  return out;
+}
+
+/** The clip's opening text (the hook): the earliest text that starts in the first second. */
+export function openingTextId(d: {
+  fps: { num: number; den: number };
+  elements: Record<string, { type: string; id?: string; startFrame?: number }>;
+}): string | undefined {
+  const second = Math.round(d.fps.num / d.fps.den);
+  return Object.values(d.elements)
+    .filter((e) => e.type === 'text' && (e.startFrame ?? 0) < second)
+    .sort((a, b) => (a.startFrame ?? 0) - (b.startFrame ?? 0))[0]?.id;
+}
+
 export function removeElement(id: string): Command {
   return {
     label: 'remove element',

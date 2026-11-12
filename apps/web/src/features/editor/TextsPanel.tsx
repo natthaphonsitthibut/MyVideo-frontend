@@ -1,10 +1,18 @@
 import { formatTimecode, setText } from '@myvideo/timeline-core';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useState, useSyncExternalStore } from 'react';
+import { useClips } from '@/api/clips';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { EditorStore } from './editor-store';
-import { addTextElement, ENTRANCES, removeElement, setEntrance } from './text-elements';
+import {
+  addTextElement,
+  aiTextOptions,
+  ENTRANCES,
+  openingTextId,
+  removeElement,
+  setEntrance,
+} from './text-elements';
 import { useElement } from './use-editor';
 
 type TextEl = {
@@ -17,7 +25,24 @@ type TextEl = {
 };
 
 /** The on-screen texts of the clip (opening title, price tags, product name, closing card), editable in place. */
-export function TextsPanel({ store, playhead }: { store: EditorStore; playhead: () => number }) {
+export function TextsPanel({
+  store,
+  playhead,
+  sourceId,
+  projectId,
+}: {
+  store: EditorStore;
+  playhead: () => number;
+  sourceId?: string;
+  projectId: string;
+}) {
+  const clips = useClips(sourceId ?? '', Boolean(sourceId));
+  const options = aiTextOptions(clips.data?.clips.find((c) => c.projectId === projectId));
+  const pickHook = (text: string) => {
+    const opening = openingTextId(store.doc() as never);
+    if (opening) store.run(setText(opening, text));
+    else store.run(addTextElement({ id: crypto.randomUUID(), trackId: crypto.randomUUID(), at: 0, text }));
+  };
   // the list of text ids changes only when elements are added/removed (rare): read it as a joined string
   const ids = useSyncExternalStore(store.subscribe, () =>
     Object.values(store.doc().elements)
@@ -38,6 +63,28 @@ export function TextsPanel({ store, playhead }: { store: EditorStore; playhead: 
     );
   return (
     <div className="space-y-3">
+      {options.length > 0 ? (
+        <div className="space-y-2 rounded-lg border bg-card p-3" data-testid="ai-text-options">
+          <p className="flex items-center gap-1.5 text-sm font-medium">
+            <Sparkles className="size-4 text-amber-300" aria-hidden />
+            ข้อความที่ AI เสนอ — กดเพื่อใช้เป็นหัวคลิป
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {options.map((o) => (
+              <button
+                key={o.text}
+                type="button"
+                className="min-h-11 rounded-lg border bg-background px-3 py-2 text-left text-sm hover:bg-muted"
+                onClick={() => pickHook(o.text)}
+                data-testid="ai-text-option"
+              >
+                <span className="block text-xs text-muted-foreground">{o.kind}</span>
+                {o.text}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <Button variant="secondary" onClick={add} data-testid="add-text">
         <Plus />
         เพิ่มข้อความตรงตำแหน่งที่เล่นอยู่

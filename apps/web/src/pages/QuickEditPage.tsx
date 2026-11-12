@@ -193,7 +193,12 @@ function Editor({ record }: { record: ProjectRecord }) {
             />
           </TabsContent>
           <TabsContent value="texts">
-            <TextsPanel store={store} playhead={() => playerRef.current?.frame ?? 0} />
+            <TextsPanel
+              store={store}
+              playhead={() => playerRef.current?.frame ?? 0}
+              sourceId={Object.values(initial.assets).find((a) => a.sourceId)?.sourceId}
+              projectId={record.id}
+            />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { addTextElement, ENTRANCES, removeElement, setEntrance } from './text-elements';
+import {
+  addTextElement,
+  aiTextOptions,
+  ENTRANCES,
+  openingTextId,
+  removeElement,
+  setEntrance,
+} from './text-elements';
 
 const base = () => ({
   fps: { num: 30, den: 1 },
@@ -10,6 +17,36 @@ const base = () => ({
     elementIds: string[];
   }[],
   elements: {} as Record<string, Record<string, unknown>>,
+});
+
+describe('AI text options', () => {
+  it('lists hook, title and quote once each, skipping empty ones', () => {
+    expect(aiTextOptions({ hook: 'ผ้ามัดย้อม ลายนี้มีตัวเดียว', title: 'ผ้ามัดย้อม ลายนี้มีตัวเดียว', quote: null })).toEqual(
+      [{ kind: 'หัวคลิป', text: 'ผ้ามัดย้อม ลายนี้มีตัวเดียว' }],
+    );
+    expect(aiTextOptions({ hook: null, title: 'เสื้อวินเทจ', quote: ' ตัวนี้ อก 22 ' })).toEqual([
+      { kind: 'ชื่อคลิป', text: 'เสื้อวินเทจ' },
+      { kind: 'คำพูดเด่น', text: 'ตัวนี้ อก 22' },
+    ]);
+    expect(aiTextOptions(undefined)).toEqual([]);
+  });
+
+  it('the opening text is the earliest text in the first second', () => {
+    const fps = { num: 30, den: 1 };
+    expect(
+      openingTextId({
+        fps,
+        elements: {
+          v: { type: 'video', id: 'v', startFrame: 0 },
+          late: { type: 'text', id: 'late', startFrame: 300 },
+          hook: { type: 'text', id: 'hook', startFrame: 3 },
+        },
+      }),
+    ).toBe('hook');
+    expect(
+      openingTextId({ fps, elements: { late: { type: 'text', id: 'late', startFrame: 300 } } }),
+    ).toBeUndefined();
+  });
 });
 
 describe('on-screen text elements', () => {
