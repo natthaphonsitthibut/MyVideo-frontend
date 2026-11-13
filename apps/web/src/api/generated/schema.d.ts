@@ -826,7 +826,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Correct one word of the ready transcript (stored as a user layer; the ASR original is kept) */
+        /** Correct or remove (empty text) one word of the ready transcript (stored as a user layer; the ASR original is kept) */
         put: operations["editTranscriptWord"];
         post?: never;
         /** Remove the correction of one word (back to the ASR text) */
@@ -2278,6 +2278,7 @@ export interface components {
         };
         TranscriptWord: {
             aiFixed: boolean;
+            deleted: boolean;
             endMs: number;
             heard: string | null;
             kind: string;

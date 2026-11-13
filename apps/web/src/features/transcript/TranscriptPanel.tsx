@@ -1,14 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
+  Check,
   ChevronDown,
   ChevronUp,
   CircleAlert,
   LocateFixed,
   RotateCcw,
   Search,
-  Sparkles,
+  Trash2,
   Undo2,
+  X,
 } from 'lucide-react';
 import {
   type KeyboardEvent,
@@ -309,12 +311,8 @@ function TranscriptViewer({
           onAccept={(t) => review.mutate({ seq: t.seq, index: t.index })}
           onEdit={(t) => setEditing({ seq: t.seq, index: t.index })}
           onRevert={(t) => save(t.seq, t.index, null)}
+          onClose={() => setFocus(null)}
         />
-        {summary.aiFixed > 0 ? (
-          <p className="text-xs text-muted-foreground">
-            ✦ สีเหลือง = AI แก้ให้ รอคุณตรวจ · เส้นประ = AI แก้และตรวจแล้ว · ดับเบิลคลิกคำเพื่อแก้เอง
-          </p>
-        ) : null}
         <div className="flex items-center gap-1">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -427,23 +425,19 @@ function TranscriptViewer({
                             data-start={w.startMs}
                             data-seq={seg.seq}
                             data-wi={wi}
-                            data-edited={w.original !== null ? '' : undefined}
+                            data-edited={w.original !== null && !w.deleted ? '' : undefined}
+                            data-deleted={w.deleted ? '' : undefined}
                             data-ai-fixed={wordMarking(w).ai ? '' : undefined}
-                            data-needs-review={w.needsReview ? '' : undefined}
                             data-review-focus={
                               focused?.seq === seg.seq && focused.index === wi ? '' : undefined
                             }
                             tabIndex={w.needsReview ? -1 : undefined}
-                            title={wordMarking(w).title}
-                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-muted-foreground/60 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-needs-review:bg-amber-100 data-needs-review:text-amber-950 data-needs-review:no-underline data-review-focus:ring-2 data-review-focus:ring-amber-500"
+                            title={
+                              w.deleted ? `ลบแล้ว: ${w.original ?? ''} (ดับเบิลคลิกเพื่อคืน)` : wordMarking(w).title
+                            }
+                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-muted-foreground/50 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-deleted:text-xs data-deleted:text-muted-foreground/60 data-deleted:line-through data-review-focus:ring-2 data-review-focus:ring-amber-500"
                           >
-                            {w.text}
-                            {w.needsReview ? (
-                              <Sparkles
-                                className="ml-0.5 inline size-3 align-super text-amber-600"
-                                aria-hidden
-                              />
-                            ) : null}
+                            {w.deleted ? w.original : w.text}
                           </span>
                         ),
                       )}
@@ -470,12 +464,12 @@ function TranscriptViewer({
         <CreateClipBar range={selected} words={allWords} source={clipSource} onClear={clearSelection} />
       ) : (
         <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">
-          กดคำเพื่อไปที่ช่วงนั้น · ลากคลุมคำเพื่อสร้างคลิป · ดับเบิลคลิกคำเพื่อแก้
+          กดคำเพื่อไปที่ช่วงนั้น · ลากคลุมคำเพื่อสร้างคลิป · ดับเบิลคลิกคำเพื่อแก้หรือลบ
         </p>
       )}
       {edit.isError ? (
         <p role="alert" className="px-3 pb-2 text-xs text-destructive">
-          บันทึกคำที่แก้ไม่สำเร็จ ลองอีกครั้ง
+          บันทึกคำไม่สำเร็จ ลองอีกครั้ง
         </p>
       ) : null}
     </section>
@@ -496,14 +490,22 @@ function WordEditor({
   onRevert: () => void;
   onCancel: () => void;
 }) {
-  const [value, setValue] = useState(word.text);
+  const [value, setValue] = useState(word.deleted ? (word.original ?? '') : word.text);
   const submit = () => {
     const text = value.normalize('NFC').trim();
-    if (!text || text === word.text) onCancel();
+    // an emptied box removes the word (same as the remove button)
+    if (text === word.text && !word.deleted) onCancel();
     else onSave(text);
   };
+  const stop = (e: MouseEvent<HTMLElement>) => e.stopPropagation();
   return (
-    <span className="mr-[0.2em] inline-flex items-center gap-1 align-middle">
+    // biome-ignore lint/a11y/noStaticElementInteractions: only keeps clicks in the editor from seeking the video
+    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard handling lives on the input and buttons
+    <span
+      className="mr-[0.2em] inline-flex flex-wrap items-center gap-1 align-middle"
+      onClick={stop}
+      onDoubleClick={stop}
+    >
       <input
         // biome-ignore lint/a11y/noAutofocus: the editor opens on an explicit double-click; focus belongs in it
         autoFocus
@@ -520,12 +522,37 @@ function WordEditor({
             onCancel();
           }
         }}
-        onClick={(e) => e.stopPropagation()}
-        aria-label={`แก้คำ “${word.text}” (Enter บันทึก, Esc ยกเลิก)`}
+        aria-label={`แก้คำ “${word.text || word.original || ''}” (Enter บันทึก, Esc ยกเลิก)`}
         className="h-7 rounded-md border border-primary bg-background px-1.5 text-[15px] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         style={{ width: `${Math.max(4, value.length + 2)}ch` }}
         data-testid="word-editor"
       />
+      <Button
+        type="button"
+        size="sm"
+        className="h-7 px-2 text-xs"
+        disabled={saving}
+        onClick={submit}
+        data-testid="word-save"
+      >
+        <Check />
+        บันทึก
+      </Button>
+      {word.deleted ? null : (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+          disabled={saving}
+          onClick={() => onSave('')}
+          title="เอาคำนี้ออกจากคำถอดเสียงและซับ (เสียงในวิดีโอยังอยู่)"
+          data-testid="word-delete"
+        >
+          <Trash2 />
+          ลบคำ
+        </Button>
+      )}
       {wordMarking(word).canRevert ? (
         <Button
           type="button"
@@ -533,16 +560,24 @@ function WordEditor({
           variant="ghost"
           className="h-7 px-2 text-xs"
           disabled={saving}
-          onClick={(e) => {
-            e.stopPropagation();
-            onRevert();
-          }}
+          onClick={onRevert}
           title={`คืนเป็น “${wordMarking(word).heard}”`}
         >
           <Undo2 />
           คืนค่าเดิม
         </Button>
       ) : null}
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2 text-xs"
+        disabled={saving}
+        onClick={onCancel}
+        aria-label="ยกเลิกการแก้"
+      >
+        <X />
+      </Button>
     </span>
   );
 }

@@ -6649,6 +6649,9 @@
           "aiFixed": {
             "type": "boolean"
           },
+          "deleted": {
+            "type": "boolean"
+          },
           "endMs": {
             "maximum": 9007199254740991,
             "minimum": -9007199254740991,
@@ -6702,7 +6705,8 @@
           "aiFixed",
           "heard",
           "mergedInto",
-          "needsReview"
+          "needsReview",
+          "deleted"
         ],
         "type": "object"
       },
@@ -6711,7 +6715,6 @@
         "properties": {
           "text": {
             "maxLength": 200,
-            "minLength": 1,
             "type": "string"
           }
         },
@@ -10087,7 +10090,7 @@
             "session": []
           }
         ],
-        "summary": "Correct one word of the ready transcript (stored as a user layer; the ASR original is kept)",
+        "summary": "Correct or remove (empty text) one word of the ready transcript (stored as a user layer; the ASR original is kept)",
         "tags": [
           "transcripts"
         ]

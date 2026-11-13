@@ -100,6 +100,17 @@ describe('buildClipDoc', () => {
     }
   });
 
+  it('a removed word (empty text) gets no caption, but the clip still covers its audio', () => {
+    const withRemoved = WORDS.map((w, i) => (i === 1 ? { ...w, text: '' } : w));
+    const d = buildClipDoc({ source: SOURCE, words: withRemoved, measure, newId });
+    const texts = Object.values(d.elements).flatMap((e) =>
+      e.type === 'caption' ? e.words.map((w) => w.text) : [],
+    );
+    expect(texts).toEqual(['ตัว', 'ราคา 390 บาทนะ', 'ผ้า', 'นิ่ม', 'มาก']);
+    expect(d.durationFrames).toBe(doc.durationFrames);
+    expect(clipTitle(withRemoved.slice(0, 5))).toBe('ตัวราคา 390 บาท');
+  });
+
   it('lists every element on its track exactly once', () => {
     const listed = doc.tracks.flatMap((t) => t.elementIds);
     expect(listed.sort()).toEqual(Object.keys(doc.elements).sort());

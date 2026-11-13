@@ -40,7 +40,9 @@ const isThai = (ch: string | undefined) => !!ch && ch >= '฀' && ch <= '๿';
 
 /** A readable title from the words: Thai joined without spaces, a space next to numbers/Latin; ≤ 40 chars. */
 export function clipTitle(words: readonly { text: string }[]): string {
-  const glued = glueWords(words.map((w) => ({ text: w.text, startFrame: 0, endFrame: 0 })));
+  const glued = glueWords(
+    words.filter((w) => w.text.trim() !== '').map((w) => ({ text: w.text, startFrame: 0, endFrame: 0 })),
+  );
   let out = '';
   for (const w of glued) {
     const sep = out && !(isThai(out.at(-1)) && isThai(w.text[0])) ? ' ' : '';
@@ -70,7 +72,9 @@ export function buildClipDoc({
   if (durationFrames > MAX_CLIP_SECONDS * (source.fps.num / source.fps.den))
     throw new Error(`คลิปยาวเกิน ${MAX_CLIP_SECONDS / 60} นาที เลือกคำให้น้อยลง`);
 
+  // removed or AI-merged words have no text: no caption for them (the video range still covers their audio)
   const timed: TimedWord[] = words
+    .filter((w) => w.text.trim() !== '')
     .map((w) => ({
       text: w.text,
       startFrame: Math.max(0, msToFrame(w.startMs, source.fps) - sourceInFrame),

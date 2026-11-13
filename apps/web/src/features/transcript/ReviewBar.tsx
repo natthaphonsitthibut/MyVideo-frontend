@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Pencil, Sparkles, Undo2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Pencil, Sparkles, Undo2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReviewTarget } from './review-queue';
 
@@ -15,6 +15,7 @@ export function ReviewBar({
   onAccept,
   onEdit,
   onRevert,
+  onClose,
 }: {
   aiFixed: number;
   targets: readonly ReviewTarget[];
@@ -24,31 +25,47 @@ export function ReviewBar({
   onAccept: (t: ReviewTarget) => void;
   onEdit: (t: ReviewTarget) => void;
   onRevert: (t: ReviewTarget) => void;
+  onClose: () => void;
 }) {
   if (aiFixed === 0) return null;
   const current = focus !== null ? targets[focus] : undefined;
+  // optional: the AI's wording is already used as is; walking through it is only for the merchant who wants to
   return (
     <section
-      className="space-y-2 rounded-lg border border-amber-300/70 bg-amber-50 p-2 text-sm text-amber-950"
+      className={
+        current
+          ? 'space-y-2 rounded-lg border border-amber-300/70 bg-amber-50 p-2 text-sm text-amber-950'
+          : 'flex flex-wrap items-center gap-2 text-xs text-muted-foreground'
+      }
       data-testid="review-bar"
-      aria-label="ตรวจคำที่ AI แก้"
+      aria-label="คำที่ AI ปรับ"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <Sparkles className="size-4 text-amber-600" aria-hidden />
-        <span className="font-medium" data-testid="review-count">
-          {targets.length > 0
-            ? `AI แก้ให้ ${aiFixed} คำ · รอตรวจ ${targets.length}`
-            : `AI แก้ให้ ${aiFixed} คำ · ตรวจครบแล้ว`}
-        </span>
+        <Sparkles className="size-3.5" aria-hidden />
+        <span data-testid="review-count">AI ปรับให้อ่านเป็นภาษาพูด {aiFixed} คำ · ใช้ได้เลย ไม่ต้องตรวจ</span>
         {targets.length > 0 ? (
           <span className="ml-auto flex gap-1">
-            <Button size="sm" variant="outline" onClick={() => onStep(-1)} aria-label="คำก่อนหน้า">
-              <ChevronLeft />
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => onStep(1)} data-testid="review-next">
-              {current ? 'คำถัดไป' : 'เริ่มตรวจ'}
+            {current ? (
+              <Button size="sm" variant="outline" onClick={() => onStep(-1)} aria-label="คำก่อนหน้า">
+                <ChevronLeft />
+              </Button>
+            ) : null}
+            <Button
+              size="sm"
+              variant={current ? 'outline' : 'ghost'}
+              className={current ? undefined : 'h-6 px-2 text-xs'}
+              onClick={() => onStep(1)}
+              data-testid="review-next"
+            >
+              {current ? 'คำถัดไป' : 'ดูทีละคำ'}
               <ChevronRight />
             </Button>
+            {current ? (
+              <Button size="sm" variant="ghost" onClick={onClose} data-testid="review-close">
+                <X />
+                ปิด
+              </Button>
+            ) : null}
           </span>
         ) : null}
       </div>
