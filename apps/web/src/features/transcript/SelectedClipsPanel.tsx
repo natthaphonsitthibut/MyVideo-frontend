@@ -49,7 +49,7 @@ export function SelectedClipsPanel({
           เลือกช่วงถอดเสียงและสร้างคลิปเอง
         </h2>
         <p className="text-sm text-muted-foreground">
-          ถอดเสียงเฉพาะช่วงที่เลือก แล้วบันทึกเป็นคลิปแยกพร้อมซับ ไม่ต้องให้ AI หาช่วงให้ ต้นฉบับยังอยู่เหมือนเดิม
+          แบ่งเป็นวิดีโอใหม่ตามช่วงที่เลือก พร้อมคำถอดเสียงและคลิปแก้ไขได้ จากนั้นเลือกวิดีโอใหม่ส่ง AI ต่อได้
         </p>
       </div>
       <fieldset className="space-y-3" disabled={start.isPending || busy}>
@@ -140,9 +140,22 @@ export function SelectedClipsPanel({
                   ช่วง {i + 1}: {rangeTime(c.startMs)}–{rangeTime(c.endMs)}
                 </span>
                 {c.status === 'ready' ? (
-                  <Button asChild variant="outline" size="sm">
-                    <Link to={`/clips/${c.projectId}${clipSearch}`}>เปิดคลิป</Link>
-                  </Button>
+                  <>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/clips/${c.projectId}${clipSearch}`}>เปิดคลิป</Link>
+                    </Button>
+                    {c.clipSourceId ? (
+                      <Button asChild size="sm">
+                        <Link to={`/library/${c.clipSourceId}`}>
+                          {c.sourceStatus === 'ready'
+                            ? 'ใช้วิดีโอนี้กับ AI'
+                            : c.sourceStatus === 'failed'
+                              ? 'ตรวจการเตรียมวิดีโอ'
+                              : 'กำลังเตรียมวิดีโอใหม่'}
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </>
                 ) : c.status === 'failed' || c.status === 'cancelled' ? (
                   <>
                     <span className="text-destructive">

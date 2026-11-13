@@ -1776,11 +1776,14 @@ export interface components {
         };
         SelectedClipsState: {
             clips: {
+                /** Format: uuid */
+                clipSourceId?: string;
                 endMs: number;
                 jobId: string | null;
                 progress: number;
                 /** Format: uuid */
                 projectId: string;
+                sourceStatus?: ("processing" | "ready" | "failed") | null;
                 startMs: number;
                 /** @enum {string} */
                 status: "pending" | "running" | "ready" | "failed" | "cancelled";

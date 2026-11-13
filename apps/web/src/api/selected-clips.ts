@@ -11,7 +11,11 @@ export function useSelectedClips(id: string) {
       return r.data;
     },
     refetchInterval: (q) =>
-      q.state.data?.clips.some((c) => c.status === 'pending' || c.status === 'running') ? 2000 : false,
+      q.state.data?.clips.some(
+        (c) => c.status === 'pending' || c.status === 'running' || c.sourceStatus === 'processing',
+      )
+        ? 2000
+        : false,
   });
 }
 export function useStartSelectedClips(id: string) {
