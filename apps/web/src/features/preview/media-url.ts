@@ -7,6 +7,7 @@ import { API_BASE_URL } from '@/api/client';
  */
 export function mediaUrl(asset: StageAsset, kind: 'proxy' | 'original' = 'proxy'): string {
   if (asset.brandLogo) return `${API_BASE_URL}/brand-kit/logo`;
+  if (asset.musicId) return `${API_BASE_URL}/music/${asset.musicId}/file`;
   if (asset.libraryId) return `${API_BASE_URL}/library/sounds/${encodeURIComponent(asset.libraryId)}`;
   return `${API_BASE_URL}/sources/${asset.sourceId}/assets/${kind}`;
 }

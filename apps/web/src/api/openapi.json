@@ -952,6 +952,19 @@
             ],
             "type": "string"
           },
+          "musicId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "productName": {
             "anyOf": [
               {
@@ -993,7 +1006,8 @@
           "goal",
           "length",
           "productName",
-          "productPrice"
+          "productPrice",
+          "musicId"
         ],
         "type": "object"
       },
@@ -1327,6 +1341,120 @@
         ],
         "type": "object"
       },
+      "MusicList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MusicRecord"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "MusicRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "beatsSec": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "type": "array"
+                  },
+                  "bpm": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "confidence": {
+                    "type": "number"
+                  },
+                  "dropsSec": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "type": "array"
+                  },
+                  "firstBeatSec": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "bpm",
+                  "confidence",
+                  "firstBeatSec",
+                  "beatsSec",
+                  "dropsSec"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "durationMs": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "license",
+          "status",
+          "durationMs",
+          "error",
+          "analysis"
+        ],
+        "type": "object"
+      },
       "Project": {
         "additionalProperties": false,
         "properties": {
@@ -1490,6 +1618,11 @@
           },
           "libraryId": {
             "pattern": "^[a-z0-9-]{1,64}$",
+            "type": "string"
+          },
+          "musicId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
             "type": "string"
           },
           "sourceId": {
@@ -1687,6 +1820,16 @@
               "durationFrames": {
                 "maximum": 9007199254740991,
                 "minimum": 1,
+                "type": "integer"
+              },
+              "fadeInFrames": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "fadeOutFrames": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
                 "type": "integer"
               },
               "fit": {
@@ -1921,6 +2064,16 @@
               "durationFrames": {
                 "maximum": 9007199254740991,
                 "minimum": 1,
+                "type": "integer"
+              },
+              "fadeInFrames": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "fadeOutFrames": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
                 "type": "integer"
               },
               "id": {
@@ -5351,6 +5504,57 @@
       "Track": {
         "additionalProperties": false,
         "properties": {
+          "ducking": {
+            "additionalProperties": false,
+            "properties": {
+              "attackFrames": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "gainDb": {
+                "maximum": 0,
+                "minimum": -30,
+                "type": "number"
+              },
+              "releaseFrames": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "speech": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "endFrame": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "startFrame": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "startFrame",
+                    "endFrame"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 2000,
+                "type": "array"
+              }
+            },
+            "required": [
+              "gainDb",
+              "attackFrames",
+              "releaseFrames",
+              "speech"
+            ],
+            "type": "object"
+          },
           "elementIds": {
             "items": {
               "format": "uuid",
@@ -5374,6 +5578,9 @@
             "type": "string"
           },
           "locked": {
+            "type": "boolean"
+          },
+          "music": {
             "type": "boolean"
           },
           "muted": {
@@ -6705,6 +6912,115 @@
         "summary": "Stream a product library sound (WAV, supports HTTP Range). Same for every merchant; never merchant data (D-026).",
         "tags": [
           "library"
+        ]
+      }
+    },
+    "/music": {
+      "get": {
+        "operationId": "listMusic",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MusicList"
+                }
+              }
+            },
+            "description": "Music"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Merchant-owned music library and measured beat estimates",
+        "tags": [
+          "music"
+        ]
+      },
+      "post": {
+        "operationId": "uploadMusic",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "license",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MusicRecord"
+                }
+              }
+            },
+            "description": "Background analysis queued"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Upload raw audio, max 30 MB, with merchant-supplied rights information",
+        "tags": [
+          "music"
+        ]
+      }
+    },
+    "/music/{id}/file": {
+      "get": {
+        "operationId": "getMusicFile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audio"
+          },
+          "206": {
+            "description": "Audio range"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Stream an owned music file",
+        "tags": [
+          "music"
         ]
       }
     },

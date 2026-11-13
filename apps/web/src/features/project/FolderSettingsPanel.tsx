@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SaveStatus } from '@/components/ui/save-status';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { MusicPicker } from '../editor/MusicPanel';
 import { autoRatio } from './auto-ratio';
 
 const RATIOS = [
@@ -127,6 +128,7 @@ export function FolderSettingsPanel({
         />
       </Field>
       <div className="space-y-4 border-t pt-5">
+        <MusicPicker value={shown.musicId ?? null} onChange={(musicId) => save({ musicId })} />
         <div>
           <p className="text-sm font-medium">ข้อมูลสินค้า (ไม่ใส่ก็ได้)</p>
           <p className="mt-1 text-xs text-muted-foreground">ใช้ตามที่คุณพิมพ์เท่านั้น ระบบไม่เดาชื่อหรือราคาให้</p>

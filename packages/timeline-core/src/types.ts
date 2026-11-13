@@ -40,7 +40,14 @@ type Common = {
 export type Easing = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'hold';
 export type Keyframe = { frame: number; value: number; easing: Easing };
 export type Animation = { presetId: string; durationFrames: number };
-type Media = { assetId: string; sourceInFrame: number; playbackRate: number; volume: number };
+type Media = {
+  assetId: string;
+  sourceInFrame: number;
+  playbackRate: number;
+  volume: number;
+  fadeInFrames?: number;
+  fadeOutFrames?: number;
+};
 
 export type VideoEl = Common & Media & { type: 'video'; transform: Transform; fit: string };
 export type AudioEl = Common & Media & { type: 'audio' };
@@ -64,6 +71,13 @@ export type CtaEl = Common & { type: 'cta'; label: string; transform: Transform 
 export type TimelineElement = VideoEl | AudioEl | ImageEl | TextEl | CaptionEl | ShapeEl | CtaEl;
 
 export type TimelineTrack = {
+  music?: boolean;
+  ducking?: {
+    gainDb: number;
+    attackFrames: number;
+    releaseFrames: number;
+    speech: { startFrame: number; endFrame: number }[];
+  };
   id: string;
   kind: 'video' | 'audio' | 'caption' | 'overlay';
   elementIds: string[];

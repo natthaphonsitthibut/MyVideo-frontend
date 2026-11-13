@@ -298,6 +298,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/music": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Merchant-owned music library and measured beat estimates */
+        get: operations["listMusic"];
+        put?: never;
+        /** Upload raw audio, max 30 MB, with merchant-supplied rights information */
+        post: operations["uploadMusic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/music/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream an owned music file */
+        get: operations["getMusicFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects": {
         parameters: {
             query?: never;
@@ -1081,6 +1116,8 @@ export interface components {
              */
             length: "15" | "30" | "60" | "auto";
             /** @default null */
+            musicId: string | null;
+            /** @default null */
             productName: string | null;
             /** @default null */
             productPrice: string | null;
@@ -1162,6 +1199,26 @@ export interface components {
                 role: "owner" | "editor";
             };
         };
+        MusicList: {
+            items: components["schemas"]["MusicRecord"][];
+        };
+        MusicRecord: {
+            analysis: {
+                beatsSec: number[];
+                bpm: number | null;
+                confidence: number;
+                dropsSec: number[];
+                firstBeatSec: number | null;
+            } | null;
+            durationMs: number | null;
+            error: string | null;
+            /** Format: uuid */
+            id: string;
+            license: string;
+            /** @enum {string} */
+            status: "processing" | "ready" | "failed";
+            title: string;
+        };
         Project: {
             assets: {
                 [key: string]: components["schemas"]["ProjectAsset"];
@@ -1204,6 +1261,8 @@ export interface components {
             /** @enum {string} */
             kind: "video" | "audio" | "image";
             libraryId?: string;
+            /** Format: uuid */
+            musicId?: string;
             /** Format: uuid */
             sourceId?: string;
             width?: number;
@@ -1250,6 +1309,8 @@ export interface components {
             assetId: string;
             crop?: components["schemas"]["Crop"];
             durationFrames: number;
+            fadeInFrames?: number;
+            fadeOutFrames?: number;
             /** @enum {string} */
             fit: "cover" | "contain" | "fill";
             /** Format: uuid */
@@ -1298,6 +1359,8 @@ export interface components {
             /** Format: uuid */
             assetId: string;
             durationFrames: number;
+            fadeInFrames?: number;
+            fadeOutFrames?: number;
             /** Format: uuid */
             id: string;
             keyframes?: {
@@ -1961,12 +2024,22 @@ export interface components {
             uploadMs: number;
         };
         Track: {
+            ducking?: {
+                attackFrames: number;
+                gainDb: number;
+                releaseFrames: number;
+                speech: {
+                    endFrame: number;
+                    startFrame: number;
+                }[];
+            };
             elementIds: string[];
             /** Format: uuid */
             id: string;
             /** @enum {string} */
             kind: "video" | "audio" | "caption" | "overlay";
             locked?: boolean;
+            music?: boolean;
             muted?: boolean;
         };
         TranscriptSegment: {
@@ -2746,6 +2819,83 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
+            };
+        };
+    };
+    listMusic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Music */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MusicList"];
+                };
+            };
+        };
+    };
+    uploadMusic: {
+        parameters: {
+            query: {
+                title: string;
+                license: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Background analysis queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MusicRecord"];
+                };
+            };
+        };
+    };
+    getMusicFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Audio */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Audio range */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

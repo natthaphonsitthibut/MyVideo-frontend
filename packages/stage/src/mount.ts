@@ -1,4 +1,5 @@
 import { frameToMs } from '@myvideo/timeline-core';
+import { duckingGain, fadeGain } from './audio-envelope';
 import { type BrandTheme, brandVars } from './brand';
 import { applyActiveWord, buildCaptionNode } from './captions';
 import { frameState, mediaTimeAt, type VisibleElement } from './frame-state';
@@ -76,8 +77,30 @@ export function mountStage(
   root.dataset.stage = '';
   root.style.cssText = `position:relative;width:${p.width}px;height:${p.height}px;overflow:hidden;background:#000;contain:strict;${brandVars(theme)};`;
   container.appendChild(root);
-  const volumeOf = (e: { trackId: string; volume: number }) =>
-    trackMuted(p, e.trackId) ? 0 : Math.min(1, e.volume);
+  const volumeOf = (
+    e: {
+      trackId: string;
+      volume: number;
+      startFrame?: number;
+      durationFrames?: number;
+      fadeInFrames?: number;
+      fadeOutFrames?: number;
+    },
+    frame = 0,
+  ) =>
+    trackMuted(p, e.trackId)
+      ? 0
+      : Math.min(
+          1,
+          e.volume *
+            duckingGain(p.tracks.find((t) => t.id === e.trackId)?.ducking, frame) *
+            fadeGain(
+              frame - (e.startFrame ?? 0),
+              e.durationFrames ?? p.durationFrames,
+              e.fadeInFrames,
+              e.fadeOutFrames,
+            ),
+        );
   const nodes = new Map<string, Node>();
   const videos = new Map<string, { group: VideoGroup; el: HTMLVideoElement; active?: string }>();
   /** Hidden decoders the player started early for their next cut (cleared when shown or on a seek). */
@@ -312,7 +335,7 @@ export function mountStage(
         ? `inset(${e.crop.top * 100}% ${e.crop.right * 100}% ${e.crop.bottom * 100}% ${e.crop.left * 100}%)`
         : '';
       video.el.playbackRate = e.playbackRate;
-      video.el.volume = volumeOf(e);
+      video.el.volume = volumeOf(e, frame);
       // re-seek at a cut only when the source jumps: a zoom cut continues the same time and must not stutter
       if (
         playback &&
@@ -333,6 +356,7 @@ export function mountStage(
         continue;
       }
       const e = v.element;
+      if (n.media && 'volume' in e) n.media.volume = volumeOf(e, frame);
       n.box.style.visibility = 'visible';
       n.box.style.zIndex = String(v.z);
       n.box.style.transform = transformCss(e, v.values);

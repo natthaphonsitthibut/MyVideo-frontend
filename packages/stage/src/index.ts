@@ -1,3 +1,4 @@
+export * from './audio-envelope';
 export * from './brand';
 export * from './caption-layout';
 export * from './captions';
@@ -5,6 +6,7 @@ export * from './frame-state';
 export * from './graphics';
 export * from './motion';
 export * from './mount';
+export * from './music-project';
 export * from './player';
 export * from './presets';
 export * from './styles';
