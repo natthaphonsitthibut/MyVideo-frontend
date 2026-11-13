@@ -41,7 +41,7 @@ import { cn } from '@/lib/utils';
 import { ReviewBar } from './ReviewBar';
 import { type ReviewTarget, reviewSummary, reviewTargets, stepTarget } from './review-queue';
 import { buildWordIndex, findSegmentAt, findWordAt, searchSegments } from './word-index';
-import { wordMarking } from './word-marking';
+import { gapAfter, wordMarking } from './word-marking';
 
 type VideoRef = RefObject<HTMLVideoElement | null>;
 const EMPTY: TranscriptSegment[] = [];
@@ -428,6 +428,7 @@ function TranscriptViewer({
                             data-edited={w.original !== null && !w.deleted ? '' : undefined}
                             data-deleted={w.deleted ? '' : undefined}
                             data-number={/\d/.test(w.text) ? '' : undefined}
+                            data-gap={gapAfter(seg.words, wi) ? '' : undefined}
                             data-ai-fixed={wordMarking(w).ai ? '' : undefined}
                             data-review-focus={
                               focused?.seq === seg.seq && focused.index === wi ? '' : undefined
@@ -436,7 +437,7 @@ function TranscriptViewer({
                             title={
                               w.deleted ? `ลบแล้ว: ${w.original ?? ''} (ดับเบิลคลิกเพื่อคืน)` : wordMarking(w).title
                             }
-                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-amber-500 data-ai-fixed:decoration-2 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-deleted:text-xs data-deleted:text-muted-foreground/60 data-deleted:line-through data-number:font-semibold data-number:text-sky-700 dark:data-number:text-sky-300 data-review-focus:ring-2 data-review-focus:ring-amber-500"
+                            className="cursor-pointer rounded-sm hover:bg-muted data-gap:mr-[0.25em] data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-amber-500 data-ai-fixed:decoration-2 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-deleted:text-xs data-deleted:text-muted-foreground/60 data-deleted:line-through data-number:font-semibold data-number:text-sky-700 dark:data-number:text-sky-300 data-review-focus:ring-2 data-review-focus:ring-amber-500"
                           >
                             {w.deleted ? w.original : w.text}
                           </span>
