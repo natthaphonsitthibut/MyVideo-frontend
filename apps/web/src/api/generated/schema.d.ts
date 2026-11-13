@@ -811,7 +811,8 @@ export interface paths {
         get: operations["listTimings"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Clear all timing history including active entries, without cancelling work or deleting workflow data */
+        delete: operations["clearTimings"];
         options?: never;
         head?: never;
         patch?: never;
@@ -938,6 +939,9 @@ export interface components {
         ChooseFolderStyleBody: {
             lockStyle?: boolean;
             styleId: string;
+        };
+        ClearTimingsResult: {
+            cleared: number;
         };
         ClipSuggestion: {
             endMs: number;
@@ -4000,6 +4004,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TimingList"];
+                };
+            };
+        };
+    };
+    clearTimings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All existing timing entries archived */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClearTimingsResult"];
                 };
             };
         };

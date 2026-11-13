@@ -1,6 +1,7 @@
-import { Check, Copy, Download, Timer } from 'lucide-react';
+import { Check, Copy, Download, Timer, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useTimings } from '@/api/timings';
+import { errorText } from '@/api/client';
+import { useClearTimings, useTimings } from '@/api/timings';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { jobTypeLabel, RUN_KIND_LABEL, RUN_STATUS, TONE_CLASS } from '@/features/jobs/labels';
@@ -143,6 +144,7 @@ function RunCard({ run }: { run: TimingRun }) {
 /** Measured times of every processing step — numbers for the presentation, copied or downloaded as a table. */
 export function TimingsPage() {
   const timings = useTimings();
+  const clear = useClearTimings();
   const [copied, setCopied] = useState(false);
   const items = timings.data?.items ?? [];
   const csv = () => timingsCsv(items);
@@ -156,7 +158,11 @@ export function TimingsPage() {
           </p>
         </div>
         {items.length ? (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" disabled={clear.isPending} onClick={() => clear.mutate()}>
+              <Trash2 aria-hidden />
+              {clear.isPending ? 'กำลังล้าง…' : 'ล้างทั้งหมด'}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -188,6 +194,15 @@ export function TimingsPage() {
           </div>
         ) : null}
       </header>
+      {clear.isError ? (
+        <p role="alert" className="text-sm text-destructive">
+          {errorText(clear.error)}
+        </p>
+      ) : clear.isSuccess ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          ล้างประวัติทั้งหมดแล้ว {clear.data.cleared} รายการ งานเบื้องหลังยังทำต่อ
+        </p>
+      ) : null}
       {timings.isPending ? (
         <Skeleton className="h-40 w-full" aria-label="กำลังโหลด…" />
       ) : timings.isError ? (

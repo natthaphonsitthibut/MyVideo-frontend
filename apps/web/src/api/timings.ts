@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError, api, type Schemas } from './client';
 
 export type TimingList = Schemas['TimingList'];
@@ -15,5 +15,16 @@ export function useTimings(limit = 50) {
       return data;
     },
     refetchInterval: (q) => (q.state.data?.items.some((r) => ACTIVE.has(r.status)) ? 3000 : false),
+  });
+}
+export function useClearTimings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const r = await api.DELETE('/timings');
+      if (!r.data) throw new ApiError(r.response.status, r.error);
+      return r.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['timings'] }),
   });
 }

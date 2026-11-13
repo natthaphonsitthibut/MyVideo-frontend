@@ -225,6 +225,20 @@
         ],
         "type": "object"
       },
+      "ClearTimingsResult": {
+        "additionalProperties": false,
+        "properties": {
+          "cleared": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cleared"
+        ],
+        "type": "object"
+      },
       "ClipSuggestion": {
         "additionalProperties": false,
         "properties": {
@@ -8057,6 +8071,30 @@
       }
     },
     "/timings": {
+      "delete": {
+        "operationId": "clearTimings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClearTimingsResult"
+                }
+              }
+            },
+            "description": "All existing timing entries archived"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Clear all timing history including active entries, without cancelling work or deleting workflow data",
+        "tags": [
+          "jobs"
+        ]
+      },
       "get": {
         "operationId": "listTimings",
         "parameters": [
