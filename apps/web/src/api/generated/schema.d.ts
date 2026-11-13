@@ -1263,6 +1263,20 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
@@ -1272,6 +1286,11 @@ export interface components {
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "video";
             volume: number;
@@ -1290,6 +1309,20 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             /** @enum {string} */
             origin: "ai" | "user" | "template";
             playbackRate: number;
@@ -1297,6 +1330,11 @@ export interface components {
             startFrame: number;
             /** Format: uuid */
             trackId: string;
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "audio";
             volume: number;
@@ -1326,6 +1364,20 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
@@ -1335,6 +1387,11 @@ export interface components {
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "image";
         } | {
@@ -1359,6 +1416,20 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
@@ -1368,6 +1439,11 @@ export interface components {
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "text";
         } | {
@@ -1392,6 +1468,20 @@ export interface components {
             };
             lines: number[][];
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
@@ -1401,6 +1491,11 @@ export interface components {
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "caption";
             words: components["schemas"]["CaptionWord"][];
@@ -1427,6 +1522,20 @@ export interface components {
                 }[];
             };
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
@@ -1437,6 +1546,11 @@ export interface components {
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "shape";
             width: number;
@@ -1462,6 +1576,20 @@ export interface components {
             };
             label: string;
             locked?: boolean;
+            motion?: {
+                /** @enum {string} */
+                component: "hook-title" | "price-tag" | "promo-badge" | "stat-counter" | "review-card" | "feature-callout" | "step-list" | "before-after" | "lower-third" | "cta-card" | "logo-sting" | "live-comment" | "sticker-pop";
+                /** @enum {string} */
+                energy: "calm" | "gentle" | "normal" | "lively" | "hype";
+                evidence?: {
+                    /** @enum {string} */
+                    kind: "merchant" | "transcript" | "chat";
+                    quote: string;
+                    sourceFrame?: number;
+                    /** Format: uuid */
+                    sourceId?: string;
+                };
+            };
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
@@ -1470,6 +1598,11 @@ export interface components {
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
+            transition?: {
+                /** @enum {string} */
+                kind: "hard" | "match" | "whip" | "flash" | "dip" | "zoom-punch" | "slide-push" | "iris" | "flood" | "light-leak" | "glitch";
+                motivation: string;
+            };
             /** @constant */
             type: "cta";
         };

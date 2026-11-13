@@ -20,6 +20,17 @@ type Common = {
   durationFrames: number;
   origin: 'ai' | 'user' | 'template';
   locked?: boolean;
+  motion?: {
+    component: string;
+    energy: 'calm' | 'gentle' | 'normal' | 'lively' | 'hype';
+    evidence?: {
+      kind: 'merchant' | 'transcript' | 'chat';
+      quote: string;
+      sourceId?: string;
+      sourceFrame?: number;
+    };
+  };
+  transition?: { kind: string; motivation: string };
   /** Animated numeric properties, frames relative to the element start (advanced mode). */
   keyframes?: Record<string, Keyframe[]>;
   animationIn?: Animation;

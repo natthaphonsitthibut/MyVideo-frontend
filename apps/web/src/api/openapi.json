@@ -1746,6 +1746,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "opacity": {
                 "maximum": 1,
                 "minimum": 0,
@@ -1781,6 +1852,37 @@
               },
               "transform": {
                 "$ref": "#/components/schemas/Transform"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "video",
@@ -1870,6 +1972,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "origin": {
                 "enum": [
                   "ai",
@@ -1897,6 +2070,37 @@
                 "format": "uuid",
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                 "type": "string"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "audio",
@@ -2035,6 +2239,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "opacity": {
                 "maximum": 1,
                 "minimum": 0,
@@ -2067,6 +2342,37 @@
               },
               "transform": {
                 "$ref": "#/components/schemas/Transform"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "image",
@@ -2188,6 +2494,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "opacity": {
                 "maximum": 1,
                 "minimum": 0,
@@ -2221,6 +2598,37 @@
               },
               "transform": {
                 "$ref": "#/components/schemas/Transform"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "text",
@@ -2349,6 +2757,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "opacity": {
                 "maximum": 1,
                 "minimum": 0,
@@ -2393,6 +2872,37 @@
               },
               "transform": {
                 "$ref": "#/components/schemas/Transform"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "caption",
@@ -2525,6 +3035,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "opacity": {
                 "maximum": 1,
                 "minimum": 0,
@@ -2561,6 +3142,37 @@
               },
               "transform": {
                 "$ref": "#/components/schemas/Transform"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "shape",
@@ -2688,6 +3300,77 @@
               "locked": {
                 "type": "boolean"
               },
+              "motion": {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "hook-title",
+                      "price-tag",
+                      "promo-badge",
+                      "stat-counter",
+                      "review-card",
+                      "feature-callout",
+                      "step-list",
+                      "before-after",
+                      "lower-third",
+                      "cta-card",
+                      "logo-sting",
+                      "live-comment",
+                      "sticker-pop"
+                    ],
+                    "type": "string"
+                  },
+                  "energy": {
+                    "enum": [
+                      "calm",
+                      "gentle",
+                      "normal",
+                      "lively",
+                      "hype"
+                    ],
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "merchant",
+                          "transcript",
+                          "chat"
+                        ],
+                        "type": "string"
+                      },
+                      "quote": {
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "sourceFrame": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sourceId": {
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "quote"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "component",
+                  "energy"
+                ],
+                "type": "object"
+              },
               "opacity": {
                 "maximum": 1,
                 "minimum": 0,
@@ -2718,6 +3401,37 @@
               },
               "transform": {
                 "$ref": "#/components/schemas/Transform"
+              },
+              "transition": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "hard",
+                      "match",
+                      "whip",
+                      "flash",
+                      "dip",
+                      "zoom-punch",
+                      "slide-push",
+                      "iris",
+                      "flood",
+                      "light-leak",
+                      "glitch"
+                    ],
+                    "type": "string"
+                  },
+                  "motivation": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "motivation"
+                ],
+                "type": "object"
               },
               "type": {
                 "const": "cta",

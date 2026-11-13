@@ -2,6 +2,8 @@ export * from './brand';
 export * from './caption-layout';
 export * from './captions';
 export * from './frame-state';
+export * from './graphics';
+export * from './motion';
 export * from './mount';
 export * from './player';
 export * from './presets';

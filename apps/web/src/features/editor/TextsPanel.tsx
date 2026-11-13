@@ -5,6 +5,7 @@ import { useClips } from '@/api/clips';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { EditorStore } from './editor-store';
+import { GraphicsPanel } from './GraphicsPanel';
 import {
   addTextElement,
   aiTextOptions,
@@ -63,6 +64,7 @@ export function TextsPanel({
     );
   return (
     <div className="space-y-3">
+      <GraphicsPanel store={store} playhead={playhead} />
       {options.length > 0 ? (
         <div className="space-y-2 rounded-lg border bg-card p-3" data-testid="ai-text-options">
           <p className="flex items-center gap-1.5 text-sm font-medium">

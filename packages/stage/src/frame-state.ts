@@ -70,7 +70,16 @@ export function frameState(p: StageProject, frame: number): FrameState {
     for (const e of els) {
       const local = frame - e.startFrame;
       const values: Record<string, number> = {};
-      for (const [prop, kfs] of Object.entries(e.keyframes ?? {})) values[prop] = interpolate(kfs, local);
+      for (const [prop, kfs] of Object.entries(e.keyframes ?? {}))
+        values[prop] =
+          prop === 'transform.scale' && kfs.every((k) => k.value > 0)
+            ? Math.exp(
+                interpolate(
+                  kfs.map((k) => ({ ...k, value: Math.log(k.value) })),
+                  local,
+                ),
+              )
+            : interpolate(kfs, local);
       visible.push({
         id: e.id,
         element: e,

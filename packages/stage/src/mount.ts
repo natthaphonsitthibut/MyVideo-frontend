@@ -148,6 +148,27 @@ export function mountStage(
             'width:fit-content;max-width:100%;margin:0 auto;padding:0.12em 0.45em;border-radius:0.3em;box-sizing:border-box;';
         }
         inner.textContent = e.content;
+        if (e.motion) {
+          const kind = e.motion.component;
+          inner.dataset.component = kind;
+          inner.style.cssText += 'box-sizing:border-box;padding:20px 32px;border-radius:20px;';
+          if (kind === 'price-tag' || kind === 'promo-badge' || kind === 'sticker-pop')
+            inner.style.cssText +=
+              'width:fit-content;margin:0 auto;box-shadow:8px 8px 0 #00000088;border:4px solid #ffffff;border-radius:999px;';
+          if (kind === 'stat-counter')
+            inner.style.cssText +=
+              'font-variant-numeric:tabular-nums;letter-spacing:0.03em;border-bottom:8px solid #facc15;';
+          if (kind === 'review-card' || kind === 'live-comment')
+            inner.style.cssText += 'font-weight:600;text-align:left;border-left:8px solid #facc15;';
+          if (kind === 'step-list')
+            inner.style.cssText += 'text-align:left;white-space:pre-wrap;border-left:8px solid #67e8f9;';
+          if (kind === 'lower-third')
+            inner.style.cssText += 'text-align:left;border-radius:0;border-left:12px solid #facc15;';
+          if (kind === 'cta-card')
+            inner.style.cssText += 'border:4px solid #facc15;box-shadow:0 8px 32px #00000080;';
+          if (kind === 'feature-callout')
+            inner.style.cssText += 'border-bottom:8px solid #67e8f9;border-radius:12px 12px 0 12px;';
+        }
         break;
       }
       case 'shape': {
@@ -155,6 +176,9 @@ export function mountStage(
         const h = e.height ?? 100;
         box.style.cssText += `left:50%;top:50%;width:${w}px;height:${h}px;margin:${-h / 2}px 0 0 ${-w / 2}px;`;
         inner.style.background = e.fill ?? '#ffffff';
+        if (e.transition?.kind === 'light-leak')
+          inner.style.background =
+            'linear-gradient(115deg,transparent 10%,#fb923c 55%,#fef3c7 70%,transparent 90%)';
         inner.style.borderRadius = e.shape === 'ellipse' ? '50%' : `${e.radius ?? 0}px`;
         break;
       }
@@ -313,6 +337,18 @@ export function mountStage(
       n.box.style.zIndex = String(v.z);
       n.box.style.transform = transformCss(e, v.values);
       n.box.style.opacity = String(v.values.opacity ?? e.opacity ?? 1);
+      n.inner.style.clipPath =
+        v.values.reveal === undefined
+          ? ''
+          : e.motion?.component === 'before-after'
+            ? `inset(0 ${100 - Math.max(0, Math.min(1, v.values.reveal)) * 100}% 0 0)`
+            : `circle(${Math.max(0, Math.min(1, v.values.reveal)) * 150}% at 50% 50%)`;
+      n.inner.style.filter =
+        v.values.blur !== undefined
+          ? `blur(${v.values.blur}px)`
+          : v.values.glitch
+            ? 'hue-rotate(65deg) saturate(1.8)'
+            : '';
       for (const a of n.anims) a.currentTime = ms(v.local);
       if (v.activeWord !== undefined) {
         const start = e.type === 'caption' ? (e.words[v.activeWord]?.startFrame ?? v.local) : v.local;
