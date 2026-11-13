@@ -57,7 +57,9 @@ function NavItem({
 
 export function MediaNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
-  const active = ['/library', '/photos'].includes(activeNavHref(location.pathname, location.search) ?? '');
+  const active = ['/library', '/photos', '/references'].includes(
+    activeNavHref(location.pathname, location.search) ?? '',
+  );
   const [expanded, setExpanded] = useState(() => {
     try {
       return localStorage.getItem('myvideo:media-menu') !== 'closed';
@@ -111,6 +113,7 @@ export function MediaNav({ onNavigate }: { onNavigate?: () => void }) {
           <div className="ml-5 space-y-1 border-l pl-2">
             <NavItem to="/library" label="คลังวิดีโอ" icon={Film} onNavigate={onNavigate} />
             <NavItem to="/photos" label="คลังรูป" icon={Image} onNavigate={onNavigate} />
+            <NavItem to="/references" label="คลิปอ้างอิง" icon={Clapperboard} onNavigate={onNavigate} />
           </div>
         </div>
       </div>

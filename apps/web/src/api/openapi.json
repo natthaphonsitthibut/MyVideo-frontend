@@ -4429,6 +4429,241 @@
         ],
         "type": "object"
       },
+      "ReferenceCreateBody": {
+        "additionalProperties": false,
+        "properties": {
+          "sourceId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "title"
+        ],
+        "type": "object"
+      },
+      "ReferenceStyleList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceStyleRecord"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "ReferenceStyleRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "grammar": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "captionBand": {
+                    "anyOf": [
+                      {
+                        "maximum": 1,
+                        "minimum": 0,
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "colours": {
+                    "items": {
+                      "pattern": "^#[0-9a-f]{6}$",
+                      "type": "string"
+                    },
+                    "maxItems": 6,
+                    "type": "array"
+                  },
+                  "cutsMs": {
+                    "items": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "durationMs": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "medianShotMs": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "rhythm": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "beatsSec": {
+                            "items": {
+                              "type": "number"
+                            },
+                            "type": "array"
+                          },
+                          "bpm": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "confidence": {
+                            "type": "number"
+                          },
+                          "dropsSec": {
+                            "items": {
+                              "type": "number"
+                            },
+                            "type": "array"
+                          },
+                          "firstBeatSec": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "bpm",
+                          "confidence",
+                          "firstBeatSec",
+                          "beatsSec",
+                          "dropsSec"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "textSamplePeriodMs": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "textSamples": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "atMs": {
+                          "type": "number"
+                        },
+                        "height": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "y": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "atMs",
+                        "y",
+                        "height"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 30,
+                    "type": "array"
+                  },
+                  "visionStatus": {
+                    "enum": [
+                      "measured",
+                      "unavailable",
+                      "not_run"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "durationMs",
+                  "cutsMs",
+                  "medianShotMs",
+                  "colours",
+                  "captionBand",
+                  "textSamples",
+                  "textSamplePeriodMs",
+                  "visionStatus",
+                  "rhythm"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "sourceStatus": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "waiting",
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "styleId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "sourceId",
+          "title",
+          "status",
+          "sourceStatus",
+          "styleId",
+          "grammar",
+          "error"
+        ],
+        "type": "object"
+      },
       "RenderList": {
         "additionalProperties": false,
         "properties": {
@@ -8318,6 +8553,195 @@
         "summary": "Restore an older version as a NEW version (history is never rewritten)",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/reference-styles": {
+      "get": {
+        "operationId": "listReferenceStyles",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceStyleList"
+                }
+              }
+            },
+            "description": "References"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Merchant reference clips, never editing footage",
+        "tags": [
+          "styles"
+        ]
+      },
+      "post": {
+        "operationId": "createReferenceStyle",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferenceCreateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceStyleRecord"
+                }
+              }
+            },
+            "description": "Queued reference"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Reference not available"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Reference not available"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Mark an unused uploaded clip as reference and measure its editing grammar",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
+    "/reference-styles/{id}/lock": {
+      "post": {
+        "operationId": "lockReferenceStyle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Style locked"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Reference not available"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Reference not available"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Lock a measured merchant reference recipe for future edits",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
+    "/reference-styles/{id}/retry": {
+      "post": {
+        "operationId": "retryReferenceStyle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceStyleRecord"
+                }
+              }
+            },
+            "description": "Queued reference"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Reference not available"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Reference not available"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Retry a failed reference measurement",
+        "tags": [
+          "styles"
         ]
       }
     },

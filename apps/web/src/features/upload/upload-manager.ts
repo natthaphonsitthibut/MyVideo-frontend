@@ -158,7 +158,7 @@ export class UploadManager {
           this.patch(id, {
             status: 'error',
             sourceId: data.id,
-            error: 'วิดีโออยู่ในคลังแล้ว แต่เพิ่มเข้าโปรเจกต์ไม่สำเร็จ กด “เพิ่มจากคลังวิดีโอ” เพื่อลองอีกครั้ง',
+            error: 'อัปโหลดเสร็จแล้ว แต่จัดเก็บเข้ารายการไม่สำเร็จ ลองอีกครั้ง',
           });
           this.onSourceReady(data.id);
           return;

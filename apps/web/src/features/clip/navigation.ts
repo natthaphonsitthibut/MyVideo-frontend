@@ -33,6 +33,7 @@ export function activeNavHref(pathname: string, search: string): string | null {
   if (pathname === '/clips') return '/clips';
   if (pathname.startsWith('/projects')) return '/projects';
   if (pathname === '/photos') return '/photos';
+  if (pathname === '/references') return '/references';
   if (pathname.startsWith('/library'))
     return clipOrigin(search).menu === '/projects'
       ? '/projects'

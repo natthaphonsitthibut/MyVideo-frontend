@@ -473,6 +473,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reference-styles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Merchant reference clips, never editing footage */
+        get: operations["listReferenceStyles"];
+        put?: never;
+        /** Mark an unused uploaded clip as reference and measure its editing grammar */
+        post: operations["createReferenceStyle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reference-styles/{id}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lock a measured merchant reference recipe for future edits */
+        post: operations["lockReferenceStyle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reference-styles/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry a failed reference measurement */
+        post: operations["retryReferenceStyle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/renders": {
         parameters: {
             query?: never;
@@ -1824,6 +1876,48 @@ export interface components {
             reason: "create" | "save" | "restore" | "restyle" | "template";
             restoredFrom: number | null;
             version: number;
+        };
+        ReferenceCreateBody: {
+            /** Format: uuid */
+            sourceId: string;
+            title: string;
+        };
+        ReferenceStyleList: {
+            items: components["schemas"]["ReferenceStyleRecord"][];
+        };
+        ReferenceStyleRecord: {
+            error: string | null;
+            grammar: {
+                captionBand: number | null;
+                colours: string[];
+                cutsMs: number[];
+                durationMs: number;
+                medianShotMs: number;
+                rhythm: {
+                    beatsSec: number[];
+                    bpm: number | null;
+                    confidence: number;
+                    dropsSec: number[];
+                    firstBeatSec: number | null;
+                } | null;
+                textSamplePeriodMs: number;
+                textSamples: {
+                    atMs: number;
+                    height: number;
+                    y: number;
+                }[];
+                /** @enum {string} */
+                visionStatus: "measured" | "unavailable" | "not_run";
+            } | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sourceId: string;
+            sourceStatus: string;
+            /** @enum {string} */
+            status: "waiting" | "processing" | "ready" | "failed";
+            styleId: string | null;
+            title: string;
         };
         RenderList: {
             items: components["schemas"]["RenderSummary"][];
@@ -3445,6 +3539,146 @@ export interface operations {
                 };
             };
             /** @description Version conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    listReferenceStyles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description References */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceStyleList"];
+                };
+            };
+        };
+    };
+    createReferenceStyle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferenceCreateBody"];
+            };
+        };
+        responses: {
+            /** @description Queued reference */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceStyleRecord"];
+                };
+            };
+            /** @description Reference not available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Reference not available */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    lockReferenceStyle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Style locked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Reference not available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Reference not available */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    retryReferenceStyle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Queued reference */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceStyleRecord"];
+                };
+            };
+            /** @description Reference not available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Reference not available */
             409: {
                 headers: {
                     [name: string]: unknown;

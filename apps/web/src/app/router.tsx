@@ -92,6 +92,10 @@ export const routes: RouteObject[] = [
         path: 'photos',
         lazy: () => import('@/pages/LibraryPage').then((m) => ({ Component: m.PhotoLibraryPage })),
       },
+      {
+        path: 'references',
+        lazy: () => import('@/pages/ReferenceStylesPage').then((m) => ({ Component: m.ReferenceStylesPage })),
+      },
       // pages removed in the two-page app (D-037): old links land on the projects list
       ...['review-video', 'exports', 'brand', 'jobs', 'status'].map((path) => ({
         path,
