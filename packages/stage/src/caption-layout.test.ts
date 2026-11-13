@@ -1,11 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { buildCaptions, glueWords, layoutLines, lineText, WORD_GAP } from './caption-layout';
+import {
+  buildCaptions,
+  glueWords,
+  layoutLines,
+  lineText,
+  lintCaptionLines,
+  WORD_GAP,
+} from './caption-layout';
 
 const w = (text: string, startFrame: number, endFrame: number) => ({ text, startFrame, endFrame });
 /** Test measure: 40 px per code point, 10 px per word gap (real layout uses canvas measureText on the bundled font). */
 const measure = (s: string) => [...s].reduce((n, c) => n + (c === WORD_GAP ? 10 : 40), 0);
 
 describe('Thai token spacing', () => {
+  it('reports broken particles, number units and combining clusters without rewriting real speech', () => {
+    const words = ['ราคา', '100', 'บาท', 'ค่ะ'].map((text, i) => w(text, i, i + 1));
+    expect(lintCaptionLines(words, [[0, 1], [2], [3]])).toEqual(['number-unit:1', 'particle:2']);
+    expect(lintCaptionLines(words, layoutLines(words, measure, 280))).toEqual([]);
+    expect(lintCaptionLines([w('่', 0, 1)], [[0]])).toEqual(['thai-cluster:0']);
+  });
   it.each([
     [['ขาย', 'ราคา', 'นี้', 'ครับผม'], 'ขายราคานี้ครับผม'],
     [['รับ', 'พิม', 'น้ำ', 'มา', '100', 'บาท'], 'รับพิมน้ำมา 100 บาท'],
@@ -23,7 +36,10 @@ describe('Thai token spacing', () => {
 
   it('fits contiguous Thai exactly and still breaks at token boundaries', () => {
     const words = ['ขาย', 'ราคา', 'นี้', 'ครับผม'].map((text, i) => w(text, i, i + 1));
-    expect(layoutLines(words, measure, 280)).toEqual([[0, 1], [2], [3]]);
+    expect(layoutLines(words, measure, 280)).toEqual([
+      [0, 1],
+      [2, 3],
+    ]); // keep the polite particle with its phrase
   });
 
   it('preserves number-unit glue while removing Thai token gaps in built pages', () => {

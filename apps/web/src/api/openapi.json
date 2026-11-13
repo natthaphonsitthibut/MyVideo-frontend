@@ -669,7 +669,15 @@
                         "pop-word",
                         "boxed",
                         "outline-bold",
-                        "minimal"
+                        "minimal",
+                        "anchor",
+                        "karaoke",
+                        "keyword-underline",
+                        "stress-bounce",
+                        "number-roll",
+                        "icon-pop",
+                        "word-stack",
+                        "sticker"
                       ],
                       "type": "string"
                     },
@@ -2366,7 +2374,15 @@
                   "pop-word",
                   "boxed",
                   "outline-bold",
-                  "minimal"
+                  "minimal",
+                  "anchor",
+                  "karaoke",
+                  "keyword-underline",
+                  "stress-bounce",
+                  "number-roll",
+                  "icon-pop",
+                  "word-stack",
+                  "sticker"
                 ],
                 "type": "string"
               },
@@ -4030,7 +4046,15 @@
                   "pop-word",
                   "boxed",
                   "outline-bold",
-                  "minimal"
+                  "minimal",
+                  "anchor",
+                  "karaoke",
+                  "keyword-underline",
+                  "stress-bounce",
+                  "number-roll",
+                  "icon-pop",
+                  "word-stack",
+                  "sticker"
                 ],
                 "type": "string"
               },

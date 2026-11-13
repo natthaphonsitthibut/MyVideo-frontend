@@ -127,7 +127,14 @@ export function layoutLines(words: readonly TimedWord[], measure: Measure, maxWi
   const lines: number[][] = [];
   let line: number[] = [];
   words.forEach((_w, i) => {
-    if (line.length > 0 && measure(lineText(words, [...line, i])) > maxWidth) {
+    const prev = words[i - 1]?.text ?? '';
+    const glued =
+      PARTICLES.has(_w.text) ||
+      (UNITS.has(_w.text) && NUMBER.test(prev)) ||
+      (_w.text === '%' && NUMBER.test(prev)) ||
+      /^[\p{M}]/u.test(_w.text);
+    const measured = measure(lineText(words, [...line, i]));
+    if (line.length > 0 && !glued && measured > maxWidth) {
       lines.push(line);
       line = [i];
     } else {
@@ -136,6 +143,25 @@ export function layoutLines(words: readonly TimedWord[], measure: Measure, maxWi
   });
   if (line.length) lines.push(line);
   return lines;
+}
+
+/** Structural Thai checks over stored lines; never rewrites or invents spoken content. */
+export function lintCaptionLines(
+  words: readonly TimedWord[],
+  lines: readonly (readonly number[])[],
+): string[] {
+  const errors: string[] = [];
+  if (lines.flat().join(',') !== words.map((_, i) => i).join(',')) errors.push('word-order');
+  for (const [lineIndex, line] of lines.entries()) {
+    const first = line[0];
+    if (first === undefined) continue;
+    const text = words[first]?.text ?? '';
+    if (/^[\p{M}]/u.test(text)) errors.push(`thai-cluster:${lineIndex}`);
+    if (first > 0 && PARTICLES.has(text)) errors.push(`particle:${lineIndex}`);
+    if (first > 0 && (UNITS.has(text) || text === '%') && NUMBER.test(words[first - 1]?.text ?? ''))
+      errors.push(`number-unit:${lineIndex}`);
+  }
+  return errors;
 }
 
 export type BuildOptions = {

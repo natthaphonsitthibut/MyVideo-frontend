@@ -9,6 +9,14 @@ import type { Command } from '@myvideo/timeline-core';
 export const CAPTION_POSITIONS = { top: -420, middle: 120, bottom: 560 } as const;
 
 export const CAPTION_LOOKS: { id: string; name: string }[] = [
+  { id: 'anchor', name: 'คำบรรยายคงที่' },
+  { id: 'karaoke', name: 'คาราโอเกะ' },
+  { id: 'keyword-underline', name: 'ขีดเส้นคำสำคัญ' },
+  { id: 'stress-bounce', name: 'เด้งคำสำคัญ' },
+  { id: 'number-roll', name: 'เลื่อนตัวเลข' },
+  { id: 'icon-pop', name: 'ประกายคำสำคัญ' },
+  { id: 'word-stack', name: 'คำซ้อนชั้น' },
+  { id: 'sticker', name: 'สติกเกอร์' },
   { id: 'pop-word', name: 'เด้งทีละคำ' },
   { id: 'outline-bold', name: 'ขอบหนา' },
   { id: 'boxed', name: 'ในกล่อง' },
@@ -38,7 +46,7 @@ export function restyleCaptions(
         const { measure, maxWidth } = layoutFor(next.styleRef);
         el.styleRef = next.styleRef;
         el.transform = { ...el.transform, y: next.y };
-        el.lines = layoutLines(el.words, measure, maxWidth);
+        el.lines = layoutLines(el.words, measure, next.styleRef === 'word-stack' ? 1 : maxWidth);
       }
     },
   };

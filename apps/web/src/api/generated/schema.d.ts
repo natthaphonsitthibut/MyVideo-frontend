@@ -1023,7 +1023,7 @@ export interface components {
                 origin: "ai" | "rules" | "catalogue";
                 preview?: {
                     /** @enum {string} */
-                    captionStyle: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal";
+                    captionStyle: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal" | "anchor" | "karaoke" | "keyword-underline" | "stress-bounce" | "number-roll" | "icon-pop" | "word-stack" | "sticker";
                     captionY: number;
                     hookBackground: string | null;
                     hookColor: string;
@@ -1397,7 +1397,7 @@ export interface components {
             origin: "ai" | "user" | "template";
             startFrame: number;
             /** @enum {string} */
-            styleRef: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal";
+            styleRef: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal" | "anchor" | "karaoke" | "keyword-underline" | "stress-bounce" | "number-roll" | "icon-pop" | "word-stack" | "sticker";
             /** Format: uuid */
             trackId: string;
             transform: components["schemas"]["Transform"];
@@ -1723,7 +1723,7 @@ export interface components {
         TemplateVersion: {
             captions: {
                 /** @enum {string} */
-                styleRef: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal";
+                styleRef: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal" | "anchor" | "karaoke" | "keyword-underline" | "stress-bounce" | "number-roll" | "icon-pop" | "word-stack" | "sticker";
                 y: number;
             };
             cta: {
