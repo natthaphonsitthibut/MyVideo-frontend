@@ -635,6 +635,103 @@
                   ],
                   "type": "string"
                 },
+                "preview": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "captionStyle": {
+                      "enum": [
+                        "clean",
+                        "bold-highlight",
+                        "pop-word",
+                        "boxed",
+                        "outline-bold",
+                        "minimal"
+                      ],
+                      "type": "string"
+                    },
+                    "captionY": {
+                      "type": "number"
+                    },
+                    "hookBackground": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hookColor": {
+                      "type": "string"
+                    },
+                    "hookWeight": {
+                      "type": "number"
+                    },
+                    "hookY": {
+                      "type": "number"
+                    },
+                    "maxLines": {
+                      "type": "number"
+                    },
+                    "maxWords": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "productName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sourceId": {
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "type": "string"
+                    },
+                    "timeMs": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "words": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "endMs": {
+                            "type": "number"
+                          },
+                          "startMs": {
+                            "type": "number"
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "startMs",
+                          "endMs"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "sourceId",
+                    "timeMs",
+                    "words",
+                    "productName",
+                    "captionStyle",
+                    "captionY",
+                    "maxWords",
+                    "maxLines",
+                    "hookY",
+                    "hookWeight",
+                    "hookColor",
+                    "hookBackground"
+                  ],
+                  "type": "object"
+                },
                 "reason": {
                   "type": [
                     "string",

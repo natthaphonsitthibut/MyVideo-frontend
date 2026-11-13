@@ -1,5 +1,5 @@
 import { Check, Circle, CircleAlert, Clock, LoaderCircle, Minus, Sparkles, Wand2 } from 'lucide-react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { errorText } from '@/api/client';
 import {
   type FolderPlan,
@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 type Step = FolderPlan['steps'][number];
+const StylePreview = lazy(() => import('./StylePreview'));
 
 const ICON: Record<Step['state'], typeof Check> = {
   done: Check,
@@ -109,7 +110,7 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
                 onChange={() => setPicked(p.styleId)}
                 className="mt-1 size-4 accent-primary"
               />
-              <span className="min-w-0">
+              <div className="min-w-0 flex-1 space-y-2">
                 <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
                   {p.name}
                   {i === 0 && p.origin !== 'catalogue' ? (
@@ -117,7 +118,12 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
                   ) : null}
                 </span>
                 <span className="block text-xs text-muted-foreground">{p.reason ?? p.description}</span>
-              </span>
+                {p.preview ? (
+                  <Suspense fallback={<Skeleton className="mx-auto h-80 w-45" />}>
+                    <StylePreview preview={p.preview} />
+                  </Suspense>
+                ) : null}
+              </div>
             </label>
           );
         })}

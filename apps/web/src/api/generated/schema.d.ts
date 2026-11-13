@@ -1016,6 +1016,26 @@ export interface components {
                 name: string;
                 /** @enum {string} */
                 origin: "ai" | "rules" | "catalogue";
+                preview?: {
+                    /** @enum {string} */
+                    captionStyle: "clean" | "bold-highlight" | "pop-word" | "boxed" | "outline-bold" | "minimal";
+                    captionY: number;
+                    hookBackground: string | null;
+                    hookColor: string;
+                    hookWeight: number;
+                    hookY: number;
+                    maxLines: number;
+                    maxWords: number | null;
+                    productName: string | null;
+                    /** Format: uuid */
+                    sourceId: string;
+                    timeMs: number;
+                    words: {
+                        endMs: number;
+                        startMs: number;
+                        text: string;
+                    }[];
+                };
                 reason: string | null;
                 styleId: string;
             }[];
