@@ -11,6 +11,7 @@ import { AutoClipsPanel } from '@/features/clips/AutoClipsPanel';
 import { JOB_STATUS, TONE_CLASS } from '@/features/jobs/labels';
 import { INGEST_STEPS } from '@/features/source/ingest-steps';
 import { ProxyPlayer } from '@/features/source/ProxyPlayer';
+import { SelectedClipsPanel } from '@/features/transcript/SelectedClipsPanel';
 import { TranscriptPanel } from '@/features/transcript/TranscriptPanel';
 import { formatBytes } from '@/features/upload/upload-manager';
 import { cn } from '@/lib/utils';
@@ -135,6 +136,15 @@ export function SourcePage() {
             />
           ) : null}
         </div>
+      ) : null}
+      {s.status === 'ready' && s.hasAudio ? (
+        <SelectedClipsPanel
+          key={s.id}
+          sourceId={s.id}
+          durationMs={s.durationMs ?? 0}
+          videoRef={videoRef}
+          clipSearch={sourceClipSearch(search, s.id)}
+        />
       ) : null}
       {s.status === 'ready' && s.hasAudio ? (
         <AutoClipsPanel source={s} clipSearch={sourceClipSearch(search, s.id)} />

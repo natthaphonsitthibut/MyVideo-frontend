@@ -679,6 +679,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources/{id}/transcript/clips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest selected-range transcription clips and their durable progress */
+        get: operations["getSelectedTranscriptClips"];
+        put?: never;
+        /** Transcribe only selected ranges and save each as an editable clip, without highlight analysis */
+        post: operations["startSelectedTranscriptClips"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sources/{id}/transcript/segments": {
         parameters: {
             query?: never;
@@ -1563,6 +1581,28 @@ export interface components {
         SaveProjectBody: {
             baseVersion: number;
             doc: components["schemas"]["ProjectDraft"];
+        };
+        SelectedClipRange: {
+            endMs: number;
+            startMs: number;
+        };
+        SelectedClipsBody: {
+            ranges: components["schemas"]["SelectedClipRange"][];
+            /** Format: uuid */
+            requestId: string;
+        };
+        SelectedClipsState: {
+            clips: {
+                endMs: number;
+                jobId: string | null;
+                progress: number;
+                /** Format: uuid */
+                projectId: string;
+                startMs: number;
+                /** @enum {string} */
+                status: "pending" | "running" | "ready" | "failed" | "cancelled";
+            }[];
+            runId: string | null;
         };
         SourceDependents: {
             projects: {
@@ -3600,6 +3640,90 @@ export interface operations {
             };
             /** @description Too many unfinished runs for this merchant (back-pressure) */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getSelectedTranscriptClips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Selected clips */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelectedClipsState"];
+                };
+            };
+            /** @description Source not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    startSelectedTranscriptClips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelectedClipsBody"];
+            };
+        };
+        responses: {
+            /** @description Selected-range transcription queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelectedClipsState"];
+                };
+            };
+            /** @description Invalid ranges */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Source not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Source not ready or silent */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

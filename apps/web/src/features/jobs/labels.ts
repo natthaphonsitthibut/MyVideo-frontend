@@ -22,6 +22,7 @@ const JOB_TYPE_LABEL: Record<string, string> = {
   'media.sprites': 'ทำภาพตัวอย่าง',
   'asr.plan': 'แบ่งช่วงถอดเสียง',
   'asr.chunk': 'ถอดเสียง',
+  'asr.selected-clip': 'ถอดเสียงช่วงที่เลือกและสร้างคลิป',
   'asr.merge': 'รวมคำถอดเสียง',
   'transcript.fix': 'AI แก้คำถอดเสียง',
   'shots.detect': 'หาช็อตในวิดีโอ',
