@@ -1238,6 +1238,61 @@ export interface components {
             meta: {
                 /** @enum {string} */
                 createdBy: "ai" | "user";
+                director?: {
+                    checks: {
+                        checkId: string;
+                        evidence: string[];
+                        /** @enum {string} */
+                        severity: "must-fix" | "review";
+                        /** @enum {string} */
+                        status: "pass" | "fail" | "not_run";
+                    }[];
+                    codeFixes?: string[];
+                    judge: {
+                        reason?: string;
+                        rounds: {
+                            calls: number;
+                            costUsdEstimate: number | null;
+                            durationMs: number;
+                            fixes: string[];
+                            frames: number[];
+                            items: {
+                                /** @enum {string} */
+                                aspect: "safe-zone" | "readability" | "motion" | "clutter" | "ending";
+                                /** @enum {string} */
+                                correction: "none" | "caption-safe" | "reduce-motion" | "remove-optional" | "lower-music";
+                                /** Format: uuid */
+                                elementId: string;
+                                evidenceFrame: number;
+                                score: number;
+                            }[];
+                        }[];
+                        /** @enum {string} */
+                        status: "reviewed" | "not_run" | "unavailable";
+                    };
+                    story: {
+                        beats: {
+                            durationFrames: number;
+                            /** Format: uuid */
+                            elementId: string;
+                            /** Format: uuid */
+                            sourceId: string;
+                            sourceInFrame: number;
+                            wordIndexes: number[];
+                        }[];
+                        hooks: string[];
+                        selectedHook: number | null;
+                        /** @enum {string} */
+                        structure: "problem-solution" | "before-after" | "reasons" | "demonstration" | "situation" | "friend-review" | "calm-brand" | "live-offer";
+                        words: {
+                            endMs: number;
+                            startMs: number;
+                            text: string;
+                        }[];
+                    };
+                    /** @constant */
+                    version: 1;
+                };
                 styleId?: string;
                 title?: string;
                 /** Format: uuid */
@@ -1282,6 +1337,61 @@ export interface components {
             meta: {
                 /** @enum {string} */
                 createdBy: "ai" | "user";
+                director?: {
+                    checks: {
+                        checkId: string;
+                        evidence: string[];
+                        /** @enum {string} */
+                        severity: "must-fix" | "review";
+                        /** @enum {string} */
+                        status: "pass" | "fail" | "not_run";
+                    }[];
+                    codeFixes?: string[];
+                    judge: {
+                        reason?: string;
+                        rounds: {
+                            calls: number;
+                            costUsdEstimate: number | null;
+                            durationMs: number;
+                            fixes: string[];
+                            frames: number[];
+                            items: {
+                                /** @enum {string} */
+                                aspect: "safe-zone" | "readability" | "motion" | "clutter" | "ending";
+                                /** @enum {string} */
+                                correction: "none" | "caption-safe" | "reduce-motion" | "remove-optional" | "lower-music";
+                                /** Format: uuid */
+                                elementId: string;
+                                evidenceFrame: number;
+                                score: number;
+                            }[];
+                        }[];
+                        /** @enum {string} */
+                        status: "reviewed" | "not_run" | "unavailable";
+                    };
+                    story: {
+                        beats: {
+                            durationFrames: number;
+                            /** Format: uuid */
+                            elementId: string;
+                            /** Format: uuid */
+                            sourceId: string;
+                            sourceInFrame: number;
+                            wordIndexes: number[];
+                        }[];
+                        hooks: string[];
+                        selectedHook: number | null;
+                        /** @enum {string} */
+                        structure: "problem-solution" | "before-after" | "reasons" | "demonstration" | "situation" | "friend-review" | "calm-brand" | "live-offer";
+                        words: {
+                            endMs: number;
+                            startMs: number;
+                            text: string;
+                        }[];
+                    };
+                    /** @constant */
+                    version: 1;
+                };
                 styleId?: string;
                 title?: string;
                 /** Format: uuid */

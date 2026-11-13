@@ -1518,6 +1518,316 @@
                 ],
                 "type": "string"
               },
+              "director": {
+                "additionalProperties": false,
+                "properties": {
+                  "checks": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "checkId": {
+                          "pattern": "^(0[1-9]|1[0-9]|2[0-6])$",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "maxLength": 300,
+                            "type": "string"
+                          },
+                          "maxItems": 200,
+                          "type": "array"
+                        },
+                        "severity": {
+                          "enum": [
+                            "must-fix",
+                            "review"
+                          ],
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "pass",
+                            "fail",
+                            "not_run"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "checkId",
+                        "status",
+                        "severity",
+                        "evidence"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 26,
+                    "minItems": 26,
+                    "type": "array"
+                  },
+                  "codeFixes": {
+                    "items": {
+                      "maxLength": 300,
+                      "type": "string"
+                    },
+                    "maxItems": 200,
+                    "type": "array"
+                  },
+                  "judge": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "reason": {
+                        "maxLength": 1000,
+                        "type": "string"
+                      },
+                      "rounds": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "calls": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "costUsdEstimate": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "durationMs": {
+                              "minimum": 0,
+                              "type": "number"
+                            },
+                            "fixes": {
+                              "items": {
+                                "maxLength": 300,
+                                "type": "string"
+                              },
+                              "maxItems": 100,
+                              "type": "array"
+                            },
+                            "frames": {
+                              "items": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "maxItems": 6,
+                              "type": "array"
+                            },
+                            "items": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "aspect": {
+                                    "enum": [
+                                      "safe-zone",
+                                      "readability",
+                                      "motion",
+                                      "clutter",
+                                      "ending"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "correction": {
+                                    "enum": [
+                                      "none",
+                                      "caption-safe",
+                                      "reduce-motion",
+                                      "remove-optional",
+                                      "lower-music"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "elementId": {
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                                    "type": "string"
+                                  },
+                                  "evidenceFrame": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "score": {
+                                    "maximum": 10,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "elementId",
+                                  "aspect",
+                                  "score",
+                                  "correction",
+                                  "evidenceFrame"
+                                ],
+                                "type": "object"
+                              },
+                              "maxItems": 30,
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "frames",
+                            "items",
+                            "fixes",
+                            "calls",
+                            "costUsdEstimate",
+                            "durationMs"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 3,
+                        "type": "array"
+                      },
+                      "status": {
+                        "enum": [
+                          "reviewed",
+                          "not_run",
+                          "unavailable"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "rounds"
+                    ],
+                    "type": "object"
+                  },
+                  "story": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "beats": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "durationFrames": {
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991,
+                              "type": "integer"
+                            },
+                            "elementId": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "sourceId": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "sourceInFrame": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "wordIndexes": {
+                              "items": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "elementId",
+                            "sourceId",
+                            "sourceInFrame",
+                            "durationFrames",
+                            "wordIndexes"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "hooks": {
+                        "items": {
+                          "maxLength": 200,
+                          "type": "string"
+                        },
+                        "maxItems": 3,
+                        "type": "array"
+                      },
+                      "selectedHook": {
+                        "anyOf": [
+                          {
+                            "maximum": 2,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "structure": {
+                        "enum": [
+                          "problem-solution",
+                          "before-after",
+                          "reasons",
+                          "demonstration",
+                          "situation",
+                          "friend-review",
+                          "calm-brand",
+                          "live-offer"
+                        ],
+                        "type": "string"
+                      },
+                      "words": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "endMs": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "startMs": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "startMs",
+                            "endMs"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 10000,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "structure",
+                      "hooks",
+                      "selectedHook",
+                      "words",
+                      "beats"
+                    ],
+                    "type": "object"
+                  },
+                  "version": {
+                    "const": 1,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "version",
+                  "story",
+                  "checks",
+                  "judge"
+                ],
+                "type": "object"
+              },
               "styleId": {
                 "maxLength": 64,
                 "minLength": 1,
@@ -1695,6 +2005,316 @@
                   "user"
                 ],
                 "type": "string"
+              },
+              "director": {
+                "additionalProperties": false,
+                "properties": {
+                  "checks": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "checkId": {
+                          "pattern": "^(0[1-9]|1[0-9]|2[0-6])$",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "maxLength": 300,
+                            "type": "string"
+                          },
+                          "maxItems": 200,
+                          "type": "array"
+                        },
+                        "severity": {
+                          "enum": [
+                            "must-fix",
+                            "review"
+                          ],
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "pass",
+                            "fail",
+                            "not_run"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "checkId",
+                        "status",
+                        "severity",
+                        "evidence"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 26,
+                    "minItems": 26,
+                    "type": "array"
+                  },
+                  "codeFixes": {
+                    "items": {
+                      "maxLength": 300,
+                      "type": "string"
+                    },
+                    "maxItems": 200,
+                    "type": "array"
+                  },
+                  "judge": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "reason": {
+                        "maxLength": 1000,
+                        "type": "string"
+                      },
+                      "rounds": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "calls": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "costUsdEstimate": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "durationMs": {
+                              "minimum": 0,
+                              "type": "number"
+                            },
+                            "fixes": {
+                              "items": {
+                                "maxLength": 300,
+                                "type": "string"
+                              },
+                              "maxItems": 100,
+                              "type": "array"
+                            },
+                            "frames": {
+                              "items": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "maxItems": 6,
+                              "type": "array"
+                            },
+                            "items": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "aspect": {
+                                    "enum": [
+                                      "safe-zone",
+                                      "readability",
+                                      "motion",
+                                      "clutter",
+                                      "ending"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "correction": {
+                                    "enum": [
+                                      "none",
+                                      "caption-safe",
+                                      "reduce-motion",
+                                      "remove-optional",
+                                      "lower-music"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "elementId": {
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                                    "type": "string"
+                                  },
+                                  "evidenceFrame": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "score": {
+                                    "maximum": 10,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "elementId",
+                                  "aspect",
+                                  "score",
+                                  "correction",
+                                  "evidenceFrame"
+                                ],
+                                "type": "object"
+                              },
+                              "maxItems": 30,
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "frames",
+                            "items",
+                            "fixes",
+                            "calls",
+                            "costUsdEstimate",
+                            "durationMs"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 3,
+                        "type": "array"
+                      },
+                      "status": {
+                        "enum": [
+                          "reviewed",
+                          "not_run",
+                          "unavailable"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "rounds"
+                    ],
+                    "type": "object"
+                  },
+                  "story": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "beats": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "durationFrames": {
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991,
+                              "type": "integer"
+                            },
+                            "elementId": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "sourceId": {
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                              "type": "string"
+                            },
+                            "sourceInFrame": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "wordIndexes": {
+                              "items": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "elementId",
+                            "sourceId",
+                            "sourceInFrame",
+                            "durationFrames",
+                            "wordIndexes"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "hooks": {
+                        "items": {
+                          "maxLength": 200,
+                          "type": "string"
+                        },
+                        "maxItems": 3,
+                        "type": "array"
+                      },
+                      "selectedHook": {
+                        "anyOf": [
+                          {
+                            "maximum": 2,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "structure": {
+                        "enum": [
+                          "problem-solution",
+                          "before-after",
+                          "reasons",
+                          "demonstration",
+                          "situation",
+                          "friend-review",
+                          "calm-brand",
+                          "live-offer"
+                        ],
+                        "type": "string"
+                      },
+                      "words": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "endMs": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "startMs": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "startMs",
+                            "endMs"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 10000,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "structure",
+                      "hooks",
+                      "selectedHook",
+                      "words",
+                      "beats"
+                    ],
+                    "type": "object"
+                  },
+                  "version": {
+                    "const": 1,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "version",
+                  "story",
+                  "checks",
+                  "judge"
+                ],
+                "type": "object"
               },
               "styleId": {
                 "maxLength": 64,

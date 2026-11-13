@@ -6,6 +6,7 @@ import { useProject } from '@/api/projects';
 import { Button } from '@/components/ui/button';
 import { PageBackLink } from '@/components/ui/page-back-link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CriticPanel } from '@/features/clip/CriticPanel';
 import { clipOrigin } from '@/features/clip/navigation';
 import { ExportPanel } from '@/features/export/ExportPanel';
 import { PreviewPlayer } from '@/features/preview/PreviewPlayer';
@@ -50,6 +51,7 @@ export function ClipPage() {
             </Link>
           </Button>
           <ExportPanel projectId={rec.id} version={rec.version} />
+          {doc.meta.director && <CriticPanel report={doc.meta.director} />}
         </aside>
       </div>
     </section>
