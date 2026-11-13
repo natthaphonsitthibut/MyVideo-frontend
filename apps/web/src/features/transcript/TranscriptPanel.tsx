@@ -435,7 +435,7 @@ function TranscriptViewer({
                             title={
                               w.deleted ? `ลบแล้ว: ${w.original ?? ''} (ดับเบิลคลิกเพื่อคืน)` : wordMarking(w).title
                             }
-                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-muted-foreground/50 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-deleted:text-xs data-deleted:text-muted-foreground/60 data-deleted:line-through data-review-focus:ring-2 data-review-focus:ring-amber-500"
+                            className="mr-[0.2em] cursor-pointer rounded-sm px-px hover:bg-muted data-active:bg-primary data-active:text-primary-foreground data-edited:underline data-edited:decoration-primary data-edited:underline-offset-4 data-ai-fixed:underline data-ai-fixed:decoration-amber-500 data-ai-fixed:decoration-2 data-ai-fixed:decoration-dotted data-ai-fixed:underline-offset-4 data-deleted:text-xs data-deleted:text-muted-foreground/60 data-deleted:line-through data-review-focus:ring-2 data-review-focus:ring-amber-500"
                           >
                             {w.deleted ? w.original : w.text}
                           </span>
