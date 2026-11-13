@@ -7,6 +7,7 @@ export const RUN_KIND_LABEL: Record<RunSummary['kind'], string> = {
   restyle_clip: 'เปลี่ยนสไตล์คลิป',
   build_clips: 'ตัดต่อคลิปตามสไตล์ที่เลือก',
   review_to_video: 'สร้างวิดีโอรีวิว',
+  folder_edit: 'ตัดต่อโปรเจกต์',
   render: 'เรนเดอร์ MP4',
   purge: 'ลบไฟล์ที่ลบออกแล้ว',
   system_test: 'ทดสอบระบบคิว',

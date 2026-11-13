@@ -128,7 +128,7 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
   );
 }
 
-export function PlanPanel({ folderId, hasFootage }: { folderId: string; hasFootage: boolean }) {
+export function PlanPanel({ folderId, sourceIds }: { folderId: string; sourceIds: string[] }) {
   const plan = useFolderPlan(folderId);
   const start = useStartFolderEdit(folderId);
   if (plan.isPending) return <Skeleton className="h-64" />;
@@ -165,15 +165,15 @@ export function PlanPanel({ folderId, hasFootage }: { folderId: string; hasFoota
         <div className="space-y-2">
           <Button
             className="w-full"
-            disabled={!hasFootage || start.isPending}
-            onClick={() => start.mutate()}
+            disabled={!sourceIds.length || start.isPending}
+            onClick={() => start.mutate(sourceIds)}
             data-testid="folder-start"
           >
             <Sparkles />
             {p.failed ? 'เริ่มใหม่อีกครั้ง' : p.finished ? 'ตัดต่ออีกรอบ' : 'เริ่มตัดต่อ'}
           </Button>
-          {!hasFootage ? (
-            <p className="text-xs text-muted-foreground">อัปโหลดวิดีโอหรือรูปก่อน แล้วค่อยเริ่มตัดต่อ</p>
+          {!sourceIds.length ? (
+            <p className="text-xs text-muted-foreground">เลือกฟุตเทจอย่างน้อย 1 ไฟล์ แล้วค่อยเริ่มตัดต่อ</p>
           ) : null}
           {start.isError ? (
             <p role="alert" className="text-xs text-destructive">

@@ -1554,7 +1554,7 @@ export interface components {
             id: string;
             jobs: components["schemas"]["JobSummary"][];
             /** @enum {string} */
-            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "render" | "purge" | "system_test";
+            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "folder_edit" | "render" | "purge" | "system_test";
             /** @enum {string} */
             status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
             subjectId: string | null;
@@ -1613,6 +1613,7 @@ export interface components {
             width: number | null;
         };
         StartFolderEditBody: {
+            sourceIds?: string[];
             styleId?: string;
         };
         StylePackList: {
@@ -1697,7 +1698,7 @@ export interface components {
             createdAt: string;
             finishedAt: string | null;
             /** @enum {string} */
-            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "render" | "purge" | "system_test";
+            kind: "ingest" | "transcribe" | "live_to_clips" | "restyle_clip" | "build_clips" | "review_to_video" | "folder_edit" | "render" | "purge" | "system_test";
             llm: components["schemas"]["TimingLlm"] | null;
             mediaSeconds: number | null;
             /** Format: uuid */

@@ -56,10 +56,10 @@ export function useFolderPlan(id: string) {
 export function useStartFolderEdit(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (sourceIds: string[]) => {
       const { data, error, response } = await api.POST('/folders/{id}/edit', {
         params: { path: { id } },
-        body: {},
+        body: { sourceIds },
       });
       if (!data) throw new ApiError(response.status, error);
       return data;

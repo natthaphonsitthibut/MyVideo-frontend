@@ -13,7 +13,17 @@ import { FolderSettingsPanel } from '@/features/project/FolderSettingsPanel';
 import { PlanPanel } from '@/features/project/PlanPanel';
 import { UploadPanel } from '@/features/upload/UploadPanel';
 
-function FolderSource({ id, folderId }: { id: string; folderId: string }) {
+function FolderSource({
+  id,
+  folderId,
+  selected,
+  onSelect,
+}: {
+  id: string;
+  folderId: string;
+  selected: boolean;
+  onSelect: (selected: boolean) => void;
+}) {
   const source = useSource(id);
   return source.isPending ? (
     <Skeleton className="aspect-video" />
@@ -25,7 +35,19 @@ function FolderSource({ id, folderId }: { id: string; folderId: string }) {
       </Button>
     </p>
   ) : (
-    <SourceCard source={source.data} to={`/library/${id}?project=${folderId}`} />
+    <div className="space-y-2">
+      <SourceCard source={source.data} to={`/library/${id}?project=${folderId}`} />
+      <label className="flex min-h-11 cursor-pointer items-center gap-2 px-1 text-sm">
+        <input
+          type="checkbox"
+          className="size-4 accent-primary"
+          checked={selected}
+          onChange={(e) => onSelect(e.target.checked)}
+          aria-label={`ส่ง ${source.data.title} ให้ AI`}
+        />
+        ใช้ตัดต่อรอบถัดไป
+      </label>
+    </div>
   );
 }
 
@@ -116,6 +138,7 @@ export function ProjectFolderPage() {
   const folder = useFolder(id);
   const qc = useQueryClient();
   const [picking, setPicking] = useState(false);
+  const [selection, setSelection] = useState<{ folderId: string; ids: string[] } | null>(null);
   if (folder.isPending)
     return (
       <div className="page-layout">
@@ -125,6 +148,13 @@ export function ProjectFolderPage() {
     );
   if (folder.isError) throw folder.error;
   const f = folder.data;
+  const selectedIds =
+    selection?.folderId === id ? selection.ids.filter((s) => f.sourceIds.includes(s)) : f.sourceIds;
+  const select = (sourceId: string, checked: boolean) =>
+    setSelection({
+      folderId: id,
+      ids: checked ? [...new Set([...selectedIds, sourceId])] : selectedIds.filter((s) => s !== sourceId),
+    });
   return (
     <div className="page-layout">
       <header className="space-y-3">
@@ -155,10 +185,35 @@ export function ProjectFolderPage() {
             }}
           />
           {f.sourceIds.length ? (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <p aria-live="polite">
+                ส่งให้ AI {selectedIds.length}/{f.sourceIds.length} ไฟล์
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelection({ folderId: id, ids: f.sourceIds })}
+              >
+                เลือกทั้งหมด
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSelection({ folderId: id, ids: [] })}>
+                ล้างการเลือก
+              </Button>
+              <p className="w-full text-xs text-muted-foreground">
+                ไฟล์ที่ไม่เลือกยังอยู่ในโปรเจกต์ การเลือกนี้ใช้เมื่อเริ่มตัดต่อรอบถัดไป
+              </p>
+            </div>
+          ) : null}
+          {f.sourceIds.length ? (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="ฟุตเทจในโปรเจกต์">
               {f.sourceIds.map((sourceId) => (
                 <li key={sourceId}>
-                  <FolderSource id={sourceId} folderId={id} />
+                  <FolderSource
+                    id={sourceId}
+                    folderId={id}
+                    selected={selectedIds.includes(sourceId)}
+                    onSelect={(checked) => select(sourceId, checked)}
+                  />
                 </li>
               ))}
             </ul>
@@ -168,7 +223,7 @@ export function ProjectFolderPage() {
         </section>
         <aside className="space-y-6 lg:sticky lg:top-6">
           <FolderSettingsPanel folderId={id} settings={f.settings} sourceIds={f.sourceIds} />
-          <PlanPanel folderId={id} hasFootage={f.sourceIds.length > 0} />
+          <PlanPanel folderId={id} sourceIds={selectedIds} />
         </aside>
       </div>
       <section aria-labelledby="edited-heading" className="mt-8 space-y-5 border-t pt-8">
