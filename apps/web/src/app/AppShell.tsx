@@ -1,5 +1,17 @@
-import { Activity, Clapperboard, Film, Folder, LogOut, Menu, Timer, X } from 'lucide-react';
-import { Suspense, useState } from 'react';
+import {
+  Activity,
+  ChevronDown,
+  Clapperboard,
+  Film,
+  Folder,
+  Image,
+  Library,
+  LogOut,
+  Menu,
+  Timer,
+  X,
+} from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useLogout, useMe } from '@/api/auth';
 import { Button } from '@/components/ui/button';
@@ -10,7 +22,6 @@ import { cn } from '@/lib/utils';
 /** Project folders, all Library footage, the separate collection of edited clips, and measured step times. */
 const NAV = [
   { to: '/projects', label: 'โปรเจกต์', icon: Folder },
-  { to: '/library', label: 'คลังวิดีโอ', icon: Film },
   { to: '/clips', label: 'คลิปที่ตัดแล้ว', icon: Clapperboard },
   { to: '/timings', label: 'บันทึกเวลา', icon: Timer },
 ] as const;
@@ -41,6 +52,69 @@ function NavItem({
       <Icon className="size-4" aria-hidden />
       {label}
     </Link>
+  );
+}
+
+export function MediaNav({ onNavigate }: { onNavigate?: () => void }) {
+  const location = useLocation();
+  const active = ['/library', '/photos'].includes(activeNavHref(location.pathname, location.search) ?? '');
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      return localStorage.getItem('myvideo:media-menu') !== 'closed';
+    } catch {
+      return true;
+    }
+  });
+  const activePath = active ? location.pathname : '';
+  useEffect(() => {
+    if (activePath) setExpanded(true);
+  }, [activePath]);
+  const toggle = () =>
+    setExpanded((old) => {
+      try {
+        localStorage.setItem('myvideo:media-menu', old ? 'closed' : 'open');
+      } catch {}
+      return !old;
+    });
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="media-submenu"
+        onClick={toggle}
+        className={cn(
+          'flex min-h-touch w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-muted',
+          active ? 'text-primary' : 'text-muted-foreground',
+        )}
+      >
+        <Library className="size-4" aria-hidden />
+        <span className="flex-1">คลังสื่อ</span>
+        <ChevronDown
+          aria-hidden
+          className={cn(
+            'size-4 transition-transform duration-200 motion-reduce:transition-none',
+            !expanded && '-rotate-90',
+          )}
+        />
+      </button>
+      <div
+        id="media-submenu"
+        aria-hidden={!expanded}
+        inert={!expanded}
+        className={cn(
+          'grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none',
+          expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="ml-5 space-y-1 border-l pl-2">
+            <NavItem to="/library" label="คลังวิดีโอ" icon={Film} onNavigate={onNavigate} />
+            <NavItem to="/photos" label="คลังรูป" icon={Image} onNavigate={onNavigate} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -121,7 +195,10 @@ export function AppShell() {
         <div className="mb-6 px-3 text-lg font-semibold tracking-tight">MyVideo</div>
         <nav aria-label="เมนูหลัก" className="flex flex-1 flex-col gap-1">
           {NAV.map((item) => (
-            <NavItem key={item.to} {...item} onNavigate={close} />
+            <div key={item.to}>
+              <NavItem {...item} onNavigate={close} />
+              {item.to === '/projects' ? <MediaNav onNavigate={close} /> : null}
+            </div>
           ))}
         </nav>
         {import.meta.env.DEV ? (

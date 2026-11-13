@@ -3176,6 +3176,7 @@ export interface operations {
     listSources: {
         parameters: {
             query?: {
+                kind?: "video" | "photo";
                 limit?: number;
                 before?: string;
             };

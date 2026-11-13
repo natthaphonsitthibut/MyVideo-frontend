@@ -9,13 +9,13 @@ export type SpriteIndex = NonNullable<SourceSummary['sprites']>;
 export const SOURCES_KEY = ['sources'] as const;
 
 /** Both the Library and project picker can reach older sources through the server's cursor. */
-export function useLibrarySources() {
+export function useLibrarySources(kind?: 'video' | 'photo') {
   return useInfiniteQuery({
-    queryKey: [...SOURCES_KEY, 'pages'],
+    queryKey: [...SOURCES_KEY, 'pages', kind ?? 'all'],
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam }) => {
       const { data, error, response } = await api.GET('/sources', {
-        params: { query: { limit: 60, before: pageParam } },
+        params: { query: { limit: 60, before: pageParam, kind } },
       });
       if (!data) throw new ApiError(response.status, error);
       return data;

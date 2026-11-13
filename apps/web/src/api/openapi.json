@@ -6714,6 +6714,18 @@
         "parameters": [
           {
             "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "enum": [
+                "video",
+                "photo"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "limit",
             "required": false,
             "schema": {

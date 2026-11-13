@@ -23,3 +23,12 @@ it('retains folder context when creating a clip from its footage, without arbitr
     search: '',
   });
 });
+it('keeps the photo library active and preserves photo context through source and clip links', () => {
+  expect(activeNavHref('/photos', '')).toBe('/photos');
+  expect(activeNavHref(`/library/${id}`, '?media=photo')).toBe('/photos');
+  expect(clipOrigin(`?source=${id}&media=photo`)).toMatchObject({
+    to: `/library/${id}?media=photo`,
+    menu: '/photos',
+  });
+  expect(sourceClipSearch('?media=photo', id)).toBe(`?source=${id}&media=photo`);
+});

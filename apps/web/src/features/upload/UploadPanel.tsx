@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { ApiError, api } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { type MediaKind, mediaKind } from '../library/media-kind';
 import { formatBytes, type UnfinishedUpload, type UploadItem, UploadManager } from './upload-manager';
 
 let manager: UploadManager | undefined;
@@ -120,11 +121,26 @@ function UploadRow({ item, mgr }: { item: UploadItem; mgr: UploadManager }) {
   );
 }
 
-export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: string) => Promise<void> } = {}) {
+export function UploadPanel({
+  onSourceReady,
+  kind,
+}: {
+  onSourceReady?: (sourceId: string) => Promise<void>;
+  kind?: MediaKind;
+} = {}) {
   const qc = useQueryClient();
   const cfg = useUploadConfig();
   const mgr = getManager();
-  const items = useSyncExternalStore(mgr.subscribe, mgr.getSnapshot);
+  const allItems = useSyncExternalStore(mgr.subscribe, mgr.getSnapshot);
+  const items = kind ? allItems.filter((i) => mediaKind({ originalFilename: i.name }) === kind) : allItems;
+  const uploadConfig = cfg.data
+    ? {
+        ...cfg.data,
+        extensions: cfg.data.extensions.filter(
+          (e) => !kind || mediaKind({ originalFilename: `file.${e}` }) === kind,
+        ),
+      }
+    : undefined;
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [unfinished, setUnfinished] = useState<UnfinishedUpload[]>([]);
@@ -141,11 +157,14 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
   useEffect(() => {
     void UploadManager.unfinished().then(setUnfinished);
   }, []);
-  const leftovers = unfinished.filter((u) => !activeNames.has(`${u.name}:${u.size}`));
+  const leftovers = unfinished.filter(
+    (u) =>
+      !activeNames.has(`${u.name}:${u.size}`) && (!kind || mediaKind({ originalFilename: u.name }) === kind),
+  );
 
   const addFiles = (files: FileList | null) => {
-    if (!files || !cfg.data) return;
-    for (const f of Array.from(files)) void mgr.add(f, cfg.data, onSourceReady);
+    if (!files || !uploadConfig) return;
+    for (const f of Array.from(files)) void mgr.add(f, uploadConfig, onSourceReady);
   };
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -157,7 +176,7 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
     <div className="space-y-4">
       {/* drop target for mouse users; keyboard and touch users use the button inside */}
       <section
-        aria-label="อัปโหลดวิดีโอหรือรูป"
+        aria-label={kind === 'photo' ? 'อัปโหลดรูปสินค้า' : kind === 'video' ? 'อัปโหลดวิดีโอ' : 'อัปโหลดวิดีโอหรือรูป'}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -171,10 +190,18 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
       >
         <Upload className="size-8 text-muted-foreground" aria-hidden />
         <div>
-          <p className="font-medium">ลากวิดีโอหรือรูปสินค้ามาวางที่นี่</p>
+          <p className="font-medium">
+            {kind === 'photo'
+              ? 'ลากรูปสินค้ามาวางที่นี่'
+              : kind === 'video'
+                ? 'ลากวิดีโอมาวางที่นี่'
+                : 'ลากวิดีโอหรือรูปสินค้ามาวางที่นี่'}
+          </p>
           <p className="text-sm text-muted-foreground">
-            ไลฟ์ยาวๆ ก็ได้ เลือกหลายไฟล์พร้อมกันได้ อัปโหลดต่อได้ถ้าเน็ตหลุด
-            {cfg.data ? ` · สูงสุด ${formatBytes(cfg.data.maxBytes)} · ${cfg.data.extensions.join(', ')}` : ''}
+            เลือกหลายไฟล์พร้อมกันได้ อัปโหลดต่อได้ถ้าเน็ตหลุด
+            {uploadConfig
+              ? ` · สูงสุด ${formatBytes(uploadConfig.maxBytes)} · ${uploadConfig.extensions.join(', ')}`
+              : ''}
           </p>
         </div>
         <Button onClick={() => inputRef.current?.click()} disabled={!cfg.data}>
@@ -183,7 +210,13 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
         <input
           ref={inputRef}
           type="file"
-          accept={cfg.data ? cfg.data.extensions.map((e) => `.${e}`).join(',') : 'video/*'}
+          accept={
+            uploadConfig
+              ? uploadConfig.extensions.map((e) => `.${e}`).join(',')
+              : kind === 'photo'
+                ? 'image/*'
+                : 'video/*'
+          }
           multiple
           className="sr-only"
           data-testid="upload-input"
@@ -195,7 +228,7 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
       </section>
       {leftovers.length ? (
         <div className="rounded-lg border bg-muted/40 px-4 py-3 text-sm">
-          <p className="font-medium">มีวิดีโอที่อัปโหลดค้างไว้</p>
+          <p className="font-medium">มีไฟล์ที่อัปโหลดค้างไว้</p>
           <ul className="mt-1 space-y-1 text-muted-foreground">
             {leftovers.map((u) => (
               <li key={u.key} className="flex flex-wrap items-center justify-between gap-2">

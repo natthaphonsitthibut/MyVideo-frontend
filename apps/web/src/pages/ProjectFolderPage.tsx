@@ -1,52 +1,103 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Library } from 'lucide-react';
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { addFolderSources, useAddFolderSources, useFolder } from '@/api/folders';
-import { useLibrarySources, useSource } from '@/api/sources';
+import { type SourceSummary, sourceQuery, useLibrarySources } from '@/api/sources';
 import { Button } from '@/components/ui/button';
 import { PageBackLink } from '@/components/ui/page-back-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EditedClipCard } from '@/features/clip/EditedClipCard';
+import { mediaKind } from '@/features/library/media-kind';
 import { SourceCard } from '@/features/library/SourceCard';
 import { FolderSettingsPanel } from '@/features/project/FolderSettingsPanel';
 import { PlanPanel } from '@/features/project/PlanPanel';
 import { UploadPanel } from '@/features/upload/UploadPanel';
 
 function FolderSource({
-  id,
+  source,
   folderId,
   selected,
   onSelect,
 }: {
-  id: string;
+  source: SourceSummary;
   folderId: string;
   selected: boolean;
   onSelect: (selected: boolean) => void;
 }) {
-  const source = useSource(id);
-  return source.isPending ? (
-    <Skeleton className="aspect-video" />
-  ) : source.isError ? (
-    <p role="alert">
-      โหลดฟุตเทจไม่ได้{' '}
-      <Button variant="ghost" onClick={() => source.refetch()}>
-        ลองอีกครั้ง
-      </Button>
-    </p>
-  ) : (
+  return (
     <div className="space-y-2">
-      <SourceCard source={source.data} to={`/library/${id}?project=${folderId}`} />
+      <SourceCard source={source} to={`/library/${source.id}?project=${folderId}`} />
       <label className="flex min-h-11 cursor-pointer items-center gap-2 px-1 text-sm">
         <input
           type="checkbox"
           className="size-4 accent-primary"
           checked={selected}
           onChange={(e) => onSelect(e.target.checked)}
-          aria-label={`ส่ง ${source.data.title} ให้ AI`}
+          aria-label={`ส่ง ${source.title} ให้ AI`}
         />
         ใช้ตัดต่อรอบถัดไป
       </label>
+    </div>
+  );
+}
+
+function FolderMediaSections({
+  sourceIds,
+  folderId,
+  selected,
+  onSelect,
+}: {
+  sourceIds: string[];
+  folderId: string;
+  selected: string[];
+  onSelect: (id: string, checked: boolean) => void;
+}) {
+  const queries = useQueries({ queries: sourceIds.map(sourceQuery) });
+  const sources = queries.flatMap((q) => (q.data ? [q.data] : []));
+  return (
+    <div className="space-y-6">
+      {(['video', 'photo'] as const).map((kind) => {
+        const items = sources.filter((s) => mediaKind(s) === kind);
+        const title = kind === 'video' ? 'วิดีโอ' : 'รูปสินค้า';
+        return (
+          <section key={kind} aria-label={title} className="space-y-3">
+            <h3 className="font-semibold">
+              {title} <span className="text-sm font-normal text-muted-foreground">{items.length} ไฟล์</span>
+            </h3>
+            {items.length ? (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label={`${title}ในโปรเจกต์`}>
+                {items.map((s) => (
+                  <li key={s.id}>
+                    <FolderSource
+                      source={s}
+                      folderId={folderId}
+                      selected={selected.includes(s.id)}
+                      onSelect={(checked) => onSelect(s.id, checked)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">ยังไม่มี{title}ในโปรเจกต์นี้</p>
+            )}
+          </section>
+        );
+      })}
+      {queries.some((q) => q.isPending) ? <Skeleton className="h-24" /> : null}
+      {queries.some((q) => q.isError) ? (
+        <p role="alert" className="text-sm text-destructive">
+          โหลดฟุตเทจบางไฟล์ไม่สำเร็จ{' '}
+          <Button
+            variant="ghost"
+            onClick={() => {
+              for (const q of queries) if (q.isError) void q.refetch();
+            }}
+          >
+            ลองอีกครั้ง
+          </Button>
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -60,13 +111,27 @@ function LibraryPicker({
   existing: string[];
   onDone: () => void;
 }) {
-  const sources = useLibrarySources();
+  const [kind, setKind] = useState<'video' | 'photo'>('video');
+  const sources = useLibrarySources(kind);
   const items = sources.data?.pages.flatMap((page) => page.items) ?? [];
   const add = useAddFolderSources(folderId);
   const [selected, setSelected] = useState<string[]>([]);
   return (
-    <section aria-label="เลือกวิดีโอจากคลัง" className="space-y-4 rounded-xl border bg-muted/20 p-4">
-      <h3 className="font-medium">เลือกวิดีโอจากคลัง</h3>
+    <section aria-label="เลือกจากคลังสื่อ" className="space-y-4 rounded-xl border bg-muted/20 p-4">
+      <h3 className="font-medium">เลือกจากคลังสื่อ</h3>
+      <fieldset className="flex gap-2">
+        <legend className="sr-only">ประเภทสื่อ</legend>
+        {(['video', 'photo'] as const).map((value) => (
+          <Button
+            key={value}
+            variant={kind === value ? 'secondary' : 'ghost'}
+            aria-pressed={kind === value}
+            onClick={() => setKind(value)}
+          >
+            {value === 'video' ? 'วิดีโอ' : 'รูปสินค้า'}
+          </Button>
+        ))}
+      </fieldset>
       {sources.isPending ? (
         <Skeleton className="h-20" />
       ) : sources.isError && !sources.data ? (
@@ -99,7 +164,7 @@ function LibraryPicker({
               </li>
             ))}
           {items.every((source) => existing.includes(source.id)) ? (
-            <li className="py-3 text-sm text-muted-foreground">ไม่มีวิดีโอให้เพิ่ม อัปโหลดไฟล์ใหม่ด้านล่างได้เลย</li>
+            <li className="py-3 text-sm text-muted-foreground">ไม่มีไฟล์ประเภทนี้ให้เพิ่ม อัปโหลดไฟล์ใหม่ด้านล่างได้เลย</li>
           ) : null}
         </ul>
       )}
@@ -110,7 +175,7 @@ function LibraryPicker({
       ) : null}
       {sources.hasNextPage ? (
         <Button variant="outline" disabled={sources.isFetching} onClick={() => sources.fetchNextPage()}>
-          {sources.isFetchingNextPage ? 'กำลังโหลด…' : 'โหลดวิดีโอเพิ่ม'}
+          {sources.isFetchingNextPage ? 'กำลังโหลด…' : 'โหลดเพิ่ม'}
         </Button>
       ) : null}
       {add.isError ? (
@@ -123,7 +188,7 @@ function LibraryPicker({
           disabled={!selected.length || add.isPending}
           onClick={() => add.mutate(selected, { onSuccess: onDone })}
         >
-          {add.isPending ? 'กำลังเพิ่ม…' : 'เพิ่มวิดีโอที่เลือก'}
+          {add.isPending ? 'กำลังเพิ่ม…' : `เพิ่ม ${selected.length} ไฟล์ที่เลือก`}
         </Button>
         <Button variant="ghost" onClick={onDone}>
           ปิด
@@ -172,7 +237,7 @@ export function ProjectFolderPage() {
             </div>
             <Button variant="outline" onClick={() => setPicking((open) => !open)} aria-expanded={picking}>
               <Library aria-hidden />
-              เพิ่มจากคลังวิดีโอ
+              เพิ่มจากคลังสื่อ
             </Button>
           </div>
           {picking ? (
@@ -204,22 +269,12 @@ export function ProjectFolderPage() {
               </p>
             </div>
           ) : null}
-          {f.sourceIds.length ? (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="ฟุตเทจในโปรเจกต์">
-              {f.sourceIds.map((sourceId) => (
-                <li key={sourceId}>
-                  <FolderSource
-                    id={sourceId}
-                    folderId={id}
-                    selected={selectedIds.includes(sourceId)}
-                    onSelect={(checked) => select(sourceId, checked)}
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="py-4 text-sm text-muted-foreground">ยังไม่มีฟุตเทจในโปรเจกต์นี้</p>
-          )}
+          <FolderMediaSections
+            sourceIds={f.sourceIds}
+            folderId={id}
+            selected={selectedIds}
+            onSelect={select}
+          />
         </section>
         <aside className="space-y-6 lg:sticky lg:top-6">
           <FolderSettingsPanel folderId={id} settings={f.settings} sourceIds={f.sourceIds} />

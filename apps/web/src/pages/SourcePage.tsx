@@ -95,8 +95,10 @@ export function SourcePage() {
   return (
     <section className="page-layout">
       <div className="space-y-2">
-        <PageBackLink to={origin.menu === '/projects' ? origin.to : '/library'}>
-          {origin.menu === '/projects' ? origin.label : 'คลังวิดีโอ'}
+        <PageBackLink
+          to={origin.menu === '/projects' ? origin.to : s.kind === 'photo' ? '/photos' : '/library'}
+        >
+          {origin.menu === '/projects' ? origin.label : s.kind === 'photo' ? 'คลังรูป' : 'คลังวิดีโอ'}
         </PageBackLink>
         <h1 className="text-2xl font-semibold break-words">{s.title}</h1>
         <p className="text-sm text-muted-foreground tabular-nums">
