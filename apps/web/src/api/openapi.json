@@ -218,6 +218,16 @@
             "maxLength": 64,
             "minLength": 1,
             "type": "string"
+          },
+          "styleIds": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "type": "array"
           }
         },
         "required": [
@@ -790,6 +800,12 @@
               "string",
               "null"
             ]
+          },
+          "styleIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "total": {
             "maximum": 9007199254740991,

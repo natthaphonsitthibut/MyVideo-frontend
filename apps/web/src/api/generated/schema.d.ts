@@ -939,6 +939,7 @@ export interface components {
         ChooseFolderStyleBody: {
             lockStyle?: boolean;
             styleId: string;
+            styleIds?: string[];
         };
         ClearTimingsResult: {
             cleared: number;
@@ -1046,6 +1047,7 @@ export interface components {
             runId: string | null;
             steps: components["schemas"]["FolderPlanStep"][];
             styleId: string | null;
+            styleIds?: string[];
             total: number;
         };
         FolderPlanStep: {

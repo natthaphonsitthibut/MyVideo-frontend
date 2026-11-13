@@ -70,10 +70,18 @@ export function useStartFolderEdit(id: string) {
 export function useChooseFolderStyle(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ styleId, lockStyle }: { styleId: string; lockStyle: boolean }) => {
+    mutationFn: async ({
+      styleId,
+      styleIds,
+      lockStyle,
+    }: {
+      styleId: string;
+      styleIds: string[];
+      lockStyle: boolean;
+    }) => {
       const { data, error, response } = await api.POST('/folders/{id}/style', {
         params: { path: { id } },
-        body: { styleId, lockStyle },
+        body: { styleId, styleIds, lockStyle },
       });
       if (!data) throw new ApiError(response.status, error);
       return data;

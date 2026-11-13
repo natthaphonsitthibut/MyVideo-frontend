@@ -72,7 +72,7 @@ function StepRow({ step }: { step: Step }) {
 
 function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
   const choose = useChooseFolderStyle(folderId);
-  const [picked, setPicked] = useState(plan.proposals[0]?.styleId ?? '');
+  const [picked, setPicked] = useState<string[]>(plan.proposals[0] ? [plan.proposals[0].styleId] : []);
   const [lockStyle, setLockStyle] = useState(false);
   const ranked = plan.proposals.some((p) => p.origin !== 'catalogue');
   return (
@@ -88,10 +88,13 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
             : 'ฟุตเทจนี้ไม่มีเสียงพูดให้วิเคราะห์ เลือกสไตล์ที่ชอบได้เลย'}
         </p>
       </div>
+      <p className="text-xs text-muted-foreground">
+        เลือกได้สูงสุด 3 สไตล์ แต่ละสไตล์จะบันทึกเป็นคลิปแยก โดยใช้ผลวิเคราะห์ครั้งเดียว
+      </p>
       <fieldset className="grid gap-2" disabled={choose.isPending}>
         <legend className="sr-only">สไตล์</legend>
         {plan.proposals.map((p, i) => {
-          const on = p.styleId === picked;
+          const on = picked.includes(p.styleId);
           return (
             <label
               key={p.styleId}
@@ -103,11 +106,14 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
               )}
             >
               <input
-                type="radio"
+                type="checkbox"
                 name={`folder-style-${folderId}`}
                 value={p.styleId}
                 checked={on}
-                onChange={() => setPicked(p.styleId)}
+                disabled={!on && picked.length >= 3}
+                onChange={() =>
+                  setPicked((ids) => (on ? ids.filter((id) => id !== p.styleId) : [...ids, p.styleId]))
+                }
                 className="mt-1 size-4 accent-primary"
               />
               <div className="min-w-0 flex-1 space-y-2">
@@ -141,14 +147,17 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
           onChange={(e) => setLockStyle(e.target.checked)}
           disabled={choose.isPending}
         />
-        ล็อกสไตล์นี้ ใช้กับโปรเจกต์ใหม่ด้วย
+        ล็อกสไตล์ที่เลือกเป็นอันดับแรก ใช้กับโปรเจกต์ใหม่ด้วย
       </label>
       <Button
-        disabled={choose.isPending || !picked}
-        onClick={() => choose.mutate({ styleId: picked, lockStyle })}
+        disabled={choose.isPending || !picked.length}
+        onClick={() => {
+          const styleId = picked[0];
+          if (styleId) choose.mutate({ styleId, styleIds: picked, lockStyle });
+        }}
       >
         <Sparkles />
-        ตัดต่อด้วยสไตล์นี้
+        ตัดต่อ {picked.length} สไตล์
       </Button>
     </div>
   );
