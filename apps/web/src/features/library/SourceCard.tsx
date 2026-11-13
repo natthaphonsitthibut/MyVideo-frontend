@@ -77,7 +77,11 @@ function SourceCardLink({ source, to }: { source: SourceSummary; to: string }) {
     >
       <div className="relative aspect-video overflow-hidden">
         <Thumb source={source} />
-        {source.durationMs ? (
+        {source.kind === 'photo' ? (
+          <span className="absolute right-2 bottom-2 rounded bg-black/70 px-1.5 py-0.5 text-xs text-white">
+            รูป
+          </span>
+        ) : source.durationMs ? (
           <span className="absolute right-2 bottom-2 rounded bg-black/70 px-1.5 py-0.5 text-xs text-white tabular-nums">
             {formatDuration(source.durationMs)}
           </span>
@@ -97,7 +101,7 @@ function SourceCardLink({ source, to }: { source: SourceSummary; to: string }) {
         {source.status === 'ready' ? (
           <p className="text-xs text-muted-foreground">
             {source.width && source.height ? `${source.width}×${source.height}` : ''}
-            {source.hasAudio === false ? ' · ไม่มีเสียง' : ''}
+            {source.hasAudio === false && source.kind !== 'photo' ? ' · ไม่มีเสียง' : ''}
           </p>
         ) : null}
       </div>

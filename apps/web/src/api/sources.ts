@@ -41,16 +41,22 @@ export function useSources() {
   });
 }
 
-export function useSource(id: string) {
-  return useQuery({
+/** Query options for one source; shared by `useSource` and lists that load several (`useQueries`). */
+export function sourceQuery(id: string) {
+  return {
     queryKey: [...SOURCES_KEY, id],
     queryFn: async () => {
       const { data, error, response } = await api.GET('/sources/{id}', { params: { path: { id } } });
       if (!data) throw new ApiError(response.status, error);
       return data;
     },
-    refetchInterval: (q) => (q.state.data?.status === 'processing' ? 3000 : false),
-  });
+    refetchInterval: (q: { state: { data?: SourceSummary } }) =>
+      q.state.data?.status === 'processing' ? 3000 : false,
+  } as const;
+}
+
+export function useSource(id: string) {
+  return useQuery(sourceQuery(id));
 }
 
 /** One run with live updates over SSE while it is unfinished. */

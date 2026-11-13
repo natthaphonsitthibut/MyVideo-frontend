@@ -141,6 +141,41 @@ export interface paths {
         delete: operations["deleteFolder"];
         options?: never;
         head?: never;
+        /** Rename a folder or change its edit settings */
+        patch: operations["updateFolder"];
+        trace?: never;
+    };
+    "/folders/{id}/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start editing the folder footage (an unfinished edit is reused) */
+        post: operations["startFolderEdit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plan panel: ordered edit steps of the folder from the real run states, plus style proposals */
+        get: operations["getFolderPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -155,6 +190,23 @@ export interface paths {
         put?: never;
         /** Add existing Library sources to a folder, atomically and idempotently */
         post: operations["addFolderSources"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}/style": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pick the edit style for the running folder edit; the edit continues */
+        post: operations["chooseFolderStyle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -848,6 +900,9 @@ export interface components {
             /** @enum {string} */
             status: "up" | "down";
         };
+        ChooseFolderStyleBody: {
+            styleId: string;
+        };
         ClipSuggestion: {
             endMs: number;
             error: string | null;
@@ -887,6 +942,7 @@ export interface components {
             styleId: string | null;
         };
         CreateFolderBody: {
+            settings?: components["schemas"]["FolderSettings"];
             title: string;
         };
         CreateProjectBody: {
@@ -910,14 +966,63 @@ export interface components {
         FolderList: {
             items: components["schemas"]["FolderRecord"][];
         };
+        FolderPlanResponse: {
+            done: number;
+            failed: boolean;
+            finished: boolean;
+            needs: "style" | null;
+            proposals: {
+                description: string;
+                name: string;
+                /** @enum {string} */
+                origin: "ai" | "rules" | "catalogue";
+                reason: string | null;
+                styleId: string;
+            }[];
+            runId: string | null;
+            steps: components["schemas"]["FolderPlanStep"][];
+            styleId: string | null;
+            total: number;
+        };
+        FolderPlanStep: {
+            detail: string | null;
+            error: string | null;
+            /** @enum {string} */
+            id: "prepare" | "transcribe" | "analyse" | "style" | "edit";
+            label: string;
+            /** @enum {string} */
+            state: "pending" | "running" | "waiting" | "done" | "failed" | "skipped";
+        };
         FolderRecord: {
             clipIds: string[];
             /** Format: uuid */
             id: string;
+            settings: components["schemas"]["FolderSettings"];
             sourceIds: string[];
             title: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        FolderSettings: {
+            /**
+             * @default sell
+             * @enum {string}
+             */
+            goal: "sell" | "review" | "live";
+            /**
+             * @default auto
+             * @enum {string}
+             */
+            length: "15" | "30" | "60" | "auto";
+            /** @default null */
+            productName: string | null;
+            /** @default null */
+            productPrice: string | null;
+            /**
+             * @default auto
+             * @enum {string}
+             */
+            ratio: "auto" | "9:16" | "16:9" | "1:1" | "4:5";
         };
         FolderSourcesBody: {
             sourceIds: string[];
@@ -1487,6 +1592,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             ingestRunId: string | null;
+            kind: ("video" | "photo") | null;
             originalFilename: string;
             sizeBytes: number;
             sprites: {
@@ -1505,6 +1611,9 @@ export interface components {
             status: "processing" | "ready" | "failed";
             title: string;
             width: number | null;
+        };
+        StartFolderEditBody: {
+            styleId?: string;
         };
         StylePackList: {
             items: components["schemas"]["StylePackSummary"][];
@@ -1681,6 +1790,10 @@ export interface components {
             scale: number;
             x: number;
             y: number;
+        };
+        UpdateFolderBody: {
+            settings?: components["schemas"]["FolderSettings"];
+            title?: string;
         };
         UploadConfig: {
             chunkBytes: number;
@@ -2039,6 +2152,116 @@ export interface operations {
             };
         };
     };
+    updateFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFolderBody"];
+            };
+        };
+        responses: {
+            /** @description Updated folder */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderRecord"];
+                };
+            };
+            /** @description No such folder or source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    startFolderEdit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartFolderEditBody"];
+            };
+        };
+        responses: {
+            /** @description Plan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderPlanResponse"];
+                };
+            };
+            /** @description No such folder or source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description The folder has no footage yet */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    getFolderPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderPlanResponse"];
+                };
+            };
+            /** @description No such folder or source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     addFolderSources: {
         parameters: {
             query?: never;
@@ -2065,6 +2288,59 @@ export interface operations {
             };
             /** @description No such folder or source for this merchant */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    chooseFolderStyle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChooseFolderStyleBody"];
+            };
+        };
+        responses: {
+            /** @description Plan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderPlanResponse"];
+                };
+            };
+            /** @description Unknown style */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No such folder or source for this merchant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No running edit to choose a style for */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

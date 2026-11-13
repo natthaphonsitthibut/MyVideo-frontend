@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError, api } from './client';
+import { ApiError, api, type Schemas } from './client';
 
 export function useFolders() {
   return useQuery({
@@ -31,6 +31,69 @@ export function useCreateFolder() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['folders'] }),
+  });
+}
+export type FolderSettings = Schemas['FolderSettings'];
+export type FolderPlan = Schemas['FolderPlanResponse'];
+
+/** The plan panel polls every 2 s while the edit is moving (no new infra: the run state is the truth). */
+export function useFolderPlan(id: string) {
+  return useQuery({
+    queryKey: ['folders', id, 'plan'],
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/folders/{id}/plan', { params: { path: { id } } });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    refetchInterval: (q) => {
+      const p = q.state.data;
+      if (!p) return 2000;
+      const moving = p.steps.some((s) => s.state === 'running');
+      return moving || (p.runId && !p.finished && !p.failed && !p.needs) ? 2000 : 5000;
+    },
+  });
+}
+export function useStartFolderEdit(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error, response } = await api.POST('/folders/{id}/edit', {
+        params: { path: { id } },
+        body: {},
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    onSuccess: (data) => qc.setQueryData(['folders', id, 'plan'], data),
+  });
+}
+export function useChooseFolderStyle(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (styleId: string) => {
+      const { data, error, response } = await api.POST('/folders/{id}/style', {
+        params: { path: { id } },
+        body: { styleId },
+      });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    onSuccess: (data) => qc.setQueryData(['folders', id, 'plan'], data),
+  });
+}
+
+export function useUpdateFolder(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { title?: string; settings?: FolderSettings }) => {
+      const { data, error, response } = await api.PATCH('/folders/{id}', { params: { path: { id } }, body });
+      if (!data) throw new ApiError(response.status, error);
+      return data;
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(['folders', id], data);
+      void qc.invalidateQueries({ queryKey: ['folders'], exact: true });
+    },
   });
 }
 export async function addFolderSources(id: string, sourceIds: string[]) {

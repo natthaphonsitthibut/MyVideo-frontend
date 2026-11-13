@@ -9,6 +9,8 @@ import { PageBackLink } from '@/components/ui/page-back-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EditedClipCard } from '@/features/clip/EditedClipCard';
 import { SourceCard } from '@/features/library/SourceCard';
+import { FolderSettingsPanel } from '@/features/project/FolderSettingsPanel';
+import { PlanPanel } from '@/features/project/PlanPanel';
 import { UploadPanel } from '@/features/upload/UploadPanel';
 
 function FolderSource({ id, folderId }: { id: string; folderId: string }) {
@@ -129,40 +131,46 @@ export function ProjectFolderPage() {
         <PageBackLink to="/projects">โปรเจกต์ทั้งหมด</PageBackLink>
         <h1 className="text-2xl font-semibold break-words">{f.title}</h1>
       </header>
-      <section aria-labelledby="footage-heading" className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 id="footage-heading" className="text-xl font-semibold">
-              ฟุตเทจต้นฉบับ
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">อัปโหลดเพิ่ม หรือเลือกวิดีโอที่มีอยู่ในคลัง</p>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <section aria-labelledby="footage-heading" className="min-w-0 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 id="footage-heading" className="text-xl font-semibold">
+                ฟุตเทจต้นฉบับ
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">วิดีโอและรูปสินค้า อัปโหลดเพิ่ม หรือเลือกจากคลังที่มีอยู่</p>
+            </div>
+            <Button variant="outline" onClick={() => setPicking((open) => !open)} aria-expanded={picking}>
+              <Library aria-hidden />
+              เพิ่มจากคลังวิดีโอ
+            </Button>
           </div>
-          <Button variant="outline" onClick={() => setPicking((open) => !open)} aria-expanded={picking}>
-            <Library aria-hidden />
-            เพิ่มจากคลังวิดีโอ
-          </Button>
-        </div>
-        {picking ? (
-          <LibraryPicker folderId={id} existing={f.sourceIds} onDone={() => setPicking(false)} />
-        ) : null}
-        <UploadPanel
-          onSourceReady={async (sourceId) => {
-            await addFolderSources(id, [sourceId]);
-            await qc.invalidateQueries({ queryKey: ['folders'] });
-          }}
-        />
-        {f.sourceIds.length ? (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="ฟุตเทจในโปรเจกต์">
-            {f.sourceIds.map((sourceId) => (
-              <li key={sourceId}>
-                <FolderSource id={sourceId} folderId={id} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="py-4 text-sm text-muted-foreground">ยังไม่มีฟุตเทจในโปรเจกต์นี้</p>
-        )}
-      </section>
+          {picking ? (
+            <LibraryPicker folderId={id} existing={f.sourceIds} onDone={() => setPicking(false)} />
+          ) : null}
+          <UploadPanel
+            onSourceReady={async (sourceId) => {
+              await addFolderSources(id, [sourceId]);
+              await qc.invalidateQueries({ queryKey: ['folders'] });
+            }}
+          />
+          {f.sourceIds.length ? (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="ฟุตเทจในโปรเจกต์">
+              {f.sourceIds.map((sourceId) => (
+                <li key={sourceId}>
+                  <FolderSource id={sourceId} folderId={id} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-4 text-sm text-muted-foreground">ยังไม่มีฟุตเทจในโปรเจกต์นี้</p>
+          )}
+        </section>
+        <aside className="space-y-6 lg:sticky lg:top-6">
+          <FolderSettingsPanel folderId={id} settings={f.settings} sourceIds={f.sourceIds} />
+          <PlanPanel folderId={id} hasFootage={f.sourceIds.length > 0} />
+        </aside>
+      </div>
       <section aria-labelledby="edited-heading" className="mt-8 space-y-5 border-t pt-8">
         <div>
           <h2 id="edited-heading" className="text-xl font-semibold">
@@ -180,7 +188,7 @@ export function ProjectFolderPage() {
           </ul>
         ) : (
           <p className="rounded-xl bg-muted/30 px-5 py-8 text-sm text-muted-foreground">
-            ยังไม่มีคลิปที่ตัดแล้ว เปิดฟุตเทจแล้วเลือก “สร้างคลิปอัตโนมัติ” เพื่อเริ่มตัด
+            ยังไม่มีคลิปที่ตัดแล้ว กด “เริ่มตัดต่อ” ในแผนงาน แล้วคลิปจะมาอยู่ที่นี่
           </p>
         )}
       </section>

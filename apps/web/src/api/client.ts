@@ -22,3 +22,12 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+/** The server's Thai message for a refused request, or a generic one. */
+export function errorText(err: unknown): string {
+  if (err instanceof ApiError) {
+    const body = err.body as { message?: string } | null;
+    if (body?.message) return body.message;
+  }
+  return 'ทำไม่สำเร็จ ลองอีกครั้ง';
+}

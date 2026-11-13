@@ -208,6 +208,20 @@
         ],
         "type": "object"
       },
+      "ChooseFolderStyleBody": {
+        "additionalProperties": false,
+        "properties": {
+          "styleId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "styleId"
+        ],
+        "type": "object"
+      },
       "ClipSuggestion": {
         "additionalProperties": false,
         "properties": {
@@ -425,6 +439,9 @@
       "CreateFolderBody": {
         "additionalProperties": false,
         "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/FolderSettings"
+          },
           "title": {
             "maxLength": 200,
             "minLength": 1,
@@ -547,6 +564,164 @@
         ],
         "type": "object"
       },
+      "FolderPlanResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "done": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "failed": {
+            "type": "boolean"
+          },
+          "finished": {
+            "type": "boolean"
+          },
+          "needs": {
+            "anyOf": [
+              {
+                "enum": [
+                  "style"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proposals": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "origin": {
+                  "enum": [
+                    "ai",
+                    "rules",
+                    "catalogue"
+                  ],
+                  "type": "string"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "styleId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "styleId",
+                "name",
+                "description",
+                "reason",
+                "origin"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "runId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/FolderPlanStep"
+            },
+            "type": "array"
+          },
+          "styleId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "total": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "runId",
+          "styleId",
+          "steps",
+          "done",
+          "total",
+          "finished",
+          "failed",
+          "needs",
+          "proposals"
+        ],
+        "type": "object"
+      },
+      "FolderPlanStep": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "enum": [
+              "prepare",
+              "transcribe",
+              "analyse",
+              "style",
+              "edit"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "waiting",
+              "done",
+              "failed",
+              "skipped"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "state",
+          "detail",
+          "error"
+        ],
+        "type": "object"
+      },
       "FolderRecord": {
         "additionalProperties": false,
         "properties": {
@@ -562,6 +737,9 @@
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
             "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/FolderSettings"
           },
           "sourceIds": {
             "items": {
@@ -583,9 +761,77 @@
         "required": [
           "id",
           "title",
+          "settings",
           "sourceIds",
           "clipIds",
           "updatedAt"
+        ],
+        "type": "object"
+      },
+      "FolderSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "goal": {
+            "default": "sell",
+            "enum": [
+              "sell",
+              "review",
+              "live"
+            ],
+            "type": "string"
+          },
+          "length": {
+            "default": "auto",
+            "enum": [
+              "15",
+              "30",
+              "60",
+              "auto"
+            ],
+            "type": "string"
+          },
+          "productName": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "productPrice": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "ratio": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "9:16",
+              "16:9",
+              "1:1",
+              "4:5"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "ratio",
+          "goal",
+          "length",
+          "productName",
+          "productPrice"
         ],
         "type": "object"
       },
@@ -3268,6 +3514,20 @@
               }
             ]
           },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "video",
+                  "photo"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "originalFilename": {
             "type": "string"
           },
@@ -3376,6 +3636,7 @@
           "ingestRunId",
           "createdAt",
           "durationMs",
+          "kind",
           "width",
           "height",
           "hasAudio",
@@ -3385,6 +3646,17 @@
           "hasPeaks",
           "sprites"
         ],
+        "type": "object"
+      },
+      "StartFolderEditBody": {
+        "additionalProperties": false,
+        "properties": {
+          "styleId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "StylePackList": {
@@ -4352,6 +4624,20 @@
         ],
         "type": "object"
       },
+      "UpdateFolderBody": {
+        "additionalProperties": false,
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/FolderSettings"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "UploadConfig": {
         "additionalProperties": false,
         "properties": {
@@ -4840,6 +5126,178 @@
         "tags": [
           "folders"
         ]
+      },
+      "patch": {
+        "operationId": "updateFolder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFolderBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderRecord"
+                }
+              }
+            },
+            "description": "Updated folder"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such folder or source for this merchant"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Rename a folder or change its edit settings",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/folders/{id}/edit": {
+      "post": {
+        "operationId": "startFolderEdit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartFolderEditBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderPlanResponse"
+                }
+              }
+            },
+            "description": "Plan"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such folder or source for this merchant"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "The folder has no footage yet"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Start editing the folder footage (an unfinished edit is reused)",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/folders/{id}/plan": {
+      "get": {
+        "operationId": "getFolderPlan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderPlanResponse"
+                }
+              }
+            },
+            "description": "Plan"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such folder or source for this merchant"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Plan panel: ordered edit steps of the folder from the real run states, plus style proposals",
+        "tags": [
+          "folders"
+        ]
       }
     },
     "/folders/{id}/sources": {
@@ -4895,6 +5353,84 @@
           }
         ],
         "summary": "Add existing Library sources to a folder, atomically and idempotently",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/folders/{id}/style": {
+      "post": {
+        "operationId": "chooseFolderStyle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChooseFolderStyleBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderPlanResponse"
+                }
+              }
+            },
+            "description": "Plan"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "Unknown style"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No such folder or source for this merchant"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            },
+            "description": "No running edit to choose a style for"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Pick the edit style for the running folder edit; the edit continues",
         "tags": [
           "folders"
         ]

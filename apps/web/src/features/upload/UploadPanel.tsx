@@ -157,7 +157,7 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
     <div className="space-y-4">
       {/* drop target for mouse users; keyboard and touch users use the button inside */}
       <section
-        aria-label="อัปโหลดวิดีโอ"
+        aria-label="อัปโหลดวิดีโอหรือรูป"
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -171,14 +171,14 @@ export function UploadPanel({ onSourceReady }: { onSourceReady?: (sourceId: stri
       >
         <Upload className="size-8 text-muted-foreground" aria-hidden />
         <div>
-          <p className="font-medium">ลากไฟล์วิดีโอมาวางที่นี่</p>
+          <p className="font-medium">ลากวิดีโอหรือรูปสินค้ามาวางที่นี่</p>
           <p className="text-sm text-muted-foreground">
-            ไลฟ์ยาวๆ ก็ได้ อัปโหลดต่อได้ถ้าเน็ตหลุด
+            ไลฟ์ยาวๆ ก็ได้ เลือกหลายไฟล์พร้อมกันได้ อัปโหลดต่อได้ถ้าเน็ตหลุด
             {cfg.data ? ` · สูงสุด ${formatBytes(cfg.data.maxBytes)} · ${cfg.data.extensions.join(', ')}` : ''}
           </p>
         </div>
         <Button onClick={() => inputRef.current?.click()} disabled={!cfg.data}>
-          เลือกไฟล์วิดีโอ
+          เลือกไฟล์
         </Button>
         <input
           ref={inputRef}
