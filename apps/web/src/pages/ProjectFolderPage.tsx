@@ -1,7 +1,7 @@
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Library } from 'lucide-react';
 import { useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { addFolderSources, useAddFolderSources, useFolder } from '@/api/folders';
 import { type SourceSummary, sourceQuery, useLibrarySources } from '@/api/sources';
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,13 @@ function FolderSource({
           onChange={(e) => onSelect(e.target.checked)}
           aria-label={`ส่ง ${source.title} ให้ AI`}
         />
-        ใช้ตัดต่อรอบถัดไป
+        ส่งคลิปนี้ให้ AI ตัดต่อ
       </label>
+      {source.kind === 'video' && source.hasAudio && (
+        <Button asChild variant="outline" className="w-full" disabled={source.status !== 'ready'}>
+          <Link to={`/library/${source.id}?project=${folderId}#transcription`}>เลือกช่วง / ถอดเสียง</Link>
+        </Button>
+      )}
     </div>
   );
 }
@@ -298,7 +303,7 @@ export function ProjectFolderPage() {
           </ul>
         ) : (
           <p className="rounded-xl bg-muted/30 px-5 py-8 text-sm text-muted-foreground">
-            ยังไม่มีคลิปที่ตัดแล้ว กด “เริ่มตัดต่อ” ในแผนงาน แล้วคลิปจะมาอยู่ที่นี่
+            ยังไม่มีคลิปที่ตัดแล้ว เลือกช่วงหรือถอดเสียงก่อน แล้วกด “ให้ AI ตัดต่อคลิปที่เลือก”
           </p>
         )}
       </section>

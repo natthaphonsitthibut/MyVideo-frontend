@@ -1,5 +1,6 @@
 import { Check, Circle, CircleAlert, Clock, LoaderCircle, Minus, Sparkles, Wand2 } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
+import { Link } from 'react-router';
 import { errorText } from '@/api/client';
 import {
   type FolderPlan,
@@ -179,6 +180,7 @@ export function PlanPanel({ folderId, sourceIds }: { folderId: string; sourceIds
     );
   const p = plan.data;
   const open = !!p.runId && !p.finished && !p.failed;
+  const missing = (p.transcriptionNeeded ?? []).filter((id) => sourceIds.includes(id));
   return (
     <section aria-labelledby="plan-heading" className="space-y-4 rounded-xl border bg-card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -209,16 +211,31 @@ export function PlanPanel({ folderId, sourceIds }: { folderId: string; sourceIds
         </div>
       ) : null}
       {p.needs === 'style' && p.proposals.length ? <StylePick plan={p} folderId={folderId} /> : null}
+      {missing.length > 0 && (
+        <div className="space-y-2 rounded-lg border p-3 text-sm">
+          <p className="font-medium">เลือกช่วงหรือถอดเสียงก่อนส่งให้ AI</p>
+          <p className="text-xs text-muted-foreground">
+            เลือกถอดทั้งคลิป หรือสร้างคลิปใหม่จากหลายช่วง แล้วเลือกคลิปใหม่นั้นส่งให้ AI ระบบจะไม่ถอดทั้งไฟล์เอง
+          </p>
+          {missing.map((sourceId, i) => (
+            <Button key={sourceId} asChild variant="outline" className="w-full">
+              <Link to={`/library/${sourceId}?project=${folderId}#transcription`}>
+                เลือกช่วง / ถอดเสียง · คลิป {i + 1}
+              </Link>
+            </Button>
+          ))}
+        </div>
+      )}
       {!open ? (
         <div className="space-y-2">
           <Button
             className="w-full"
-            disabled={!sourceIds.length || start.isPending}
+            disabled={!sourceIds.length || start.isPending || missing.length > 0}
             onClick={() => start.mutate(sourceIds)}
             data-testid="folder-start"
           >
             <Sparkles />
-            {p.failed ? 'เริ่มใหม่อีกครั้ง' : p.finished ? 'ตัดต่ออีกรอบ' : 'เริ่มตัดต่อ'}
+            {p.failed ? 'ให้ AI ตัดต่อใหม่' : p.finished ? 'ให้ AI ตัดต่ออีกรอบ' : 'ให้ AI ตัดต่อคลิปที่เลือก'}
           </Button>
           {!sourceIds.length ? (
             <p className="text-xs text-muted-foreground">เลือกฟุตเทจอย่างน้อย 1 ไฟล์ แล้วค่อยเริ่มตัดต่อ</p>

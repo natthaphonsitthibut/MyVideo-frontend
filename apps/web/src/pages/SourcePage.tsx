@@ -123,7 +123,10 @@ export function SourcePage() {
         </div>
       ) : null}
       {s.hasProxy ? (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+        <div
+          id="transcription"
+          className="grid scroll-mt-6 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]"
+        >
           <ProxyPlayer source={s} videoRef={videoRef} />
           {s.status === 'ready' ? (
             <TranscriptPanel

@@ -128,7 +128,7 @@ export function TranscriptPanel({
           data-testid="transcript-start"
         >
           {failed ? <RotateCcw /> : null}
-          {failed ? 'ถอดเสียงอีกครั้ง' : 'ถอดเสียงวิดีโอนี้'}
+          {failed ? 'ถอดเสียงทั้งคลิปอีกครั้ง' : 'ถอดเสียงทั้งคลิป'}
         </Button>
         {start.isError ? (
           <p role="alert" className="text-sm text-destructive">

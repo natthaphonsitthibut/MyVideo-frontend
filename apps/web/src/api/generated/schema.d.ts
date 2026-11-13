@@ -1102,7 +1102,7 @@ export interface components {
                 name: string;
                 styleId: string;
             } | null;
-            needs: "style" | null;
+            needs: ("transcript" | "style") | null;
             proposals: {
                 description: string;
                 name: string;
@@ -1136,6 +1136,7 @@ export interface components {
             styleId: string | null;
             styleIds?: string[];
             total: number;
+            transcriptionNeeded?: string[];
         };
         FolderPlanStep: {
             detail: string | null;
