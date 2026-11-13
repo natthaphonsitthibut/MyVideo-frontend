@@ -11,6 +11,36 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+it('showcase images share one source for the blurred backdrop and contained product card', () => {
+  const p = project();
+  p.elements = {
+    photo: {
+      type: 'image',
+      id: 'photo',
+      trackId: 't',
+      assetId: 'a',
+      startFrame: 0,
+      durationFrames: 60,
+      origin: 'ai',
+      fit: 'contain',
+      presentation: 'showcase',
+      transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+    },
+  };
+  p.assets.a = { sourceId: 'photo-source', kind: 'image', durationFrames: 60, hasAudio: false };
+  p.tracks = [{ id: 't', kind: 'video', elementIds: ['photo'] }];
+  const stage = mountStage(document.createElement('div'), p, () => '/photo.jpg');
+  stage.draw(0);
+  const images = [...stage.root.querySelectorAll('img')];
+  expect(images).toHaveLength(2);
+  expect(images.map((i) => i.getAttribute('src'))).toEqual(['/photo.jpg', '/photo.jpg']);
+  expect(images[0]?.style.objectFit).toBe('cover');
+  expect(images[0]?.style.filter).toContain('blur');
+  expect(images[1]?.style.objectFit).toBe('contain');
+  expect(stage.root.querySelectorAll('video')).toHaveLength(0);
+  stage.destroy();
+});
+
 it('jump cuts alternate between two decoders (A/B lanes); rational source time without DOM state', () => {
   const p = project();
   p.fps = { num: 30000, den: 1001 };

@@ -1886,6 +1886,13 @@
                 ],
                 "type": "string"
               },
+              "presentation": {
+                "enum": [
+                  "plain",
+                  "showcase"
+                ],
+                "type": "string"
+              },
               "startFrame": {
                 "maximum": 9007199254740991,
                 "minimum": 0,

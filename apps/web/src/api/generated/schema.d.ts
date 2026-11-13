@@ -1281,6 +1281,8 @@ export interface components {
             opacity?: number;
             /** @enum {string} */
             origin: "ai" | "user" | "template";
+            /** @enum {string} */
+            presentation?: "plain" | "showcase";
             startFrame: number;
             /** Format: uuid */
             trackId: string;

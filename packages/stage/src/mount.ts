@@ -111,6 +111,16 @@ export function mountStage(
         const el = document.createElement('img');
         if (asset) el.src = resolve(e.assetId, asset);
         el.style.cssText = `display:block;width:100%;height:100%;object-fit:${e.fit};`;
+        if (e.presentation === 'showcase') {
+          inner.style.cssText += 'position:relative;overflow:hidden;background:#111111;';
+          const backdrop = el.cloneNode() as HTMLImageElement;
+          backdrop.style.cssText =
+            'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(32px) brightness(0.55);transform:scale(1.12);';
+          backdrop.alt = '';
+          inner.appendChild(backdrop);
+          el.style.cssText =
+            'position:absolute;inset:8%;width:84%;height:84%;object-fit:contain;filter:drop-shadow(0 12px 20px #00000088);';
+        }
         if (e.crop)
           el.style.clipPath = `inset(${e.crop.top * 100}% ${e.crop.right * 100}% ${e.crop.bottom * 100}% ${e.crop.left * 100}%)`;
         inner.appendChild(el);

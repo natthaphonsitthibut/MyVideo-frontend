@@ -33,7 +33,13 @@ type Media = { assetId: string; sourceInFrame: number; playbackRate: number; vol
 
 export type VideoEl = Common & Media & { type: 'video'; transform: Transform; fit: string };
 export type AudioEl = Common & Media & { type: 'audio' };
-export type ImageEl = Common & { type: 'image'; assetId: string; transform: Transform; fit: string };
+export type ImageEl = Common & {
+  type: 'image';
+  assetId: string;
+  transform: Transform;
+  fit: string;
+  presentation?: 'plain' | 'showcase';
+};
 export type TextEl = Common & { type: 'text'; content: string; transform: Transform; styleRef?: string };
 export type CaptionEl = Common & {
   type: 'caption';
