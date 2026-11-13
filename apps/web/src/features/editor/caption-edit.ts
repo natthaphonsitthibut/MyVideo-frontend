@@ -49,6 +49,33 @@ export function editCaptionWord(c: Caption, index: number, text: string, layout:
   return { words, lines: relayout(words, layout) };
 }
 
+/**
+ * Removes a word (user request 2026-11-13). Its time goes to the word before it (the first word's time goes to the
+ * next), so every other word stays on its audio. A page's only word is not removed here: remove the page instead.
+ */
+export function removeCaptionWord(c: Caption, index: number, layout: Layout) {
+  if (c.words.length < 2) throw new Error('the only word of a caption page: remove the page instead');
+  const gone = c.words[index];
+  if (!gone) throw new Error(`no word ${index}`);
+  const words = c.words.filter((_, i) => i !== index);
+  if (index > 0) {
+    const prev = words[index - 1] as Word;
+    words[index - 1] = { ...prev, endFrame: gone.endFrame };
+  } else {
+    const next = words[0] as Word;
+    words[0] = { ...next, startFrame: gone.startFrame };
+  }
+  return { words, lines: relayout(words, layout) };
+}
+
+/** A line break inside the page before word `index`: both parts are laid out within the width as usual. */
+export function breakCaptionLineAt(c: Caption, index: number, layout: Layout) {
+  if (index <= 0 || index >= c.words.length) throw new Error('a line break needs words on both sides');
+  const head = relayout(c.words.slice(0, index), layout);
+  const tail = relayout(c.words.slice(index), layout).map((line) => line.map((i) => i + index));
+  return { words: c.words, lines: [...head, ...tail] };
+}
+
 export function revertCaptionWord(c: Caption, index: number, layout: Layout) {
   const w = c.words[index];
   if (!w?.asrText) return { words: c.words, lines: c.lines };

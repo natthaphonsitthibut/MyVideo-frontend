@@ -1,15 +1,17 @@
 import { canvasMeasure, captionFont, captionMaxWidth, loadCaptionFont } from '@myvideo/stage';
 import { type Command, formatTimecode, setCaptionWords } from '@myvideo/timeline-core';
-import { Check, Merge, Scissors, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { Check, CornerDownLeft, Merge, Scissors, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   acceptCaptionWord,
+  breakCaptionLineAt,
   captionRows,
   editCaptionWord,
   type Layout,
   mergeCaptionWithNext,
+  removeCaptionWord,
   revertCaptionWord,
   splitCaptionAt,
 } from './caption-edit';
@@ -59,6 +61,19 @@ export function CaptionsPanel({
     setEditing(null);
   };
 
+  /** Removes a word; the page's only word removes the whole caption page (the speech stays in the video). */
+  const remove = (id: string, index: number, count: number) => {
+    if (count <= 1) {
+      store.run(removeElement(id));
+      setEditing(null);
+    } else void apply(id, (c, l) => removeCaptionWord(c, index, l));
+  };
+  /** Save the typed word; an empty box means "remove this word". */
+  const save = (id: string, index: number, count: number) => {
+    if (draft.trim()) void apply(id, (c, l) => editCaptionWord(c, index, draft, l));
+    else remove(id, index, count);
+  };
+
   const page = async (id: string, make: (layout: Layout) => Command) => {
     const c = store.doc().elements[id] as unknown as CaptionEl | undefined;
     if (!c) return;
@@ -100,31 +115,47 @@ export function CaptionsPanel({
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && draft.trim())
-                            void apply(r.id, (c, l) => editCaptionWord(c, i, draft, l));
+                          if (e.key === 'Enter') save(r.id, i, r.words.length);
                           if (e.key === 'Escape') setEditing(null);
                         }}
                       />
+                      <Button size="sm" onClick={() => save(r.id, i, r.words.length)}>
+                        <Check />
+                        {draft.trim() ? 'บันทึก' : 'บันทึก (ลบคำนี้)'}
+                      </Button>
                       <Button
                         size="sm"
-                        disabled={!draft.trim()}
-                        onClick={() => void apply(r.id, (c, l) => editCaptionWord(c, i, draft, l))}
+                        variant="ghost"
+                        className="text-destructive"
+                        onClick={() => remove(r.id, i, r.words.length)}
+                        data-testid="caption-word-delete"
                       >
-                        <Check />
-                        บันทึก
+                        <Trash2 />
+                        ลบคำนี้
                       </Button>
                       {i > 0 ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            void page(r.id, (l) => splitCaptionAt(r.id, i, crypto.randomUUID(), l))
-                          }
-                          data-testid="caption-split"
-                        >
-                          <Scissors />
-                          ขึ้นบรรทัดใหม่ตรงนี้
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => void apply(r.id, (c, l) => breakCaptionLineAt(c, i, l))}
+                            data-testid="caption-line-break"
+                          >
+                            <CornerDownLeft />
+                            ขึ้นบรรทัดใหม่ตรงนี้
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              void page(r.id, (l) => splitCaptionAt(r.id, i, crypto.randomUUID(), l))
+                            }
+                            data-testid="caption-split"
+                          >
+                            <Scissors />
+                            แยกเป็นซับใหม่ตรงนี้
+                          </Button>
+                        </>
                       ) : null}
                       {w.ai ? (
                         <>

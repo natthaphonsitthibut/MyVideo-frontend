@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   acceptCaptionWord,
+  breakCaptionLineAt,
   captionRows,
   editCaptionWord,
   mergeCaptionWithNext,
+  removeCaptionWord,
   revertCaptionWord,
   splitCaptionAt,
 } from './caption-edit';
@@ -45,7 +47,38 @@ describe('caption editing', () => {
     expect(r.lines.flat()).toEqual([0, 1, 2, 3]);
   });
 
-  it('an empty edit is refused (a caption word cannot disappear by typing nothing)', () => {
+  // user request 2026-11-13: deleting a word must be possible (it used to be refused)
+  it('removing a word gives its time to the word before it; the rest keep their timing and the lines re-lay', () => {
+    const r = removeCaptionWord(caption, 2, { measure, maxWidth: 2000, maxLines: 2 });
+    expect(r.words.map((w) => [w.text, w.startFrame, w.endFrame])).toEqual([
+      ['รับ', 0, 8],
+      ['พิมพ์', 8, 26],
+      ['1,500 บาท', 26, 40],
+    ]);
+    expect(r.words[1]?.origin).toBe('ai'); // the neighbour keeps its own provenance
+    expect(r.lines.flat()).toEqual([0, 1, 2]);
+  });
+
+  it('removing the first word gives its time to the next word', () => {
+    const r = removeCaptionWord(caption, 0, { measure, maxWidth: 2000, maxLines: 2 });
+    expect(r.words[0]).toMatchObject({ text: 'พิมพ์', startFrame: 0, endFrame: 16 });
+  });
+
+  it('the only word of a page cannot be removed here (the caller removes the whole page)', () => {
+    const one = { ...caption, words: [{ text: 'รับ', startFrame: 0, endFrame: 8 }], lines: [[0]] };
+    expect(() => removeCaptionWord(one, 0, { measure, maxWidth: 600, maxLines: 2 })).toThrow();
+  });
+
+  it('a line break before a word keeps the page and puts that word first on a new line', () => {
+    const r = breakCaptionLineAt(caption, 2, { measure, maxWidth: 2000, maxLines: 2 });
+    expect(r.words).toEqual(caption.words);
+    expect(r.lines).toEqual([
+      [0, 1],
+      [2, 3],
+    ]);
+  });
+
+  it('an empty edit is still not a word: the panel turns it into a removal', () => {
     expect(() => editCaptionWord(caption, 0, '  ', { measure, maxWidth: 600, maxLines: 2 })).toThrow();
   });
 
