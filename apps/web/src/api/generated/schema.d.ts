@@ -126,6 +126,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/folders/style-lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Stop automatically applying the merchant locked style to new edits */
+        delete: operations["unlockEditingStyle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/folders/{id}": {
         parameters: {
             query?: never;
@@ -919,6 +936,7 @@ export interface components {
             status: "up" | "down";
         };
         ChooseFolderStyleBody: {
+            lockStyle?: boolean;
             styleId: string;
         };
         ClipSuggestion: {
@@ -988,6 +1006,10 @@ export interface components {
             done: number;
             failed: boolean;
             finished: boolean;
+            lockedStyle: {
+                name: string;
+                styleId: string;
+            } | null;
             needs: "style" | null;
             proposals: {
                 description: string;
@@ -2141,6 +2163,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FolderRecord"];
                 };
+            };
+        };
+    };
+    unlockEditingStyle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Style unlocked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

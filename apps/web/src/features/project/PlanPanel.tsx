@@ -1,7 +1,13 @@
 import { Check, Circle, CircleAlert, Clock, LoaderCircle, Minus, Sparkles, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { errorText } from '@/api/client';
-import { type FolderPlan, useChooseFolderStyle, useFolderPlan, useStartFolderEdit } from '@/api/folders';
+import {
+  type FolderPlan,
+  useChooseFolderStyle,
+  useFolderPlan,
+  useStartFolderEdit,
+  useUnlockEditingStyle,
+} from '@/api/folders';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -66,6 +72,7 @@ function StepRow({ step }: { step: Step }) {
 function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
   const choose = useChooseFolderStyle(folderId);
   const [picked, setPicked] = useState(plan.proposals[0]?.styleId ?? '');
+  const [lockStyle, setLockStyle] = useState(false);
   const ranked = plan.proposals.some((p) => p.origin !== 'catalogue');
   return (
     <div className="space-y-3 rounded-lg border bg-muted/30 p-3" data-testid="folder-style-pick">
@@ -120,7 +127,20 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
           {errorText(choose.error)}
         </p>
       ) : null}
-      <Button disabled={choose.isPending || !picked} onClick={() => choose.mutate(picked)}>
+      <label className="flex min-h-11 items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="size-4 accent-primary"
+          checked={lockStyle}
+          onChange={(e) => setLockStyle(e.target.checked)}
+          disabled={choose.isPending}
+        />
+        ล็อกสไตล์นี้ ใช้กับโปรเจกต์ใหม่ด้วย
+      </label>
+      <Button
+        disabled={choose.isPending || !picked}
+        onClick={() => choose.mutate({ styleId: picked, lockStyle })}
+      >
         <Sparkles />
         ตัดต่อด้วยสไตล์นี้
       </Button>
@@ -131,6 +151,7 @@ function StylePick({ plan, folderId }: { plan: FolderPlan; folderId: string }) {
 export function PlanPanel({ folderId, sourceIds }: { folderId: string; sourceIds: string[] }) {
   const plan = useFolderPlan(folderId);
   const start = useStartFolderEdit(folderId);
+  const unlock = useUnlockEditingStyle();
   if (plan.isPending) return <Skeleton className="h-64" />;
   if (plan.isError)
     return (
@@ -160,6 +181,18 @@ export function PlanPanel({ folderId, sourceIds }: { folderId: string; sourceIds
           <StepRow key={s.id} step={s} />
         ))}
       </ol>
+      {p.lockedStyle ? (
+        <div className="space-y-1 rounded-md bg-primary/5 px-3 py-2 text-sm">
+          <p>
+            สไตล์ที่ล็อก: <strong>{p.lockedStyle.name}</strong>
+          </p>
+          <p className="text-xs text-muted-foreground">เริ่มรอบใหม่ด้วยสไตล์นี้อัตโนมัติ ค่าของงานที่เริ่มแล้วจะคงเดิม</p>
+          <Button variant="ghost" size="sm" disabled={unlock.isPending} onClick={() => unlock.mutate()}>
+            ยกเลิกล็อกสไตล์
+          </Button>
+          {unlock.isError ? <p role="alert">{errorText(unlock.error)}</p> : null}
+        </div>
+      ) : null}
       {p.needs === 'style' && p.proposals.length ? <StylePick plan={p} folderId={folderId} /> : null}
       {!open ? (
         <div className="space-y-2">

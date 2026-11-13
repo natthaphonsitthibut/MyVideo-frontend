@@ -70,15 +70,25 @@ export function useStartFolderEdit(id: string) {
 export function useChooseFolderStyle(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (styleId: string) => {
+    mutationFn: async ({ styleId, lockStyle }: { styleId: string; lockStyle: boolean }) => {
       const { data, error, response } = await api.POST('/folders/{id}/style', {
         params: { path: { id } },
-        body: { styleId },
+        body: { styleId, lockStyle },
       });
       if (!data) throw new ApiError(response.status, error);
       return data;
     },
     onSuccess: (data) => qc.setQueryData(['folders', id, 'plan'], data),
+  });
+}
+export function useUnlockEditingStyle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const r = await api.DELETE('/folders/style-lock');
+      if (!r.response.ok) throw new ApiError(r.response.status, r.error);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['folders'] }),
   });
 }
 
